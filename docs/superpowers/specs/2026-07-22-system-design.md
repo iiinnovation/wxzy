@@ -321,7 +321,7 @@ CardReviewState 的唯一键是 `(user_id, card_id)`，并通过同样的 user/c
 | 字段 | 说明 |
 |---|---|
 | id | 作答 ID |
-| idempotency_key | 用户范围内唯一 |
+| client_attempt_id | 客户端生成、用户范围内唯一 |
 | session_id/user_id/card_id/card_revision | 上下文 |
 | rating | 1–4 |
 | response_ms | 作答耗时 |
@@ -331,6 +331,15 @@ CardReviewState 的唯一键是 `(user_id, card_id)`，并通过同样的 user/c
 | state_before/state_after | 审计 |
 | algorithm_version | 审计 |
 
+`client_attempt_id` 在用户范围内唯一。相同键且 session、card、card revision、rating 一致时
+返回首次提交结果；任一上下文不同则返回冲突。服务先锁定当前 CardReviewState，在事务中先插入
+ReviewAttempt 占用唯一键，再更新个人状态；唯一键冲突必须回滚并读取首次结果，不能重复推进
+调度状态。SQLite 使用单写事务，PostgreSQL 使用行锁，唯一约束是两者共同的最终保障。
+
+`state_before` 必须由服务从锁定的当前状态生成，`state_after` 必须通过结构化 schema 验证；
+两者都包含 due、FSRS 参数、次数、状态和算法版本。`answer_payload` 仅允许最多 16 个标量字段、
+单个字符串最多 4000 字符、序列化后最多 8192 UTF-8 字节，不用于保存无限制的自由文本。
+
 #### DailyPlan
 
 记录日期、用户时间预算、生成版本、预测负荷、任务项和生成原因。计划项引用 enrollment/card，而不是复制卡片内容。
@@ -338,6 +347,8 @@ CardReviewState 的唯一键是 `(user_id, card_id)`，并通过同样的 user/c
 #### CardIssue
 
 用户反馈：事实错误、来源错误、过大、过难、表述不清、概念混淆。Issue 可触发内容审核或学习修复。
+每条 Issue 固定记录提交时的 card revision，状态为 open/in_review/resolved/dismissed；终态只允许
+同结果幂等重放，不允许改写为另一个终态。
 
 #### TopicMastery
 
@@ -528,7 +539,7 @@ Admin 接口不暴露给普通小程序页面；初期由 CLI 调用。
 
 ## 15. 并发和幂等
 
-- `ReviewAttempt.idempotency_key` 在 `user_id` 范围唯一。
+- `ReviewAttempt.client_attempt_id` 在 `user_id` 范围唯一。
 - 提交时锁定或原子更新对应 CardReviewState。
 - 重复请求返回首次提交结果。
 - enrollment 创建使用 `(user_id, card_id)` 唯一约束。

@@ -327,11 +327,32 @@ P0 完成检查点：T01–T06 全部完成；当前后端保持在 `http://127.
 
 ## P1-T04 建立 StudySession、ReviewAttempt 和 CardIssue
 
-状态：`[ ]`
+状态：`[x]`
+
+完成报告（2026-07-22）：
+
+- 修改文件：扩展 `server/app/learning/`，新增 `20260722_0005_study_review_issues.py` 与复习尝试测试；更新系统设计和双数据库迁移测试。
+- 领域结果：建立 StudySession、ReviewAttempt、CardIssue；会话记录 planned/active/completed/interrupted 生命周期、时间预算和任务计数，作答固定记录用户、会话、卡片 revision、行为信号、due 与完整状态前后快照。
+- 幂等与并发：数据库唯一 `(user_id, client_attempt_id)`；相同上下文重放返回首次行，不同 session/card/revision/rating 返回冲突。服务先占用唯一键再更新 CardReviewState，SQLite 以 `BEGIN IMMEDIATE` 短退避串行写入，PostgreSQL 以 `FOR UPDATE` 锁定状态。
+- 输入边界：answer payload 仅允许最多 16 个标量字段、单字符串 4000 字符、总计 8192 UTF-8 字节；卡片问题覆盖事实错误、来源错误、过大、过难、表述不清、概念混淆，并保留提交时 revision。
+- 核心验收：正常提交、网络重放、冲突重放、SQLite 双线程和 PostgreSQL 双连接测试均通过；并发同键只产生 1 条 Attempt、状态只推进 1 次，会话生命周期和六类 CardIssue 均有测试。
+- 自动验证：`tools/quality-gate.sh` PASS；Ruff、format、Mypy 47 个源文件、小程序 JS/JSON 和 13 份 Markdown 链接通过；pytest `62 passed, 2 skipped, 1 warning`，分支 coverage `54%`。两个 skip 均为默认未配置 PostgreSQL 的显式集成测试。
+- 迁移验证：空 SQLite 与 Docker PostgreSQL 16 均完成 `upgrade head -> downgrade 0005 -> downgrade 0004 -> downgrade 0003 -> downgrade base -> upgrade head -> check`；PostgreSQL 迁移和并发专项为 `2 passed`，临时测试库已删除、容器已停止。
+- 真实数据迁移：停服后备份 `server/backups/wxzy-before-20260722-0005.db`，SHA-256 为 `5d897efe3adbfc3444bcf5ba74f4618166e96549a71a93f03cb5524e09fc2e51`；真实库已升至 `20260722_0005`，`PRAGMA integrity_check=ok`，旧业务计数仍为 `2/15/15/4`，三张新表均为 0。
+- 运行验证：后端重启后 health、books、legacy due 和 stats 均返回 200；旧统计仍为 2 本、15 approved cards、11 due、4 reviewed today，结构化日志不含 Token。
+- 回滚与风险：恢复 0004 优先停服并还原上述备份；产生 session/attempt/issue 数据后不得直接 downgrade 0005。本任务未新增 HTTP API、未实现标准 FSRS，分别留给 P6-T03 和 P6-T01。
+- 恢复点：P1-T04 已完成并验证；下一个串行任务是 P1-T05 迁移现有原型数据。
 
 需求：REV-004、REV-006、REV-007。
 
 工作：记录 session、client_attempt_id、rating、response_ms、hint/reveal、前后状态和内容 revision；CardIssue 支持错误类别。
+
+范围补充：复习尝试只记录调度器产出的目标状态，不在本任务实现标准 FSRS；幂等键按
+`(user_id, client_attempt_id)` 唯一，重放必须返回首次结果，冲突上下文必须报错。
+
+事务设计：在同一事务中锁定个人复习状态并插入唯一尝试，再写入目标状态；唯一键冲突回滚后
+读取首次提交的尝试。SQLite 依赖单写事务，PostgreSQL 使用 `FOR UPDATE`，两者均由唯一约束
+作为最终并发保障。
 
 验收：重复 client_attempt_id 返回同一结果；并发提交只产生一条 Attempt。
 
