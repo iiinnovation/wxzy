@@ -1,0 +1,544 @@
+{
+  "version": 1,
+  "mode": "offline",
+  "batch_id": "a67c429e-956c-4f28-bec6-69c3b71e17fa",
+  "prompt_version": "v1",
+  "generated_at": "2026-07-22T01:17:20.250168+00:00",
+  "count": 18,
+  "cards": [
+    {
+      "id": "桂枝汤的组成是什么-7ca473a32a",
+      "book": "方剂学",
+      "chapter": "解表剂",
+      "section": "桂枝汤",
+      "type": "formula_compose",
+      "question": "桂枝汤的组成是什么？",
+      "answer": "桂枝三两 芍药三两 生姜三两 大枣十二枚 炙甘草二两。",
+      "answer_points": [
+        "桂枝三两",
+        "芍药三两",
+        "生姜三两",
+        "大枣十二枚",
+        "炙甘草二两"
+      ],
+      "source_excerpt": "桂枝汤 组成：桂枝三两 芍药三两 生姜三两 大枣十二枚 炙甘草二两",
+      "source_pages": [],
+      "sample_page_idxs": [],
+      "tags": [
+        "桂枝汤",
+        "组成"
+      ],
+      "status": "approved",
+      "confidence": 0.92,
+      "review_notes": null,
+      "trace": {
+        "source_file": "data/mineru/results/a67c429e-956c-4f28-bec6-69c3b71e17fa/fangji_10p/unzipped/full.cleaned.md",
+        "batch_id": "a67c429e-956c-4f28-bec6-69c3b71e17fa",
+        "generator": "offline-extractor",
+        "model": null,
+        "prompt_version": "v1",
+        "created_at": "2026-07-22T01:17:20.245169+00:00"
+      }
+    },
+    {
+      "id": "桂枝汤的功用是什么-f9d825a028",
+      "book": "方剂学",
+      "chapter": "解表剂",
+      "section": "桂枝汤",
+      "type": "formula_function",
+      "question": "桂枝汤的功用是什么？",
+      "answer": "解肌发表,调和营卫。",
+      "answer_points": [],
+      "source_excerpt": "桂枝汤 功用：解肌发表,调和营卫",
+      "source_pages": [],
+      "sample_page_idxs": [],
+      "tags": [
+        "桂枝汤",
+        "功用"
+      ],
+      "status": "approved",
+      "confidence": 0.9,
+      "review_notes": null,
+      "trace": {
+        "source_file": "data/mineru/results/a67c429e-956c-4f28-bec6-69c3b71e17fa/fangji_10p/unzipped/full.cleaned.md",
+        "batch_id": "a67c429e-956c-4f28-bec6-69c3b71e17fa",
+        "generator": "offline-extractor",
+        "model": null,
+        "prompt_version": "v1",
+        "created_at": "2026-07-22T01:17:20.245645+00:00"
+      }
+    },
+    {
+      "id": "桂枝汤的主治是什么-3d8c352de9",
+      "book": "方剂学",
+      "chapter": "解表剂",
+      "section": "桂枝汤",
+      "type": "formula_indication",
+      "question": "桂枝汤的主治是什么？",
+      "answer": "1.外感风寒表虚证。头痛发热,汗出恶风,或鼻鸣干呕,苔白不渴,脉浮缓或浮弱者2.病后、产后、体弱表现的营卫阴阳不和证。",
+      "answer_points": [],
+      "source_excerpt": "桂枝汤 主治：1.外感风寒表虚证。头痛发热,汗出恶风,或鼻鸣干呕,苔白不渴,脉浮缓或浮弱者2.病后、产后、体弱表现的营卫阴阳不和证",
+      "source_pages": [],
+      "sample_page_idxs": [],
+      "tags": [
+        "桂枝汤",
+        "主治"
+      ],
+      "status": "approved",
+      "confidence": 0.85,
+      "review_notes": null,
+      "trace": {
+        "source_file": "data/mineru/results/a67c429e-956c-4f28-bec6-69c3b71e17fa/fangji_10p/unzipped/full.cleaned.md",
+        "batch_id": "a67c429e-956c-4f28-bec6-69c3b71e17fa",
+        "generator": "offline-extractor",
+        "model": null,
+        "prompt_version": "v1",
+        "created_at": "2026-07-22T01:17:20.245659+00:00"
+      }
+    },
+    {
+      "id": "请默写桂枝汤方歌-58616b00ff",
+      "book": "方剂学",
+      "chapter": "解表剂",
+      "section": "桂枝汤",
+      "type": "formula_song",
+      "question": "请默写桂枝汤方歌。",
+      "answer": "桂枝汤治太阳风,芍药甘草姜枣同。解肌发表调营卫,风寒表虚营卫通。",
+      "answer_points": [],
+      "source_excerpt": "桂枝汤 方歌：桂枝汤治太阳风,芍药甘草姜枣同。解肌发表调营卫,风寒表虚营卫通",
+      "source_pages": [],
+      "sample_page_idxs": [],
+      "tags": [
+        "桂枝汤",
+        "方歌"
+      ],
+      "status": "approved",
+      "confidence": 0.88,
+      "review_notes": null,
+      "trace": {
+        "source_file": "data/mineru/results/a67c429e-956c-4f28-bec6-69c3b71e17fa/fangji_10p/unzipped/full.cleaned.md",
+        "batch_id": "a67c429e-956c-4f28-bec6-69c3b71e17fa",
+        "generator": "offline-extractor",
+        "model": null,
+        "prompt_version": "v1",
+        "created_at": "2026-07-22T01:17:20.245669+00:00"
+      }
+    },
+    {
+      "id": "白虎汤的组成是什么-562b58a368",
+      "book": "方剂学",
+      "chapter": "清热剂",
+      "section": "白虎汤",
+      "type": "formula_compose",
+      "question": "白虎汤的组成是什么？",
+      "answer": "石膏一斤 知母六两 粳米六合 炙甘草二两。",
+      "answer_points": [
+        "石膏一斤",
+        "知母六两",
+        "粳米六合",
+        "炙甘草二两"
+      ],
+      "source_excerpt": "白虎汤 组成：石膏一斤 知母六两 粳米六合 炙甘草二两",
+      "source_pages": [],
+      "sample_page_idxs": [],
+      "tags": [
+        "白虎汤",
+        "组成"
+      ],
+      "status": "approved",
+      "confidence": 0.92,
+      "review_notes": null,
+      "trace": {
+        "source_file": "data/mineru/results/a67c429e-956c-4f28-bec6-69c3b71e17fa/fangji_10p/unzipped/full.cleaned.md",
+        "batch_id": "a67c429e-956c-4f28-bec6-69c3b71e17fa",
+        "generator": "offline-extractor",
+        "model": null,
+        "prompt_version": "v1",
+        "created_at": "2026-07-22T01:17:20.245692+00:00"
+      }
+    },
+    {
+      "id": "白虎汤的功用是什么-e56a3df534",
+      "book": "方剂学",
+      "chapter": "清热剂",
+      "section": "白虎汤",
+      "type": "formula_function",
+      "question": "白虎汤的功用是什么？",
+      "answer": "清热生津(清热泻火,除烦生津)。",
+      "answer_points": [],
+      "source_excerpt": "白虎汤 功用：清热生津(清热泻火,除烦生津)",
+      "source_pages": [],
+      "sample_page_idxs": [],
+      "tags": [
+        "白虎汤",
+        "功用"
+      ],
+      "status": "approved",
+      "confidence": 0.9,
+      "review_notes": null,
+      "trace": {
+        "source_file": "data/mineru/results/a67c429e-956c-4f28-bec6-69c3b71e17fa/fangji_10p/unzipped/full.cleaned.md",
+        "batch_id": "a67c429e-956c-4f28-bec6-69c3b71e17fa",
+        "generator": "offline-extractor",
+        "model": null,
+        "prompt_version": "v1",
+        "created_at": "2026-07-22T01:17:20.245700+00:00"
+      }
+    },
+    {
+      "id": "白虎汤的主治是什么-b1774a8297",
+      "book": "方剂学",
+      "chapter": "清热剂",
+      "section": "白虎汤",
+      "type": "formula_indication",
+      "question": "白虎汤的主治是什么？",
+      "answer": "阳明气分热盛证。壮热面赤,烦渴引饮,汗出恶热,脉洪大有力(身大热,汗大出,口大渴,脉洪大)。",
+      "answer_points": [],
+      "source_excerpt": "白虎汤 主治：阳明气分热盛证。壮热面赤,烦渴引饮,汗出恶热,脉洪大有力(身大热,汗大出,口大渴,脉洪大)",
+      "source_pages": [],
+      "sample_page_idxs": [],
+      "tags": [
+        "白虎汤",
+        "主治"
+      ],
+      "status": "approved",
+      "confidence": 0.85,
+      "review_notes": null,
+      "trace": {
+        "source_file": "data/mineru/results/a67c429e-956c-4f28-bec6-69c3b71e17fa/fangji_10p/unzipped/full.cleaned.md",
+        "batch_id": "a67c429e-956c-4f28-bec6-69c3b71e17fa",
+        "generator": "offline-extractor",
+        "model": null,
+        "prompt_version": "v1",
+        "created_at": "2026-07-22T01:17:20.245708+00:00"
+      }
+    },
+    {
+      "id": "请默写白虎汤方歌-649032a9e7",
+      "book": "方剂学",
+      "chapter": "清热剂",
+      "section": "白虎汤",
+      "type": "formula_song",
+      "question": "请默写白虎汤方歌。",
+      "answer": "白虎膏知甘粳米,气分热盛此方良。热渴汗出脉洪大,又加人参气津强。",
+      "answer_points": [],
+      "source_excerpt": "白虎汤 方歌：白虎膏知甘粳米,气分热盛此方良。热渴汗出脉洪大,又加人参气津强",
+      "source_pages": [],
+      "sample_page_idxs": [],
+      "tags": [
+        "白虎汤",
+        "方歌"
+      ],
+      "status": "approved",
+      "confidence": 0.88,
+      "review_notes": null,
+      "trace": {
+        "source_file": "data/mineru/results/a67c429e-956c-4f28-bec6-69c3b71e17fa/fangji_10p/unzipped/full.cleaned.md",
+        "batch_id": "a67c429e-956c-4f28-bec6-69c3b71e17fa",
+        "generator": "offline-extractor",
+        "model": null,
+        "prompt_version": "v1",
+        "created_at": "2026-07-22T01:17:20.245715+00:00"
+      }
+    },
+    {
+      "id": "肺痨各证型对应的选方歌诀是什么-0321e9b78c",
+      "book": "中医内科学",
+      "chapter": "肺系病证",
+      "section": "肺痨",
+      "type": "syndrome_formula",
+      "question": "肺痨各证型对应的选方歌诀是什么？",
+      "answer": "肺痨肺阴用月华，虚火百固秦鳖加。气阴保真或参白，阴阳补天大造茶。",
+      "answer_points": [],
+      "source_excerpt": "【选方】肺痨肺阴用月华，虚火百固秦鳖加。气阴保真或参白，阴阳补天大造茶。",
+      "source_pages": [],
+      "sample_page_idxs": [],
+      "tags": [
+        "肺痨",
+        "选方",
+        "歌诀"
+      ],
+      "status": "approved",
+      "confidence": 0.9,
+      "review_notes": null,
+      "trace": {
+        "source_file": "data/mineru/results/a67c429e-956c-4f28-bec6-69c3b71e17fa/neike_10p/unzipped/full.cleaned.md",
+        "batch_id": "a67c429e-956c-4f28-bec6-69c3b71e17fa",
+        "generator": "offline-extractor",
+        "model": null,
+        "prompt_version": "v1",
+        "created_at": "2026-07-22T01:17:20.245940+00:00"
+      }
+    },
+    {
+      "id": "肺痨的概念是什么-882f927e84",
+      "book": "中医内科学",
+      "chapter": "肺系病证",
+      "section": "肺痨",
+      "type": "disease_concept",
+      "question": "肺痨的概念是什么？",
+      "answer": "具有传染性的慢性虚弱性疾患,以咳嗽、咳血、潮热、盗汗、身体逐渐消瘦为特征。",
+      "answer_points": [],
+      "source_excerpt": "概念：具有传染性的慢性虚弱性疾患,以咳嗽、咳血、潮热、盗汗、身体逐渐消瘦为特征。(一般初起病情多轻,微有咳嗽,疲乏无力,逐渐消瘦,食欲不振,偶或痰中挟有少量血丝,继则咳嗽加剧,干咳少痰,或痰多黄白不一,午后发热,掌心尤甚,两颧红艳,唇红,口干多饮,或有形寒,时时咳血,甚则大量咯血,盗汗,失眠,胸部闷痛,心烦易怒,男子梦遗失精,女子月经不调或者经闭,如病重而未能及时治疗,可发展为大骨枯槁,大肉陷下,骨髓内消,发焦毛耸,肌肤甲错,音哑气喘,面唇发",
+      "source_pages": [],
+      "sample_page_idxs": [],
+      "tags": [
+        "肺痨",
+        "概念"
+      ],
+      "status": "approved",
+      "confidence": 0.86,
+      "review_notes": null,
+      "trace": {
+        "source_file": "data/mineru/results/a67c429e-956c-4f28-bec6-69c3b71e17fa/neike_10p/unzipped/full.cleaned.md",
+        "batch_id": "a67c429e-956c-4f28-bec6-69c3b71e17fa",
+        "generator": "offline-extractor",
+        "model": null,
+        "prompt_version": "v1",
+        "created_at": "2026-07-22T01:17:20.249452+00:00"
+      }
+    },
+    {
+      "id": "肺痨的基本病机是什么-914bff196e",
+      "book": "中医内科学",
+      "chapter": "肺系病证",
+      "section": "肺痨",
+      "type": "disease_pathogenesis",
+      "question": "肺痨的基本病机是什么？",
+      "answer": "阴虚。",
+      "answer_points": [],
+      "source_excerpt": "病机：【病机】主要为痨虫蚀肺。【基本病机】阴虚【病性】阴虚火旺为主,并可导致气阴两虚,甚至阴损及阳【病位】主要在肺,可累及脾肾,影响整体。与脾肾关系密切,可涉及心肝【病理演变】初起:肺阴亏损;继则阴虚火旺;或气阴两虚;甚则阴阳两虚;病可及心,气虚血瘀",
+      "source_pages": [],
+      "sample_page_idxs": [],
+      "tags": [
+        "肺痨",
+        "病机"
+      ],
+      "status": "approved",
+      "confidence": 0.9,
+      "review_notes": null,
+      "trace": {
+        "source_file": "data/mineru/results/a67c429e-956c-4f28-bec6-69c3b71e17fa/neike_10p/unzipped/full.cleaned.md",
+        "batch_id": "a67c429e-956c-4f28-bec6-69c3b71e17fa",
+        "generator": "offline-extractor",
+        "model": null,
+        "prompt_version": "v1",
+        "created_at": "2026-07-22T01:17:20.249545+00:00"
+      }
+    },
+    {
+      "id": "肺痨的治则是什么-8a35c4a947",
+      "book": "中医内科学",
+      "chapter": "肺系病证",
+      "section": "肺痨",
+      "type": "treatment_principle",
+      "question": "肺痨的治则是什么？",
+      "answer": "补虚培元,抗痨杀虫。",
+      "answer_points": [],
+      "source_excerpt": "治则：【治则】补虚培元,抗痨杀虫【治法】“主乎阴虚”,治疗以滋阴润肺为主,火旺者兼以降火,若合并气虚、阳虚见症者,则当同时兼顾;其二是重视补脾助肺,培土生金;其三是虚中多夹实,治疗宜兼顾,禁用燥烈、苦寒、升散、攻伐等易耗气伤阴的药",
+      "source_pages": [],
+      "sample_page_idxs": [],
+      "tags": [
+        "肺痨",
+        "治则"
+      ],
+      "status": "approved",
+      "confidence": 0.9,
+      "review_notes": null,
+      "trace": {
+        "source_file": "data/mineru/results/a67c429e-956c-4f28-bec6-69c3b71e17fa/neike_10p/unzipped/full.cleaned.md",
+        "batch_id": "a67c429e-956c-4f28-bec6-69c3b71e17fa",
+        "generator": "offline-extractor",
+        "model": null,
+        "prompt_version": "v1",
+        "created_at": "2026-07-22T01:17:20.249606+00:00"
+      }
+    },
+    {
+      "id": "肺痨-肺阴亏损-证的治法和代表方是什么-aabf43efb7",
+      "book": "中医内科学",
+      "chapter": "肺系病证",
+      "section": "肺痨",
+      "type": "syndrome_formula",
+      "question": "肺痨「肺阴亏损」证的治法和代表方是什么？",
+      "answer": "治法：滋阴润肺；代表方：月华丸。",
+      "answer_points": [
+        "治法：滋阴润肺",
+        "代表方：月华丸"
+      ],
+      "source_excerpt": "初期/肺阴亏损：治法=滋阴润肺；代表方=月华丸；症状摘要=干咳,咳声短促,少痰或痰中带有血丝,色鲜红,午后手足心热,或见少量盗汗,皮肤干灼,口干咽燥,胸部隐痛,舌红苔薄少津,脉细数",
+      "source_pages": [],
+      "sample_page_idxs": [],
+      "tags": [
+        "肺痨",
+        "肺阴亏损",
+        "证型",
+        "代表方"
+      ],
+      "status": "approved",
+      "confidence": 0.91,
+      "review_notes": null,
+      "trace": {
+        "source_file": "data/mineru/results/a67c429e-956c-4f28-bec6-69c3b71e17fa/neike_10p/unzipped/full.cleaned.md",
+        "batch_id": "a67c429e-956c-4f28-bec6-69c3b71e17fa",
+        "generator": "offline-extractor",
+        "model": null,
+        "prompt_version": "v1",
+        "created_at": "2026-07-22T01:17:20.249623+00:00"
+      }
+    },
+    {
+      "id": "肺痨-虚火灼肺-证的治法和代表方是什么-77ffec71c3",
+      "book": "中医内科学",
+      "chapter": "肺系病证",
+      "section": "肺痨",
+      "type": "syndrome_formula",
+      "question": "肺痨「虚火灼肺」证的治法和代表方是什么？",
+      "answer": "治法：滋阴降火；代表方：百合固金汤合秦艽鳖甲散。",
+      "answer_points": [
+        "治法：滋阴降火",
+        "代表方：百合固金汤合秦艽鳖甲散"
+      ],
+      "source_excerpt": "中期/虚火灼肺：治法=滋阴降火；代表方=百合固金汤合秦艽鳖甲散；症状摘要=呛咳气急,痰少质黏,或吐痰黄稠量多,时时咯血,血色鲜红,混有泡沫痰涎,午后潮热,骨蒸,五心烦热,盗汗,颧红,口渴心烦,失眠,急躁易怒,或胸胁掣痛,男子见遗精,女",
+      "source_pages": [],
+      "sample_page_idxs": [],
+      "tags": [
+        "肺痨",
+        "虚火灼肺",
+        "证型",
+        "代表方"
+      ],
+      "status": "approved",
+      "confidence": 0.91,
+      "review_notes": null,
+      "trace": {
+        "source_file": "data/mineru/results/a67c429e-956c-4f28-bec6-69c3b71e17fa/neike_10p/unzipped/full.cleaned.md",
+        "batch_id": "a67c429e-956c-4f28-bec6-69c3b71e17fa",
+        "generator": "offline-extractor",
+        "model": null,
+        "prompt_version": "v1",
+        "created_at": "2026-07-22T01:17:20.249638+00:00"
+      }
+    },
+    {
+      "id": "肺痨-气阴耗伤-证的治法和代表方是什么-98195618ba",
+      "book": "中医内科学",
+      "chapter": "肺系病证",
+      "section": "肺痨",
+      "type": "syndrome_formula",
+      "question": "肺痨「气阴耗伤」证的治法和代表方是什么？",
+      "answer": "治法：益气养阴；代表方：保真汤或参苓白术散。",
+      "answer_points": [
+        "治法：益气养阴",
+        "代表方：保真汤或参苓白术散"
+      ],
+      "source_excerpt": "中后期/气阴耗伤：治法=益气养阴；代表方=保真汤或参苓白术散；症状摘要=咳嗽无力,气短声低,咳痰清稀色白,量较多,痰偶或夹血,血色淡红,午后潮热,怕冷,自汗与盗汗可并见,纳少神疲,便溏,面色晄白,颧红,舌质光淡,边有齿印,苔薄,脉细",
+      "source_pages": [],
+      "sample_page_idxs": [],
+      "tags": [
+        "肺痨",
+        "气阴耗伤",
+        "证型",
+        "代表方"
+      ],
+      "status": "approved",
+      "confidence": 0.91,
+      "review_notes": null,
+      "trace": {
+        "source_file": "data/mineru/results/a67c429e-956c-4f28-bec6-69c3b71e17fa/neike_10p/unzipped/full.cleaned.md",
+        "batch_id": "a67c429e-956c-4f28-bec6-69c3b71e17fa",
+        "generator": "offline-extractor",
+        "model": null,
+        "prompt_version": "v1",
+        "created_at": "2026-07-22T01:17:20.249647+00:00"
+      }
+    },
+    {
+      "id": "中风在十版教材中的分期-分类要点是什么-2a667350fb",
+      "book": "中医内科学",
+      "chapter": "脑系病证",
+      "section": "中风",
+      "type": "versioned_classification",
+      "question": "中风在十版教材中的分期/分类要点是什么？",
+      "answer": "2. 十版教材分中经络、中脏腑。",
+      "answer_points": [],
+      "source_excerpt": "2. 十版教材分中经络、中脏腑",
+      "source_pages": [],
+      "sample_page_idxs": [],
+      "tags": [
+        "中风",
+        "十版教材",
+        "分类"
+      ],
+      "status": "needs_review",
+      "confidence": 0.75,
+      "review_notes": "多版本分类，确认未与其他版本混写。",
+      "trace": {
+        "source_file": "data/mineru/results/a67c429e-956c-4f28-bec6-69c3b71e17fa/neike_10p/unzipped/full.cleaned.md",
+        "batch_id": "a67c429e-956c-4f28-bec6-69c3b71e17fa",
+        "generator": "offline-extractor",
+        "model": null,
+        "prompt_version": "v1",
+        "created_at": "2026-07-22T01:17:20.249837+00:00"
+      }
+    },
+    {
+      "id": "中风在人卫三版教材中的分期-分类要点是什么-9f5aceb45a",
+      "book": "中医内科学",
+      "chapter": "脑系病证",
+      "section": "中风",
+      "type": "versioned_classification",
+      "question": "中风在人卫三版教材中的分期/分类要点是什么？",
+      "answer": "3. 人卫三版教材分急性期(中经络、中脏腑), 恢复期和后遗症期。",
+      "answer_points": [],
+      "source_excerpt": "3. 人卫三版教材分急性期(中经络、中脏腑), 恢复期和后遗症期",
+      "source_pages": [],
+      "sample_page_idxs": [],
+      "tags": [
+        "中风",
+        "人卫三版教材",
+        "分类"
+      ],
+      "status": "needs_review",
+      "confidence": 0.75,
+      "review_notes": "多版本分类，确认未与其他版本混写。",
+      "trace": {
+        "source_file": "data/mineru/results/a67c429e-956c-4f28-bec6-69c3b71e17fa/neike_10p/unzipped/full.cleaned.md",
+        "batch_id": "a67c429e-956c-4f28-bec6-69c3b71e17fa",
+        "generator": "offline-extractor",
+        "model": null,
+        "prompt_version": "v1",
+        "created_at": "2026-07-22T01:17:20.249948+00:00"
+      }
+    },
+    {
+      "id": "中风在五版教材中的分期-分类要点是什么-6b45b2ebb4",
+      "book": "中医内科学",
+      "chapter": "脑系病证",
+      "section": "中风",
+      "type": "versioned_classification",
+      "question": "中风在五版教材中的分期/分类要点是什么？",
+      "answer": "4. 五版教材(早期真题多参考此版教材)。",
+      "answer_points": [],
+      "source_excerpt": "4. 五版教材(早期真题多参考此版教材)",
+      "source_pages": [],
+      "sample_page_idxs": [],
+      "tags": [
+        "中风",
+        "五版教材",
+        "分类"
+      ],
+      "status": "needs_review",
+      "confidence": 0.75,
+      "review_notes": "多版本分类，确认未与其他版本混写。",
+      "trace": {
+        "source_file": "data/mineru/results/a67c429e-956c-4f28-bec6-69c3b71e17fa/neike_10p/unzipped/full.cleaned.md",
+        "batch_id": "a67c429e-956c-4f28-bec6-69c3b71e17fa",
+        "generator": "offline-extractor",
+        "model": null,
+        "prompt_version": "v1",
+        "created_at": "2026-07-22T01:17:20.250022+00:00"
+      }
+    }
+  ]
+}

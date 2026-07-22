@@ -1,0 +1,78 @@
+<view class="container">
+  <view class="topbar">
+    <view>
+      <view class="eyebrow">应用与数据</view>
+      <view class="page-title">我的</view>
+    </view>
+    <view class="connection-pill {{connectionState === '连接正常' ? 'is-online' : 'is-offline'}}">
+      <text class="connection-dot"></text>
+      <text>{{connectionState}}</text>
+    </view>
+  </view>
+
+  <view class="settings-panel">
+    <view class="panel-heading">
+      <view class="section-title">服务连接</view>
+      <view class="muted">配置只保存在当前设备</view>
+    </view>
+
+    <view class="label">API 地址</view>
+    <input
+      class="input"
+      value="{{apiBase}}"
+      bindinput="onApiBase"
+      placeholder="http://127.0.0.1:8000"
+    />
+
+    <view class="field-heading">
+      <view class="label token-label">API Token</view>
+      <view class="token-toggle" bindtap="onToggleToken">{{showToken ? '隐藏' : '显示'}}</view>
+    </view>
+    <input
+      class="input"
+      value="{{token}}"
+      bindinput="onToken"
+      password="{{!showToken}}"
+      placeholder="填写服务端 API Token"
+    />
+
+    <view class="error" wx:if="{{error}}">{{error}}</view>
+    <view class="ok" wx:if="{{ok}}">{{ok}}</view>
+
+    <button class="btn btn-primary save-button" bindtap="onSave" loading="{{saving}}" disabled="{{saving}}">
+      保存并检测连接
+    </button>
+  </view>
+
+  <view class="section-header">
+    <view class="section-title">学习概览</view>
+    <view class="section-action" bindtap="onRefreshStats">刷新</view>
+  </view>
+
+  <view class="stats-panel">
+    <view class="stat-primary">
+      <view class="stat-large">{{stats.cards_approved || 0}}</view>
+      <view class="muted">正式卡片</view>
+    </view>
+    <view class="stats-grid">
+      <view class="stat-item">
+        <view class="stat-value">{{stats.books || 0}}</view>
+        <view class="metric-label">书籍</view>
+      </view>
+      <view class="stat-item">
+        <view class="stat-value">{{stats.due_now || 0}}</view>
+        <view class="metric-label">当前到期</view>
+      </view>
+      <view class="stat-item">
+        <view class="stat-value">{{stats.reviewed_today || 0}}</view>
+        <view class="metric-label">今日完成</view>
+      </view>
+      <view class="stat-item">
+        <view class="stat-value">{{stats.new_cards || 0}}</view>
+        <view class="metric-label">新卡</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="privacy-note">Token 仅用于访问你自己的服务端，不会上传到其他服务。</view>
+</view>

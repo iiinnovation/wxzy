@@ -1,0 +1,44 @@
+# Secrets and local env
+.env
+.env.*
+!.env.example
+
+# Large source PDFs and parsing outputs (local only)
+docs/*.pdf
+doc/
+data/
+.mineru/
+output/
+tmp/
+*.zip
+
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*~
+
+# Python
+__pycache__/
+.venv/
+venv/
+*.pyc
+
+# Node
+node_modules/
+dist/
+build/
+
+# Server runtime
+server/.venv/
+server/wxzy.db
+server/**/*.db
+*.db
+
+# Miniprogram private local overrides with secrets (if any)
+miniprogram/project.private.config.json
+
+# Wrong-root WeChat DevTools project generated locally; open miniprogram/ instead
+/project.config.json
+/project.private.config.json

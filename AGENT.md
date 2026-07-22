@@ -1,12 +1,57 @@
 # AGENT.md
 
+## 当前权威文档
+
+后续开发以 [`docs/superpowers/README.md`](docs/superpowers/README.md) 为文档入口，并遵守：
+
+- [`docs/superpowers/PROJECT_RULES.md`](docs/superpowers/PROJECT_RULES.md)：模型执行与工程硬规则。
+- [`docs/superpowers/specs/2026-07-22-wxzy-product-requirements.md`](docs/superpowers/specs/2026-07-22-wxzy-product-requirements.md)：当前 PRD。
+- [`docs/superpowers/specs/2026-07-22-system-design.md`](docs/superpowers/specs/2026-07-22-system-design.md)：总体系统设计。
+- [`docs/superpowers/specs/2026-07-22-document-processing-design.md`](docs/superpowers/specs/2026-07-22-document-processing-design.md)：文档处理设计。
+- [`docs/superpowers/specs/2026-07-22-learning-miniprogram-design.md`](docs/superpowers/specs/2026-07-22-learning-miniprogram-design.md)：学习小程序设计。
+- [`docs/superpowers/plans/2026-07-22-wxzy-implementation-plan.md`](docs/superpowers/plans/2026-07-22-wxzy-implementation-plan.md)：分阶段实施计划。
+
+`docs/PRODUCT_PLAN.md`、`docs/IMPLEMENTATION_PLAN.md` 和 `docs/MVP_CARD_FSRS.md` 是历史基线。出现冲突时，以 `docs/superpowers/` 中 Active/Baseline 文档为准。
+
 ## 项目定位
 
 这是一个自用的中医学习微信小程序。产品目标是帮助用户阅读自己的中医 PDF 文献、理解知识、进行主动回忆，并依据间隔复习安排巩固内容。
 
 产品是学习工具，不是医疗诊断、处方或在线问诊系统。任何功能、文案和模型提示词都必须保持这个边界。
 
-产品规划详见 [docs/PRODUCT_PLAN.md](docs/PRODUCT_PLAN.md)。
+系统只服务一个 Owner，但必须保存用户身份、学习档案、卡片加入状态和个人复习记录。单用户不等于无用户，也不意味着建设多用户、社交或租户系统。
+
+## 系统边界
+
+### 文档处理控制面
+
+`tools/` 及未来任务服务负责 PDF 清单、拆分、MinerU、清洗、结构化、候选卡、质量检查、人工审核和版本化发布。原始 PDF 和中间产物不进入小程序包。
+
+### 学习运行面
+
+`server/` 和 `miniprogram/` 只向用户提供已发布内容、加入学习、每日计划、主动回忆、标准 FSRS、来源和统计。小程序不得直接调用 MinerU/Qwen，也不得展示本地处理路径和密钥。
+
+### 内容和学习状态
+
+`approved/published` 表示卡片内容可供选择；`enrolled` 才表示该卡进入唯一用户的学习范围。导入发布内容不得自动让全量卡片当天到期。
+
+## 模型工作协议
+
+1. 修改前读取本文件、Superpowers 入口、适用规格和当前任务。
+2. 先检查代码现状，不把目标设计当作已经实现。
+3. 跨模块、数据模型、接口、认证或算法变更先更新规格/计划。
+4. 一个任务只处理一个可验收主题，并执行对应质量门禁。
+5. 没有测试、接口、编译或质量报告证据时，不得声称完成。
+
+## 后端和流水线硬约束
+
+- 新业务接口使用 `/api/v1`，错误包含稳定 code、message 和 request_id。
+- 生产数据库使用迁移管理，不依赖 `create_all()`。
+- 写操作必须考虑幂等；复习重复点击不能生成重复记录。
+- 标准 FSRS 使用成熟库和显式算法版本，当前手写实现只作过渡。
+- 原 PDF、MinerU raw 和原始 `full.md` 不可被清洗覆盖。
+- 全量文档完成以 704/704 页 terminal 状态和来源映射为准，不以样本成功代替。
+- 生成卡必须先 candidate/needs_review；高风险医学事实必须人工审核。
 
 ## 官方依据
 
@@ -33,7 +78,7 @@
 
 - `app.json`：全局页面、窗口、TabBar、分包和组件配置。
 - `app.js`：应用注册、全局生命周期和最小化的全局状态。
-- `app.wxss`：全局样式变量和基础样式。
+- `app.wxss`：全局基础样式和兼容的通用样式类；关键样式不依赖 `:root` 或 CSS 自定义属性。
 - `pages/<page>/`：页面的 `.json`、`.wxml`、`.wxss`、`.js` 文件。
 - `components/<component>/`：可复用组件的 `.json`、`.wxml`、`.wxss`、`.js` 文件。
 - `utils/`：无界面的纯函数、格式化和兼容性工具。
@@ -80,12 +125,13 @@
 
 ### 知识检索和 AI
 
-- 问答流程采用“关键词检索 + 向量检索 + Rerank + Qwen 生成”。
-- 文档片段必须保留文档名、章节和页码，回答中的关键结论尽量附可点击出处。
-- 提示词要求模型区分原文、现代解释和推断；检索不到时明确说明依据不足。
-- 模型不得伪造书名、页码、原文或方剂组成。
-- 自动生成的卡片和题目先进入待确认状态，确认后才能进入正式复习计划。
+- MVP 主路径是「MinerU 解析 → 候选卡片 → 人工审核 → 上传后端 → FSRS 复习」，不做诊疗。
+- 向量检索 / RAG 问答是后续可选能力，不阻塞第一版复习闭环。
+- 文档与卡片必须保留书名、章节、页码（有则写）；关键结论尽量可回溯到原文摘录。
+- 模型不得伪造书名、页码、原文、剂量或方剂组成。
+- 自动生成的卡片和题目先进入 candidate/needs_review，确认后（approved/published）才能进入内容目录；只有显式 enrollment 才进入个人复习计划。
 - 涉及个人症状时只提供学习性解释，不能输出诊断、处方或替代医生的建议。
+- 小程序不直接调用 MinerU / Qwen；密钥只存在服务端或本地解析环境。
 
 ### 安全、隐私和版权
 
@@ -116,4 +162,3 @@
 6. AI 答案能回溯到正确文档和页码，无法回溯时明确标注。
 
 变更说明中应写明影响范围、验证方式和已知限制。不要为了完成局部功能顺手重构无关模块。
-

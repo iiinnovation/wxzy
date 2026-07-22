@@ -1,0 +1,86 @@
+<view class="container review-page">
+  <view class="review-topbar">
+    <view>
+      <view class="eyebrow">主动回忆</view>
+      <view class="page-title">复习</view>
+    </view>
+    <view class="review-count" wx:if="{{queue.length}}">{{index + 1}} / {{queue.length}}</view>
+  </view>
+
+  <view class="error" wx:if="{{error}}">
+    <view>{{error}}</view>
+    <button class="error-action" bindtap="onRetry">重新加载 →</button>
+  </view>
+
+  <view class="review-loading" wx:if="{{loading}}">
+    <view class="loading-line loading-wide"></view>
+    <view class="loading-line"></view>
+    <view class="muted">正在准备今天的卡片…</view>
+  </view>
+
+  <view class="empty" wx:if="{{!loading && !error && done}}">
+    <view class="empty-mark">✓</view>
+    <view class="empty-title">本轮复习完成</view>
+    <view class="muted">保持节奏，下一张到期卡片会在合适的时间回来</view>
+    <button class="btn btn-primary empty-button" bindtap="onBack">返回今日</button>
+  </view>
+
+  <block wx:if="{{current}}">
+    <view class="progress-track">
+      <view class="progress-fill" style="width: {{((index + 1) / queue.length) * 100}}%;"></view>
+    </view>
+
+    <view class="review-card">
+      <view class="review-meta">
+        <text class="book-label">{{current.card.book_name}}</text>
+        <text class="muted">{{current.card.section || current.card.chapter || '未分节'}}</text>
+      </view>
+
+      <view class="question-label">问题</view>
+      <view class="question">{{current.card.question}}</view>
+
+      <view wx:if="{{!showAnswer}}" class="recall-hint">
+        <view class="recall-icon">?</view>
+        <view>
+          <view class="recall-title">先在心里作答</view>
+          <view class="muted">回忆完成后再查看答案</view>
+        </view>
+      </view>
+
+      <view wx:if="{{showAnswer}}" class="answer-box">
+        <view class="answer-label">参考答案</view>
+        <view class="answer">{{current.card.answer}}</view>
+        <view class="answer-points" wx:if="{{current.card.answer_points.length}}">
+          <view class="point" wx:for="{{current.card.answer_points}}" wx:key="index">
+            <text class="point-mark">•</text><text>{{item}}</text>
+          </view>
+        </view>
+        <view class="excerpt" wx:if="{{current.card.source_excerpt}}">出处：{{current.card.source_excerpt}}</view>
+      </view>
+
+      <button class="btn btn-primary reveal-button" wx:if="{{!showAnswer}}" bindtap="onReveal" disabled="{{submitting}}">
+        显示答案 →
+      </button>
+
+      <view class="rate-section" wx:if="{{showAnswer}}">
+        <view class="rate-title">这张卡片记得怎么样？</view>
+        <view class="rate-grid">
+          <button class="rate rate-again" data-rating="1" bindtap="onRate" disabled="{{submitting}}">
+            <text>重来</text><text class="rate-sub">Again</text>
+          </button>
+          <button class="rate rate-hard" data-rating="2" bindtap="onRate" disabled="{{submitting}}">
+            <text>吃力</text><text class="rate-sub">Hard</text>
+          </button>
+          <button class="rate rate-good" data-rating="3" bindtap="onRate" disabled="{{submitting}}">
+            <text>记住</text><text class="rate-sub">Good</text>
+          </button>
+          <button class="rate rate-easy" data-rating="4" bindtap="onRate" disabled="{{submitting}}">
+            <text>很稳</text><text class="rate-sub">Easy</text>
+          </button>
+        </view>
+      </view>
+
+      <view class="next-hint" wx:if="{{lastSchedule}}">下一次复习：约 {{lastSchedule}} 天后</view>
+    </view>
+  </block>
+</view>

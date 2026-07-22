@@ -1,0 +1,83 @@
+<view class="container">
+  <view class="topbar">
+    <view>
+      <view class="eyebrow">知识来源</view>
+      <view class="page-title">书库</view>
+    </view>
+    <view class="library-count">{{books.length}} 本</view>
+  </view>
+
+  <view class="error" wx:if="{{error}}">{{error}}</view>
+
+  <block wx:if="{{!activeBookId}}">
+    <view class="library-intro">
+      <view class="intro-title">已审核卡片</view>
+      <view class="muted">按书籍查看题目、答案和原文出处</view>
+    </view>
+
+    <view class="queue-list" wx:if="{{books.length}}">
+      <view
+        class="book-item book-row"
+        wx:for="{{books}}"
+        wx:key="id"
+        data-id="{{item.id}}"
+        data-name="{{item.name}}"
+        bindtap="onOpenBook"
+      >
+        <view class="book-mark">书</view>
+        <view class="book-main">
+          <view class="book-name">{{item.name}}</view>
+          <view class="meta">{{item.subject || '中医学习资料'}} · {{item.card_count}} 张卡片</view>
+        </view>
+        <view class="chevron">›</view>
+      </view>
+    </view>
+
+    <view class="empty" wx:if="{{!loading && !books.length}}">
+      <view class="empty-title">书库还是空的</view>
+      <view class="muted">在服务端导入审核通过的卡片后，这里会按书籍归档</view>
+    </view>
+  </block>
+
+  <block wx:if="{{activeBookId}}">
+    <view class="book-toolbar">
+      <view class="back-link" bindtap="onBackBooks">‹ 返回书库</view>
+      <view class="active-book-title">{{activeBookName}}</view>
+      <view class="muted">{{cards.length}} 张卡片</view>
+    </view>
+
+    <view class="search-wrap">
+      <input
+        class="search-input"
+        value="{{keyword}}"
+        bindinput="onKeywordInput"
+        bindconfirm="onSearch"
+        confirm-type="search"
+        placeholder="搜索题目或答案"
+      />
+      <view class="search-action" bindtap="onSearch">搜索</view>
+    </view>
+
+    <view class="queue-list" wx:if="{{cards.length}}">
+      <view class="card-item" wx:for="{{cards}}" wx:key="id" data-id="{{item.id}}" bindtap="onToggleCard">
+        <view class="card-row">
+          <view class="card-q">{{item.question}}</view>
+          <view class="chevron card-chevron {{expandedCardId === item.id ? 'is-open' : ''}}">›</view>
+        </view>
+        <view class="meta">{{item.section || item.chapter || '未分节'}} · {{item.card_type}}</view>
+        <view class="library-answer" wx:if="{{expandedCardId === item.id}}">
+          <view class="answer-label">答案</view>
+          <view class="answer-text">{{item.answer}}</view>
+          <view class="source-text" wx:if="{{item.source_excerpt}}">出处：{{item.source_excerpt}}</view>
+        </view>
+      </view>
+    </view>
+
+    <view class="empty" wx:if="{{!loading && !cards.length}}">
+      <view class="empty-title">没有找到卡片</view>
+      <view class="muted">换一个关键词，或返回书库选择其他书籍</view>
+    </view>
+  </block>
+
+  <view class="loading-note" wx:if="{{loading}}">正在加载…</view>
+</view>

@@ -1,0 +1,74 @@
+<view class="container">
+  <view class="topbar">
+    <view>
+      <view class="eyebrow">每日巩固</view>
+      <view class="page-title">今日</view>
+    </view>
+    <view class="today-status {{dueCount > 0 ? 'is-active' : 'is-done'}}">
+      <text class="status-dot"></text>
+      <text>{{dueCount > 0 ? '计划进行中' : '今日完成'}}</text>
+    </view>
+  </view>
+
+  <view class="error" wx:if="{{error}}">
+    <view>{{error}}</view>
+    <button class="error-action" wx:if="{{needsSetup}}" bindtap="onOpenSettings">去连接设置 →</button>
+  </view>
+
+  <view class="summary-card" wx:if="{{!error}}">
+    <view class="summary-head">
+      <view>
+        <view class="summary-number">{{loading ? '—' : dueCount}}</view>
+        <view class="summary-label">{{loading ? '正在同步学习计划' : '张卡片等待复习'}}</view>
+      </view>
+      <view class="summary-mark">习</view>
+    </view>
+
+    <button
+      class="btn btn-primary"
+      loading="{{loading}}"
+      disabled="{{loading || dueCount === 0}}"
+      bindtap="onStartReview"
+    >
+      <text>{{dueCount > 0 ? '开始本轮复习' : '今日任务已完成'}}</text>
+      <text class="btn-arrow" wx:if="{{dueCount > 0}}">→</text>
+    </button>
+
+    <view class="metrics">
+      <view class="metric">
+        <view class="metric-number">{{stats.reviewed_today || 0}}</view>
+        <view class="metric-label">今日完成</view>
+      </view>
+      <view class="metric">
+        <view class="metric-number">{{stats.new_cards || 0}}</view>
+        <view class="metric-label">新卡</view>
+      </view>
+      <view class="metric">
+        <view class="metric-number">{{stats.cards_approved || 0}}</view>
+        <view class="metric-label">卡片总量</view>
+      </view>
+    </view>
+  </view>
+
+  <view class="section-header" wx:if="{{!error}}">
+    <view class="section-title">接下来</view>
+    <view class="section-action" bindtap="onRefresh">刷新</view>
+  </view>
+
+  <view class="queue-list" wx:if="{{preview.length}}">
+    <view class="queue-item queue-row" wx:for="{{preview}}" wx:key="id" bindtap="onStartReview">
+      <view class="queue-index">{{item.order}}</view>
+      <view class="queue-content">
+        <view class="queue-q">{{item.question}}</view>
+        <view class="meta">{{item.book_name}} · {{item.section || item.chapter || '未分节'}}</view>
+      </view>
+      <view class="chevron">›</view>
+    </view>
+  </view>
+
+  <view class="empty" wx:if="{{!loading && !error && !preview.length}}">
+    <view class="empty-mark">✓</view>
+    <view class="empty-title">今天的复习已完成</view>
+    <view class="muted">新的到期卡片会自动出现在这里</view>
+  </view>
+</view>

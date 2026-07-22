@@ -1,0 +1,38 @@
+{
+  "pages": [
+    "pages/today/today",
+    "pages/review/review",
+    "pages/library/library",
+    "pages/me/me"
+  ],
+  "window": {
+    "navigationBarTitleText": "中医卡片",
+    "navigationBarBackgroundColor": "#ffffff",
+    "navigationBarTextStyle": "black",
+    "backgroundColor": "#f3f5f7",
+    "backgroundTextStyle": "dark"
+  },
+  "tabBar": {
+    "color": "#6b7280",
+    "selectedColor": "#0f766e",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      {
+        "pagePath": "pages/today/today",
+        "text": "今日"
+      },
+      {
+        "pagePath": "pages/library/library",
+        "text": "书库"
+      },
+      {
+        "pagePath": "pages/me/me",
+        "text": "我的"
+      }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json",
+  "lazyCodeLoading": "requiredComponents"
+}

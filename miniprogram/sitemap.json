@@ -1,0 +1,4 @@
+{
+  "desc": "private study app",
+  "rules": [{ "action": "disallow", "page": "*" }]
+}
