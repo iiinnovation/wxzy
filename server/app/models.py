@@ -87,3 +87,8 @@ class ReviewLog(Base):
     algorithm_version: Mapped[str] = mapped_column(String(32), default="fsrs-v1")
     state_before: Mapped[str | None] = mapped_column(String(32), nullable=True)
     state_after: Mapped[str | None] = mapped_column(String(32), nullable=True)
+
+
+# Alembic and test schema creation import this legacy registry module. Loading each domain model
+# here keeps one SQLAlchemy metadata registry while modules are migrated incrementally.
+from .identity import models as _identity_models  # noqa: E402,F401

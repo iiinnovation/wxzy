@@ -235,13 +235,32 @@ P0 完成检查点：T01–T06 全部完成；当前后端保持在 `http://127.
 
 ## P1-T01 建立唯一 User 和 LearningProfile
 
-状态：`[ ]`
+状态：`[x]`
 
 需求：AUTH-001、PROFILE-001–004。
+
+完成报告（2026-07-22）：
+
+- 修改文件：新增 `server/app/identity/`、UTC SQLAlchemy 类型、`20260722_0002` migration 和身份测试；更新模型注册、迁移集成测试、Server 迁移说明与系统设计约束。
+- 领域结果：建立 `User/UserSession/LearningProfile`；Owner 默认同时创建一份日常学习档案；Session 只持久化唯一 Token hash；profile 更新保留稳定 ID、创建时间、User 和 Session 历史。
+- 约束与校验：SQLite/PostgreSQL 的部分唯一索引均拒绝第二个 active Owner 并允许多个 disabled Owner；IANA 时区、5–240 分钟、7 天布尔数组、0.70–0.99 留存率、0–100 新卡上限和 1–5 学科评分由 Pydantic 契约校验，核心数值另有数据库 check constraint。
+- 时间语义：新身份领域的时间写入必须 timezone-aware，统一转 UTC；自定义类型恢复 SQLite 丢失的 UTC tzinfo，Owner/default profile 的 UTC round-trip 已验证。
+- SQLite/migration 验证：空库 `upgrade head -> downgrade 0002 -> downgrade base -> upgrade head -> check`、legacy `stamp 20260722_0001 -> upgrade head -> check` 均通过；迁移生成的唯一 Owner 约束有独立断言。
+- PostgreSQL 验证：Docker PostgreSQL 16 独立库完成相同升级/约束/两级回退/再升级/drift 流程，输出 `1 passed, 3 deselected`；测试库已删除且容器已停止。
+- 全量门禁：`tools/quality-gate.sh` PASS；Ruff、format、Mypy 36 个源文件、小程序 JS/JSON 和 13 份 Markdown 链接通过；pytest `44 passed, 1 skipped, 1 warning`，分支 coverage `38%`。
+- 数据迁移影响：revision 只新增三个空表，不创建或关联 legacy Owner；真实 `server/wxzy.db` 未 stamp、未 upgrade，SHA-256 仍为 `843175f98cd70f09d0e0321561fafb7fdd7210d1a2adb471f851db0dca7680a5`，计数仍为 `2/15/15/4`。
+- 回滚与风险：已有原型库必须备份后执行 `stamp 20260722_0001 -> upgrade head -> check`，禁止 `stamp head`；未来 identity 表产生数据后，`downgrade 20260722_0001` 会删除身份/Session/profile 数据，只能通过备份恢复。微信换登、Session 签发和 profile HTTP/审计按范围留给 P2，legacy Owner 和学习历史归属留给 P1-T03–T05。
+- 恢复点：P1-T01 已完成并验证；下一个串行任务是 P1-T02 文档和内容目录模型。
 
 计划文件：`server/app/identity/models.py`、schemas/services、migration、tests。
 
 工作：创建 User、UserSession、LearningProfile；数据库约束最多一个 active Owner；时区和时间预算校验；建立默认 profile factory。
+
+范围外：不在本任务签发 Session Token、不调用微信、不新增 HTTP API，也不迁移现有复习表的用户归属；这些分别由 P2-T02、P2-T03 和 P1-T03–T05 完成。
+
+输入输出：输入为经过 Pydantic 校验的 Owner/档案值；输出为三个新表、可直接单测的 Owner/profile 领域服务和默认档案。JSON 字段使用固定 schema，不延续无约束 JSON 字符串。
+
+验证：模型/服务单测、第二个 active Owner 的数据库冲突、空 SQLite 迁移升级/回退/再升级、legacy 副本数据对账、Alembic drift check、UTC round-trip 和全量质量门禁。
 
 验收：第二个 active Owner 被拒绝；档案更新不删除历史；UTC 字段一致。
 

@@ -20,13 +20,15 @@ record the baseline, then confirm that metadata and schema have no drift:
 
 ```bash
 cp server/wxzy.db /tmp/wxzy-before-migration.db
-alembic -c server/alembic.ini stamp head
-alembic -c server/alembic.ini check
+alembic -c server/alembic.ini stamp 20260722_0001
 alembic -c server/alembic.ini upgrade head
+alembic -c server/alembic.ini check
 ```
 
-`stamp` is only for a database that already matches the baseline schema. Future schema changes
-must use a new migration revision rather than `create_all` or a manual table edit.
+`stamp 20260722_0001` is only for a database that already matches the original four-table
+baseline schema. Never stamp an existing prototype database directly to `head`: doing so would
+skip later table creation. Future schema changes must use a new migration revision rather than
+`create_all` or a manual table edit.
 
 The production image includes the migration files. With Docker Compose, apply them explicitly
 before starting or updating the API service:

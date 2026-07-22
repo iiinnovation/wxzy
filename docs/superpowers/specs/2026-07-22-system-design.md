@@ -143,14 +143,17 @@ data/                       # ignored, generated artifacts
 
 | 字段 | 说明 |
 |---|---|
-| id | 内部稳定 UUID/整数 ID |
+| id | 内部稳定整数 ID；不对外承担身份凭据 |
 | wechat_openid_hash | OpenID 的安全存储或加密值；不向普通接口返回 |
 | status | active/disabled |
 | display_name | 可选昵称 |
 | timezone | 默认 Asia/Shanghai |
 | created_at/updated_at | UTC |
 
-约束：最多一个 active User。保留 `user_id` 是为了数据归属和多设备，不开放多用户产品能力。
+约束：`status` 只允许 `active/disabled`；SQLite 与 PostgreSQL 都通过针对
+`status = 'active'` 的部分唯一索引保证最多一个 active User。保留 `user_id` 是为了数据归属
+和多设备，不开放多用户产品能力。`timezone` 必须是 IANA 时区名，由领域 schema 使用
+Python `zoneinfo` 校验。
 
 #### UserSession
 
@@ -162,6 +165,10 @@ data/                       # ignored, generated artifacts
 | expires_at | 过期时间 |
 | revoked_at | 可撤销 |
 | device_label | 可选设备说明 |
+| created_at | UTC 创建时间 |
+
+`token_hash` 使用唯一约束，数据库不保存可直接使用的 Session Token。Token 签发、刷新和撤销
+接口属于 P2 身份任务，P1 只建立可迁移的数据边界。
 
 #### LearningProfile
 
@@ -175,7 +182,18 @@ data/                       # ignored, generated artifacts
 | desired_retention | 初始 0.90 |
 | new_card_ceiling | 默认 5–10 |
 | subject_priorities | 结构化权重 |
+| initial_self_assessment | 各学科初始自评 |
 | onboarding_completed_at | 冷启动状态 |
+| created_at/updated_at | UTC |
+
+档案契约固定如下：`goal_type` 使用 `daily_learning/exam/focused`；`daily_minutes` 为
+5–240；`study_days` 是周一到周日、长度恰为 7 且至少一天为 `true` 的布尔数组；
+`desired_retention` 为 0.70–0.99；`new_card_ceiling` 为 0–100；学科优先级和初始自评均为
+键非空、值 1–5 的对象。默认档案为日常学习、每天 20 分钟、七天可学习、目标留存率
+0.90、新卡上限 5，且 onboarding 尚未完成。
+
+LearningProfile 更新同一行并保留其稳定 ID 和创建时间，不级联删除 Session、学习会话、
+复习尝试等历史事实；档案变更审计和未来计划重算在 P2-T03/P6 实现。
 
 ### 7.2 Document Processing
 

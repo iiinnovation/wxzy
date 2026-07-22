@@ -9,11 +9,15 @@ from pathlib import Path
 import pytest
 from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.engine import make_url
+from sqlalchemy.exc import IntegrityError
 
 ROOT = Path(__file__).resolve().parents[2]
 ALEMBIC_CONFIG = ROOT / "server" / "alembic.ini"
 BASELINE_REVISION = "20260722_0001"
-USER_TABLES = {"books", "cards", "review_states", "review_logs"}
+IDENTITY_REVISION = "20260722_0002"
+BASELINE_TABLES = {"books", "cards", "review_states", "review_logs"}
+IDENTITY_TABLES = {"users", "user_sessions", "learning_profiles"}
+USER_TABLES = BASELINE_TABLES | IDENTITY_TABLES
 
 
 def run_alembic(database_url: str, *arguments: str) -> subprocess.CompletedProcess[str]:
@@ -41,6 +45,46 @@ def table_names(path: Path) -> set[str]:
             "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%'"
         )
         return {row[0] for row in rows}
+
+
+def assert_sqlite_single_active_owner_constraint(path: Path) -> None:
+    with sqlite3.connect(path) as connection:
+        connection.execute("INSERT INTO users (status, timezone) VALUES ('active', 'UTC')")
+        with pytest.raises(sqlite3.IntegrityError):
+            connection.execute("INSERT INTO users (status, timezone) VALUES ('active', 'UTC')")
+        connection.execute("INSERT INTO users (status, timezone) VALUES ('disabled', 'UTC')")
+        connection.execute("INSERT INTO users (status, timezone) VALUES ('disabled', 'UTC')")
+        counts = connection.execute(
+            "SELECT status, COUNT(*) FROM users GROUP BY status ORDER BY status"
+        ).fetchall()
+    assert counts == [("active", 1), ("disabled", 2)]
+
+
+def assert_postgres_single_active_owner_constraint(url: str) -> None:
+    engine = create_engine(url)
+    try:
+        with engine.begin() as connection:
+            connection.execute(
+                text("INSERT INTO users (status, timezone) VALUES ('active', 'UTC')")
+            )
+        with pytest.raises(IntegrityError):
+            with engine.begin() as connection:
+                connection.execute(
+                    text("INSERT INTO users (status, timezone) VALUES ('active', 'UTC')")
+                )
+        with engine.begin() as connection:
+            connection.execute(
+                text(
+                    "INSERT INTO users (status, timezone) "
+                    "VALUES ('disabled', 'UTC'), ('disabled', 'UTC')"
+                )
+            )
+            counts = connection.execute(
+                text("SELECT status, COUNT(*) FROM users GROUP BY status ORDER BY status")
+            ).all()
+        assert counts == [("active", 1), ("disabled", 2)]
+    finally:
+        engine.dispose()
 
 
 def test_app_startup_does_not_create_database_schema(tmp_path: Path) -> None:
@@ -74,17 +118,21 @@ def test_empty_sqlite_upgrade_downgrade_upgrade(tmp_path: Path) -> None:
 
     run_alembic(url, "upgrade", "head")
     assert table_names(database) == USER_TABLES | {"alembic_version"}
+    assert_sqlite_single_active_owner_constraint(database)
 
     run_alembic(url, "downgrade", "-1")
-    assert table_names(database) == {"alembic_version"}
+    assert table_names(database) == BASELINE_TABLES | {"alembic_version"}
     with sqlite3.connect(database) as connection:
         version = connection.execute("SELECT version_num FROM alembic_version").fetchone()
-    assert version is None
+    assert version == (BASELINE_REVISION,)
+
+    run_alembic(url, "downgrade", "base")
+    assert table_names(database) == {"alembic_version"}
 
     run_alembic(url, "upgrade", "head")
     with sqlite3.connect(database) as connection:
         version = connection.execute("SELECT version_num FROM alembic_version").fetchone()
-    assert version == (BASELINE_REVISION,)
+    assert version == (IDENTITY_REVISION,)
     run_alembic(url, "check")
 
 
@@ -218,17 +266,18 @@ def test_legacy_sqlite_can_stamp_and_upgrade_without_data_loss(tmp_path: Path) -
     create_legacy_schema(database)
     url = sqlite_url(database)
 
-    run_alembic(url, "stamp", "head")
+    run_alembic(url, "stamp", BASELINE_REVISION)
     run_alembic(url, "upgrade", "head")
 
     with sqlite3.connect(database) as connection:
         counts = {
             table: connection.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
-            for table in USER_TABLES
+            for table in BASELINE_TABLES
         }
         version = connection.execute("SELECT version_num FROM alembic_version").fetchone()
     assert counts == {"books": 2, "cards": 15, "review_states": 15, "review_logs": 4}
-    assert version == (BASELINE_REVISION,)
+    assert version == (IDENTITY_REVISION,)
+    assert table_names(database) == USER_TABLES | {"alembic_version"}
     run_alembic(url, "check")
 
 
@@ -258,11 +307,18 @@ def test_empty_postgres_upgrade_when_configured() -> None:
     assert postgres_state(url) == ({"alembic_version"}, None)
 
     run_alembic(url, "upgrade", "head")
-    assert postgres_state(url) == (USER_TABLES | {"alembic_version"}, BASELINE_REVISION)
+    assert postgres_state(url) == (USER_TABLES | {"alembic_version"}, IDENTITY_REVISION)
+    assert_postgres_single_active_owner_constraint(url)
 
     run_alembic(url, "downgrade", "-1")
+    assert postgres_state(url) == (
+        BASELINE_TABLES | {"alembic_version"},
+        BASELINE_REVISION,
+    )
+
+    run_alembic(url, "downgrade", "base")
     assert postgres_state(url) == ({"alembic_version"}, None)
 
     run_alembic(url, "upgrade", "head")
-    assert postgres_state(url) == (USER_TABLES | {"alembic_version"}, BASELINE_REVISION)
+    assert postgres_state(url) == (USER_TABLES | {"alembic_version"}, IDENTITY_REVISION)
     run_alembic(url, "check")
