@@ -297,13 +297,31 @@ P0 完成检查点：T01–T06 全部完成；当前后端保持在 `http://127.
 
 ## P1-T03 建立 Enrollment 和个人 ReviewState
 
-状态：`[ ]`
+状态：`[x]`
 
 需求：ENROLL-001–004、REV-005。
+
+完成报告（2026-07-22）：
+
+- 修改文件：新增 `server/app/learning/`、`20260722_0004_enrollment_review_state.py` 和 learning 测试；更新模型注册、系统设计、任务边界与双数据库迁移测试。
+- 领域结果：建立 CardEnrollment 与 CardReviewState，数据库分别保证 `(user_id, card_id)` 唯一；enrollment 支持 queued/active/suspended/retired 与 manual/chapter/plan 来源，个人状态持有 UTC due、调度参数和 algorithm_version。
+- 引入语义：发布 Card 本身不创建 enrollment/state；`enroll_card` 只创建 queued enrollment；`introduce_enrollment` 才原子转 active 并创建默认 `new` 状态。重复加入和重复引入幂等，不产生第二行。
+- 生命周期：仅 `active <-> suspended` 可暂停/恢复，retired 保持终态；暂停和退出都从 due 查询排除，但不删除 CardReviewState，disabled Owner 和已撤回 Card 同样不进入 due。
+- 核心验收：测试发布 100 张 Card 后 enrollment/state/due 均为 0；加入前 5 张后仍为 0 due；计划首次引入 5 张后恰有 5 条个人状态和 5 due，其余 95 张无个人学习行。
+- 自动验证：`tools/quality-gate.sh` PASS；Ruff、format、Mypy 46 个源文件、小程序 JS/JSON 和 13 份 Markdown 链接通过；pytest `55 passed, 1 skipped, 1 warning`，分支 coverage `49%`。
+- 迁移验证：空 SQLite 与 Docker PostgreSQL 16 均完成 `upgrade head -> downgrade 0004 -> downgrade 0003 -> downgrade base -> upgrade head -> check`；PostgreSQL 专用输出 `1 passed, 3 deselected`，测试库已删除、容器已停止。
+- 真实数据迁移：停服后备份 `server/backups/wxzy-before-20260722-0004.db`，SHA-256 为 `120f97ce39655ebc4172e1eea5e2bcd25539fa0ade92b194d07696e3ed7e99c7`；真实库已由 0003 升至 `20260722_0004`，`PRAGMA integrity_check=ok`，旧业务计数仍为 `2/15/15/4`，新 enrollment/state 表为 0。
+- 运行验证：最新后端重启后 health、books、legacy due 和 stats 均返回 200；旧统计仍为 2 本、15 approved cards、11 due、4 reviewed today，结构化日志不含 Token。
+- 回滚与风险：恢复 0003 优先停服并还原上述备份；产生个人学习数据后不得直接 downgrade 0004。兼容 `review_states/review_logs` 尚未归属 User，新 due 服务尚未接入 HTTP，标准 FSRS 和 legacy 数据迁移分别留给 P6-T01 与 P1-T05。
+- 恢复点：P1-T03 已完成并验证；下一个串行任务是 P1-T04 StudySession、ReviewAttempt 和 CardIssue。
 
 计划文件：`server/app/learning/models.py`、migration、tests。
 
 工作：CardEnrollment、CardReviewState；唯一 `(user_id, card_id)`；发布卡不会自动创建 ReviewState；首次引入后才创建。
+
+范围外：不删除或改写兼容期的 `review_states/review_logs`，不实现标准 FSRS adapter、StudySession 或 ReviewAttempt；旧表归属迁移由 P1-T05，算法替换由 P6-T01。
+
+验证：新表迁移可升级/回退；加入学习只创建 queued enrollment；首次引入才创建一条带 `user_id/card_id` 的新状态；重复加入/引入幂等；暂停、恢复、退出保留状态和历史；发布卡未加入学习时 due 查询为 0。
 
 验收：导入 100 张发布卡后 due 仍为 0；加入 5 张后只有计划引入的卡进入学习。
 

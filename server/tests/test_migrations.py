@@ -16,6 +16,7 @@ ALEMBIC_CONFIG = ROOT / "server" / "alembic.ini"
 BASELINE_REVISION = "20260722_0001"
 IDENTITY_REVISION = "20260722_0002"
 CATALOG_REVISION = "20260722_0003"
+LEARNING_REVISION = "20260722_0004"
 BASELINE_TABLES = {"books", "cards", "review_states", "review_logs"}
 IDENTITY_TABLES = {"users", "user_sessions", "learning_profiles"}
 CATALOG_TABLES = {
@@ -25,8 +26,10 @@ CATALOG_TABLES = {
     "document_chunks",
     "card_sources",
 }
+LEARNING_TABLES = {"card_enrollments", "card_review_states"}
 PRE_CATALOG_TABLES = BASELINE_TABLES | IDENTITY_TABLES
-HEAD_TABLES = PRE_CATALOG_TABLES | CATALOG_TABLES
+PRE_LEARNING_TABLES = PRE_CATALOG_TABLES | CATALOG_TABLES
+HEAD_TABLES = PRE_LEARNING_TABLES | LEARNING_TABLES
 
 
 def run_alembic(database_url: str, *arguments: str) -> subprocess.CompletedProcess[str]:
@@ -130,6 +133,12 @@ def test_empty_sqlite_upgrade_downgrade_upgrade(tmp_path: Path) -> None:
     assert_sqlite_single_active_owner_constraint(database)
 
     run_alembic(url, "downgrade", "-1")
+    assert table_names(database) == PRE_LEARNING_TABLES | {"alembic_version"}
+    with sqlite3.connect(database) as connection:
+        version = connection.execute("SELECT version_num FROM alembic_version").fetchone()
+    assert version == (CATALOG_REVISION,)
+
+    run_alembic(url, "downgrade", "-1")
     assert table_names(database) == PRE_CATALOG_TABLES | {"alembic_version"}
     with sqlite3.connect(database) as connection:
         version = connection.execute("SELECT version_num FROM alembic_version").fetchone()
@@ -141,7 +150,7 @@ def test_empty_sqlite_upgrade_downgrade_upgrade(tmp_path: Path) -> None:
     run_alembic(url, "upgrade", "head")
     with sqlite3.connect(database) as connection:
         version = connection.execute("SELECT version_num FROM alembic_version").fetchone()
-    assert version == (CATALOG_REVISION,)
+    assert version == (LEARNING_REVISION,)
     run_alembic(url, "check")
 
 
@@ -289,7 +298,7 @@ def test_legacy_sqlite_can_stamp_and_upgrade_without_data_loss(tmp_path: Path) -
             "MIN(answer_points), MAX(answer_points), MIN(tags), MAX(tags) FROM cards"
         ).fetchone()
     assert counts == {"books": 2, "cards": 15, "review_states": 15, "review_logs": 4}
-    assert version == (CATALOG_REVISION,)
+    assert version == (LEARNING_REVISION,)
     assert card_defaults == (1, 1, "[]", "[]", "[]", "[]")
     assert table_names(database) == HEAD_TABLES | {"alembic_version"}
     run_alembic(url, "check")
@@ -321,18 +330,21 @@ def test_empty_postgres_upgrade_when_configured() -> None:
     assert postgres_state(url) == ({"alembic_version"}, None)
 
     run_alembic(url, "upgrade", "head")
-    assert postgres_state(url) == (HEAD_TABLES | {"alembic_version"}, CATALOG_REVISION)
+    assert postgres_state(url) == (HEAD_TABLES | {"alembic_version"}, LEARNING_REVISION)
     assert_postgres_single_active_owner_constraint(url)
 
     run_alembic(url, "downgrade", "-1")
     assert postgres_state(url) == (
-        PRE_CATALOG_TABLES | {"alembic_version"},
-        IDENTITY_REVISION,
+        PRE_LEARNING_TABLES | {"alembic_version"},
+        CATALOG_REVISION,
     )
+
+    run_alembic(url, "downgrade", "-1")
+    assert postgres_state(url) == (PRE_CATALOG_TABLES | {"alembic_version"}, IDENTITY_REVISION)
 
     run_alembic(url, "downgrade", "base")
     assert postgres_state(url) == ({"alembic_version"}, None)
 
     run_alembic(url, "upgrade", "head")
-    assert postgres_state(url) == (HEAD_TABLES | {"alembic_version"}, CATALOG_REVISION)
+    assert postgres_state(url) == (HEAD_TABLES | {"alembic_version"}, LEARNING_REVISION)
     run_alembic(url, "check")
