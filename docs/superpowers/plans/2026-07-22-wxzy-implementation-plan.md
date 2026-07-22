@@ -266,13 +266,32 @@ P0 完成检查点：T01–T06 全部完成；当前后端保持在 `http://127.
 
 ## P1-T02 建立文档和内容目录模型
 
-状态：`[ ]`
+状态：`[x]`
 
 需求：CAT-001–006、DOC-001。
+
+完成报告（2026-07-22）：
+
+- 修改文件：新增 `server/app/catalog/`、`20260722_0003_catalog.py` 和 catalog 测试；将兼容 Book/Card ORM 移入 catalog 模块；更新系统设计、任务边界与 SQLite/PostgreSQL migration 集成测试。
+- 目录模型：建立 Document、DocumentVersion、Chapter、DocumentChunk、CardSource；Card 新增 `content_revision/content_hash` 和结构化 `answer_points/tags`，同时保留 legacy 主键、外键和旧字段供现有 API 过渡。
+- 业务规则：`document_key` 稳定唯一，同一 Document 的 SHA256 版本登记幂等；文件名拒绝路径；章节父子与 chunk 必须属于同一 version 且页范围合法；只有 `quality_status=ready` 的 chunk 可成为发布卡来源，新目录写入不创建 ReviewState。
+- 来源契约：一张 Card 可按 `citation_order` 引用多个 chunk；持久层和输出明确区分 0-based PDF index、1-based PDF number 与字符串印刷页标签；普通来源契约不含 `source_file_name/source_text/cleaned_text/processing_version/local_path`。
+- 自动验证：`tools/quality-gate.sh` PASS；Ruff、format、Mypy 41 个源文件、小程序 JS/JSON 和 13 份 Markdown 链接通过；pytest `50 passed, 1 skipped, 1 warning`，分支 coverage `47%`。
+- 迁移验证：空 SQLite 和 Docker PostgreSQL 16 均完成 `upgrade head -> downgrade 0003 -> downgrade base -> upgrade head -> check`；PostgreSQL 专用输出 `1 passed, 3 deselected`，测试库已删除、容器已停止。
+- 真实数据迁移：停服后备份为 `server/backups/wxzy-before-20260722-0003.db`，备份 SHA-256 为 `843175f98cd70f09d0e0321561fafb7fdd7210d1a2adb471f851db0dca7680a5`；真实库已按 `stamp 0001 -> upgrade head -> check` 升至 `20260722_0003`，`PRAGMA integrity_check=ok`，业务计数仍为 `2/15/15/4`，15 张 Card 均为 revision 1，Documents/CardSources 暂为 0。
+- 运行验证：最新代码重启后 health、books、cards 和 stats 均返回 200；书籍仍为 2、approved cards 15、due 11、reviewed today 4，结构化日志不含 Token。
+- 回滚与风险：恢复升级前状态优先停服并还原上述备份；一旦 P1-T05/P5 写入目录数据，不得直接 downgrade 0003，因为它会删除目录表和 Card 新列。现有 15 张卡尚未回填 Document/Chunk/Source，catalog HTTP API 和 revision 冲突导入分别留给 P7/P5。
+- 恢复点：P1-T02 已完成并验证；下一个串行任务是 P1-T03 Enrollment 和个人 ReviewState。
 
 计划文件：`server/app/catalog/models.py`、migration、schemas、tests。
 
 工作：Document、DocumentVersion、Chapter、DocumentChunk、Card、CardSource；Card 支持 content_revision；来源页字段区分 PDF 页和印刷页。
+
+范围外：不扫描或解析 PDF、不迁移现有 2 本书/15 张卡、不新增目录 HTTP API，也不实现 publication importer；这些分别属于 P3/P4、P1-T05、P7/P5。
+
+兼容策略：保留现有 `books/cards` 表、主键和兼容 API；将 Book/Card 模型迁入 catalog 模块，并以可空/有默认值的新列扩展 Card。Document/Version/Chapter/Chunk/CardSource 使用新表，legacy 来源字段到 P1-T05 再对账回填。
+
+验证：同一文档 SHA 重复登记幂等；Card 可按稳定顺序引用多个 ready chunk；来源契约同时给出 0-based PDF index、1-based PDF number 和独立印刷页标签，且不包含原文全文、文件路径或处理字段；SQLite/PostgreSQL migration 升降级、legacy 对账和 drift check 通过。
 
 验收：一张卡可引用多个块；相同文档 hash 不重复创建版本；来源契约测试通过。
 

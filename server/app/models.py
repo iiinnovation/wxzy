@@ -2,48 +2,12 @@ from __future__ import annotations
 
 from datetime import datetime
 
-from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, Text, UniqueConstraint, func
+from sqlalchemy import DateTime, Float, ForeignKey, Integer, String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
+from .catalog.models import Book as Book
+from .catalog.models import Card as Card
 from .db import Base
-
-
-class Book(Base):
-    __tablename__ = "books"
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    name: Mapped[str] = mapped_column(String(128), unique=True, index=True)
-    subject: Mapped[str | None] = mapped_column(String(64), nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-
-    cards: Mapped[list[Card]] = relationship(back_populates="book")
-
-
-class Card(Base):
-    __tablename__ = "cards"
-    __table_args__ = (UniqueConstraint("external_id", name="uq_cards_external_id"),)
-
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    external_id: Mapped[str] = mapped_column(String(128), index=True)
-    book_id: Mapped[int] = mapped_column(ForeignKey("books.id"), index=True)
-    chapter: Mapped[str | None] = mapped_column(String(128), nullable=True)
-    section: Mapped[str | None] = mapped_column(String(128), nullable=True)
-    card_type: Mapped[str] = mapped_column(String(64), default="other")
-    question: Mapped[str] = mapped_column(Text)
-    answer: Mapped[str] = mapped_column(Text)
-    answer_points_json: Mapped[str | None] = mapped_column(Text, nullable=True)
-    source_excerpt: Mapped[str] = mapped_column(Text, default="")
-    source_pages_json: Mapped[str | None] = mapped_column(Text, nullable=True)
-    tags_json: Mapped[str | None] = mapped_column(Text, nullable=True)
-    status: Mapped[str] = mapped_column(String(32), default="approved", index=True)
-    confidence: Mapped[float | None] = mapped_column(Float, nullable=True)
-    created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
-    )
-
-    book: Mapped[Book] = relationship(back_populates="cards")
-    review_state: Mapped[ReviewState | None] = relationship(back_populates="card", uselist=False)
 
 
 class ReviewState(Base):

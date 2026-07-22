@@ -201,6 +201,8 @@ LearningProfile 更新同一行并保留其稳定 ID 和创建时间，不级联
 
 逻辑书籍，包含标准名、学科、版本说明和版权备注；不等于一次具体上传。
 
+`document_key` 是发布包和数据库之间的稳定键，全局唯一；标题或学科展示值不能替代该键。
+
 #### DocumentVersion
 
 | 字段 | 说明 |
@@ -214,6 +216,9 @@ LearningProfile 更新同一行并保留其稳定 ID 和创建时间，不级联
 | processing_version | 流水线版本 |
 | status | 状态机字段 |
 
+同一 Document 下 `(document_id, source_sha256)` 唯一。`source_file_name` 只允许文件名，拒绝
+绝对路径和目录分隔符；运行面数据库不保存上传签名 URL、MinerU 解包路径或处理密钥。
+
 #### DocumentPage
 
 记录 `pdf_page_index`、可选 `printed_page_label`、OCR 状态、质量分和图像引用。
@@ -221,6 +226,10 @@ LearningProfile 更新同一行并保留其稳定 ID 和创建时间，不级联
 #### DocumentChunk
 
 记录章节路径、起止 PDF 页、原文、清洗文本、内容类型、质量状态和内容 hash。Chunk 是卡片来源的主要锚点。
+
+每个 Chunk 使用 `(document_version_id, chunk_key)` 唯一定位；PDF 页范围存储为 0-based
+`pdf_page_index_start/end`，印刷页使用独立的字符串标签数组。只有 `quality_status=ready`
+的 Chunk 可以成为发布 Card 的来源。
 
 #### ProcessingJob
 
@@ -231,6 +240,8 @@ LearningProfile 更新同一行并保留其稳定 ID 和创建时间，不级联
 #### Book/Chapter
 
 Book 是对 Document 的学习目录投影；Chapter 具有父子层级、排序、来源页范围和发布版本。
+Chapter 归属不可变 DocumentVersion，使用 version 内唯一 `chapter_key`；父章节必须属于同一
+version。章节边界同样分别保存 PDF index 和印刷页 label。
 
 #### CandidateCard
 
@@ -250,9 +261,19 @@ Book 是对 Document 的学习目录投影；Chapter 具有父子层级、排序
 
 发布目录中的不可变或版本化卡片。修改事实内容时创建新 `content_revision`，不直接改写历史作答对应的版本。
 
+P1 兼容期沿用现有 `cards.id/external_id/book_id`，新增正整数 `content_revision`、内容 hash
+以及结构化 `answer_points/tags`。事实修改必须显式递增 revision；P1-T04 的 ReviewAttempt
+记录作答时 revision，P5 importer 再实现原子版本冲突策略。旧 JSON 字符串字段只供原型兼容，
+不作为 catalog 新写入路径。
+
 #### CardSource
 
 Card 到 DocumentChunk 的多对多来源，记录引用顺序、原文摘录、PDF 页和印刷页。一个答案包含多个事实时可以有多个来源块。
+
+每张 Card 的 `citation_order` 唯一，且同一 Chunk 不重复引用。持久层保存明确的
+`pdf_page_index_start/end` 与 `printed_page_start/end_label`；API 契约另外计算 1-based PDF
+page number，禁止把印刷页字符串强转成 PDF 页。普通目录响应只返回必要短摘录和来源标识，
+不返回 Chunk 原文全文、清洗全文、源文件名或任何本地处理引用。
 
 ### 7.4 Learning & Scheduling
 
