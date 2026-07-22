@@ -10,12 +10,11 @@ from __future__ import annotations
 import argparse
 import json
 import os
-import sys
 import time
 import zipfile
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, TypedDict
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
 
@@ -30,6 +29,13 @@ DEFAULT_BASE = "https://mineru.net"
 DEFAULT_SAMPLES = ROOT / "data" / "mineru" / "samples"
 DEFAULT_RESULTS = ROOT / "data" / "mineru" / "results"
 DEFAULT_RUNS = ROOT / "data" / "mineru" / "runs"
+
+
+class SampleSpec(TypedDict):
+    key: str
+    src: Path
+    pages: list[int]
+    out: Path
 
 
 def load_env() -> None:
@@ -50,9 +56,7 @@ def load_env() -> None:
 def get_token() -> str:
     token = os.environ.get("MINERU_API_TOKEN") or os.environ.get("MINERU_TOKEN")
     if not token:
-        raise SystemExit(
-            "MINERU_API_TOKEN is not set. Put it in .env.local or export it."
-        )
+        raise SystemExit("MINERU_API_TOKEN is not set. Put it in .env.local or export it.")
     return token
 
 
@@ -102,9 +106,7 @@ def put_file(upload_url: str, file_path: Path, timeout: int = 300) -> int:
     with open(file_path, "rb") as f:
         resp = requests.put(upload_url, data=f, timeout=timeout)
     if resp.status_code not in (200, 201):
-        raise SystemExit(
-            f"upload failed HTTP {resp.status_code}: {resp.text[:300]}"
-        )
+        raise SystemExit(f"upload failed HTTP {resp.status_code}: {resp.text[:300]}")
     return resp.status_code
 
 
@@ -149,7 +151,9 @@ def unpack_zip(zip_path: Path, dest: Path) -> list[str]:
 
 
 def summarize_result_dir(result_dir: Path) -> dict[str, Any]:
-    files = sorted(p.relative_to(result_dir).as_posix() for p in result_dir.rglob("*") if p.is_file())
+    files = sorted(
+        p.relative_to(result_dir).as_posix() for p in result_dir.rglob("*") if p.is_file()
+    )
     md_files = [p for p in result_dir.rglob("*.md")]
     content_lists = list(result_dir.rglob("*content_list.json"))
     summary: dict[str, Any] = {
@@ -168,7 +172,9 @@ def summarize_result_dir(result_dir: Path) -> dict[str, Any]:
         summary["markdown_path"] = str(md_files[0].relative_to(result_dir))
     if content_lists:
         raw = json.loads(content_lists[0].read_text(encoding="utf-8", errors="replace"))
-        items = raw if isinstance(raw, list) else raw.get("pdf_info") or raw.get("content_list") or []
+        items = (
+            raw if isinstance(raw, list) else raw.get("pdf_info") or raw.get("content_list") or []
+        )
         if isinstance(items, list):
             summary["content_list_items"] = len(items)
             pages = set()
@@ -185,7 +191,6 @@ def summarize_result_dir(result_dir: Path) -> dict[str, Any]:
             summary["page_indexes_seen"] = sorted(pages)[:50]
             summary["content_list_path"] = str(content_lists[0].relative_to(result_dir))
     return summary
-
 
 
 OCR_CORRECTIONS = [
@@ -245,6 +250,16 @@ def load_content_list(path: Path | None) -> list[dict[str, Any]]:
             if isinstance(items, list):
                 return [x for x in items if isinstance(x, dict)]
     return []
+
+
+def page_number(value: Any) -> int | None:
+    """Convert an untrusted content-list page value to a usable integer."""
+    if value is None or isinstance(value, bool):
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
 
 
 def clean_markdown(md: str) -> dict[str, Any]:
@@ -331,7 +346,7 @@ def quality_report_for_dir(result_dir: Path, sample_key: str | None = None) -> d
     md = md_path.read_text(encoding="utf-8", errors="replace")
     items = load_content_list(cl_path)
     types = Counter(str(it.get("type") or "unknown") for it in items)
-    pages = sorted({it.get("page_idx") for it in items if it.get("page_idx") is not None})
+    pages = sorted({page for it in items if (page := page_number(it.get("page_idx"))) is not None})
 
     # page numbers / headers from content_list
     page_numbers = []
@@ -420,9 +435,9 @@ def quality_report_for_dir(result_dir: Path, sample_key: str | None = None) -> d
         report["warnings"].append(f"page_idx not contiguous: {pages}")
     if len(md) < 500:
         report["issues"].append("markdown too short")
-    if metrics["suspicious_hit_count"] > 0:
+    if len(hits) > 0:
         report["warnings"].append(
-            f"found {metrics['suspicious_hit_count']} suspicious OCR patterns; review required before cards"
+            f"found {len(hits)} suspicious OCR patterns; review required before cards"
         )
     if metrics["html_table_count"] == 0 and metrics["pipe_table_count"] == 0:
         report["warnings"].append("no tables detected; may be fine for prose-only pages")
@@ -431,9 +446,11 @@ def quality_report_for_dir(result_dir: Path, sample_key: str | None = None) -> d
 
     report["ok"] = len(report["issues"]) == 0
     report["recommendation"] = (
-        "PASS_WITH_CLEANING" if report["ok"] and metrics["suspicious_hit_count"] <= 8 else
-        "PASS" if report["ok"] and metrics["suspicious_hit_count"] == 0 else
-        "NEEDS_HUMAN_REVIEW"
+        "PASS_WITH_CLEANING"
+        if report["ok"] and len(hits) <= 8
+        else "PASS"
+        if report["ok"] and len(hits) == 0
+        else "NEEDS_HUMAN_REVIEW"
     )
     return report
 
@@ -442,7 +459,7 @@ def write_quality_markdown(reports: list[dict[str, Any]], out_path: Path) -> Non
     lines: list[str] = []
     lines.append("# MinerU 自动质检报告")
     lines.append("")
-    lines.append(f"- generated_at: `{datetime.now(timezone.utc).isoformat()}`")
+    lines.append(f"- generated_at: `{datetime.now(UTC).isoformat()}`")
     lines.append(f"- samples: {len(reports)}")
     lines.append("")
     for r in reports:
@@ -511,7 +528,9 @@ def write_quality_markdown(reports: list[dict[str, Any]], out_path: Path) -> Non
     lines.append("## Go / No-Go 建议（自动）")
     lines.append("")
     lines.append("- 链路可用：上传→解析→下载已验证。")
-    lines.append("- 卡片生成前必须：1) 去掉页眉水印；2) 人工确认剂量/方歌 OCR；3) 多教材版本分类不可混写。")
+    lines.append(
+        "- 卡片生成前必须：1) 去掉页眉水印；2) 人工确认剂量/方歌 OCR；3) 多教材版本分类不可混写。"
+    )
     lines.append("- 推荐默认清洗后再喂给 Qwen，不可直接把 raw full.md 当事实源。")
     lines.append("")
     out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -542,18 +561,32 @@ def cmd_quality_report(args: argparse.Namespace) -> None:
         raise SystemExit(f"no sample result dirs found under {target}")
 
     reports = [quality_report_for_dir(d, sample_key=d.name) for d in sample_dirs]
-    out_json = Path(args.out_json).expanduser().resolve() if args.out_json else (target / "auto_quality_report.json")
-    out_md = Path(args.out_md).expanduser().resolve() if args.out_md else (target / "AUTO_QUALITY_REPORT.md")
+    out_json = (
+        Path(args.out_json).expanduser().resolve()
+        if args.out_json
+        else (target / "auto_quality_report.json")
+    )
+    out_md = (
+        Path(args.out_md).expanduser().resolve()
+        if args.out_md
+        else (target / "AUTO_QUALITY_REPORT.md")
+    )
     out_json.parent.mkdir(parents=True, exist_ok=True)
     out_json.write_text(json.dumps(reports, ensure_ascii=False, indent=2), encoding="utf-8")
     write_quality_markdown(reports, out_md)
-    print(json.dumps({
-        "samples": len(reports),
-        "out_json": str(out_json),
-        "out_md": str(out_md),
-        "recommendations": {r["sample"]: r.get("recommendation") for r in reports},
-        "ok": {r["sample"]: r.get("ok") for r in reports},
-    }, ensure_ascii=False, indent=2))
+    print(
+        json.dumps(
+            {
+                "samples": len(reports),
+                "out_json": str(out_json),
+                "out_md": str(out_md),
+                "recommendations": {r["sample"]: r.get("recommendation") for r in reports},
+                "ok": {r["sample"]: r.get("ok") for r in reports},
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
 
 
 def cmd_clean_md(args: argparse.Namespace) -> None:
@@ -578,17 +611,25 @@ def cmd_clean_md(args: argparse.Namespace) -> None:
     meta = {k: v for k, v in info.items() if k != "cleaned_md"}
     meta_path = out.with_suffix(out.suffix + ".meta.json")
     meta_path.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(json.dumps({
-        "source": str(md_path),
-        "out": str(out),
-        "meta": str(meta_path),
-        **meta,
-    }, ensure_ascii=False, indent=2))
+    print(
+        json.dumps(
+            {
+                "source": str(md_path),
+                "out": str(out),
+                "meta": str(meta_path),
+                **meta,
+            },
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
 
 
 def cmd_extract(args: argparse.Namespace) -> None:
     pages = parse_pages(args.pages)
-    meta = extract_pages(Path(args.src).expanduser().resolve(), pages, Path(args.out).expanduser().resolve())
+    meta = extract_pages(
+        Path(args.src).expanduser().resolve(), pages, Path(args.out).expanduser().resolve()
+    )
     print(json.dumps(meta, ensure_ascii=False, indent=2))
 
 
@@ -668,7 +709,7 @@ def cmd_submit(args: argparse.Namespace) -> None:
     run_dir = DEFAULT_RUNS / batch_id
     run_dir.mkdir(parents=True, exist_ok=True)
     manifest = {
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": datetime.now(UTC).isoformat(),
         "batch_id": batch_id,
         "base": base,
         "model_version": args.model_version,
@@ -715,9 +756,7 @@ def cmd_poll(args: argparse.Namespace) -> None:
             st = r.get("state")
             if st == "running" and r.get("extract_progress"):
                 ep = r["extract_progress"]
-                progress.append(
-                    f"{name}:{st} {ep.get('extracted_pages')}/{ep.get('total_pages')}"
-                )
+                progress.append(f"{name}:{st} {ep.get('extracted_pages')}/{ep.get('total_pages')}")
             else:
                 progress.append(f"{name}:{st}")
         msg = " | ".join(progress) if progress else f"states={states}"
@@ -730,7 +769,7 @@ def cmd_poll(args: argparse.Namespace) -> None:
         terminal = {"done", "failed"}
         if results and all(r.get("state") in terminal for r in results):
             out = {
-                "polled_at": datetime.now(timezone.utc).isoformat(),
+                "polled_at": datetime.now(UTC).isoformat(),
                 "batch_id": batch_id,
                 "payload": payload,
             }
@@ -806,7 +845,7 @@ def cmd_download(args: argparse.Namespace) -> None:
 
     report = {
         "batch_id": batch_id,
-        "downloaded_at": datetime.now(timezone.utc).isoformat(),
+        "downloaded_at": datetime.now(UTC).isoformat(),
         "items": summaries,
     }
     report_path = batch_out / "download_report.json"
@@ -820,7 +859,7 @@ def cmd_run_samples(args: argparse.Namespace) -> None:
     token = get_token()
     _ = token  # ensure present early
 
-    samples_spec = [
+    samples_spec: list[SampleSpec] = [
         {
             "key": "neike_sample",
             "src": ROOT / "docs" / "学霸笔记—中医内科学(1).pdf",
@@ -835,13 +874,13 @@ def cmd_run_samples(args: argparse.Namespace) -> None:
         },
     ]
 
-    extracted = []
+    extracted: list[dict[str, Any]] = []
     for item in samples_spec:
         if not item["src"].is_file():
             raise SystemExit(f"missing source: {item['src']}")
         # clamp pages to available
         doc = fitz.open(item["src"])
-        total = doc.page_count
+        total = int(doc.page_count)
         doc.close()
         pages = [p for p in item["pages"] if 1 <= p <= total]
         if len(pages) < 8:
@@ -852,22 +891,8 @@ def cmd_run_samples(args: argparse.Namespace) -> None:
         extracted.append(meta)
         print(f"extracted {item['key']}: pages={pages} size={meta['output_size_bytes']}")
 
-    # submit
-    files = [Path(m["output"]).resolve() if Path(m["output"]).is_absolute() else (ROOT / m["output"]).resolve() for m in extracted]
-    # rebuild absolute from out paths we just wrote
+    # Submit the exact outputs written above.
     files = [item["out"] for item in samples_spec]
-    submit_ns = argparse.Namespace(
-        files=[str(f) for f in files],
-        base=args.base,
-        model_version=args.model_version,
-        language=args.language,
-        is_ocr=args.is_ocr,
-        no_formula=False,
-        no_table=False,
-        page_ranges=None,
-        data_id=None,
-    )
-    # capture batch_id by reusing submit internals
     print("submitting samples...")
     # Call submit and read last printed batch id via run dir listing is brittle;
     # re-implement submit inline for return value.
@@ -904,7 +929,7 @@ def cmd_run_samples(args: argparse.Namespace) -> None:
     run_dir = DEFAULT_RUNS / batch_id
     run_dir.mkdir(parents=True, exist_ok=True)
     manifest = {
-        "created_at": datetime.now(timezone.utc).isoformat(),
+        "created_at": datetime.now(UTC).isoformat(),
         "batch_id": batch_id,
         "mode": "run-samples",
         "extracted": extracted,
@@ -921,7 +946,9 @@ def cmd_run_samples(args: argparse.Namespace) -> None:
         batch_id=batch_id, base=args.base, timeout=args.timeout, interval=args.interval
     )
     cmd_poll(poll_ns)
-    dl_ns = argparse.Namespace(batch_id=batch_id, base=args.base, out=str(DEFAULT_RESULTS / batch_id))
+    dl_ns = argparse.Namespace(
+        batch_id=batch_id, base=args.base, out=str(DEFAULT_RESULTS / batch_id)
+    )
     cmd_download(dl_ns)
     print(f"DONE batch_id={batch_id}")
 
@@ -967,8 +994,9 @@ def build_parser() -> argparse.ArgumentParser:
     pr.add_argument("--interval", type=int, default=8)
     pr.set_defaults(func=cmd_run_samples)
 
-
-    pq = sub.add_parser("quality-report", help="Scan MinerU result dir(s) and write auto quality report")
+    pq = sub.add_parser(
+        "quality-report", help="Scan MinerU result dir(s) and write auto quality report"
+    )
     pq.add_argument("path", help="batch result dir or single sample dir")
     pq.add_argument("--out-json")
     pq.add_argument("--out-md")

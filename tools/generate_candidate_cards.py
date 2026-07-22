@@ -15,21 +15,13 @@ import hashlib
 import json
 import os
 import re
-import sys
-from dataclasses import dataclass
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from html.parser import HTMLParser
 from pathlib import Path
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
-DEFAULT_BATCH = (
-    ROOT
-    / "data"
-    / "mineru"
-    / "results"
-    / "a67c429e-956c-4f28-bec6-69c3b71e17fa"
-)
+DEFAULT_BATCH = ROOT / "data" / "mineru" / "results" / "a67c429e-956c-4f28-bec6-69c3b71e17fa"
 PROMPT_VERSION = "v1"
 SCHEMA_PATH = ROOT / "data" / "mineru" / "cards" / "candidate_card.schema.json"
 
@@ -48,7 +40,7 @@ def load_env() -> None:
 
 
 def now_iso() -> str:
-    return datetime.now(timezone.utc).isoformat()
+    return datetime.now(UTC).isoformat()
 
 
 def stable_id(*parts: str) -> str:
@@ -139,8 +131,15 @@ def table_to_kv_blocks(rows: list[list[str]]) -> list[dict[str, str]]:
         if len(cells) >= 2:
             key, val = cells[0], cells[1] if len(cells) == 2 else " | ".join(cells[1:])
             # disease stage rows: 分期 证型 症状 治法 代表方
-            if len(cells) >= 5 and cells[0] in {"初期", "中期", "中后期", "后期"} or (
-                len(cells) >= 5 and current is not None and current.get("_name") and cells[0] not in field_keys
+            if (
+                len(cells) >= 5
+                and cells[0] in {"初期", "中期", "中后期", "后期"}
+                or (
+                    len(cells) >= 5
+                    and current is not None
+                    and current.get("_name")
+                    and cells[0] not in field_keys
+                )
             ):
                 # handled by dedicated disease extractor
                 if current is None:
@@ -565,7 +564,9 @@ def call_qwen_api(chunk: str, *, book: str, model: str) -> list[dict[str, Any]]:
         "https://dashscope.aliyuncs.com/compatible-mode/v1",
     ).rstrip("/")
     prompt_path = ROOT / "data" / "mineru" / "prompts" / "candidate_cards_v1.md"
-    system = prompt_path.read_text(encoding="utf-8") if prompt_path.is_file() else "输出 JSON 数组卡片。"
+    system = (
+        prompt_path.read_text(encoding="utf-8") if prompt_path.is_file() else "输出 JSON 数组卡片。"
+    )
     user = f"book={book}\n\n---\n{chunk}\n---\n只输出 JSON 数组。"
 
     url = f"{base}/chat/completions"
@@ -612,7 +613,9 @@ def cmd_offline(args: argparse.Namespace) -> None:
     fang_cards = extract_formula_cards(
         fang_md,
         book="方剂学",
-        source_file=str(fang_path.relative_to(ROOT)) if fang_path.is_relative_to(ROOT) else str(fang_path),
+        source_file=str(fang_path.relative_to(ROOT))
+        if fang_path.is_relative_to(ROOT)
+        else str(fang_path),
         batch_id=batch_id,
         targets=targets,
     )
@@ -633,7 +636,9 @@ def cmd_offline(args: argparse.Namespace) -> None:
     cards.extend(
         extract_neike_pulmonary_tb_cards(
             nei_md,
-            source_file=str(nei_path.relative_to(ROOT)) if nei_path.is_relative_to(ROOT) else str(nei_path),
+            source_file=str(nei_path.relative_to(ROOT))
+            if nei_path.is_relative_to(ROOT)
+            else str(nei_path),
             batch_id=batch_id,
         )
     )
@@ -641,7 +646,9 @@ def cmd_offline(args: argparse.Namespace) -> None:
         cards.extend(
             extract_versioned_zhongfeng_cards(
                 nei_md,
-                source_file=str(nei_path.relative_to(ROOT)) if nei_path.is_relative_to(ROOT) else str(nei_path),
+                source_file=str(nei_path.relative_to(ROOT))
+                if nei_path.is_relative_to(ROOT)
+                else str(nei_path),
                 batch_id=batch_id,
             )
         )
@@ -658,7 +665,11 @@ def cmd_offline(args: argparse.Namespace) -> None:
         "cards": cards,
     }
     out_json.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
-    out_md = Path(args.review_md).expanduser().resolve() if args.review_md else out_json.with_suffix(".REVIEW.md")
+    out_md = (
+        Path(args.review_md).expanduser().resolve()
+        if args.review_md
+        else out_json.with_suffix(".REVIEW.md")
+    )
     write_review_md(cards, out_md)
     print(
         json.dumps(
@@ -712,9 +723,19 @@ def cmd_api(args: argparse.Namespace) -> None:
         "cards": cards,
     }
     out_json.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
-    out_md = Path(args.review_md).expanduser().resolve() if args.review_md else out_json.with_suffix(".REVIEW.md")
+    out_md = (
+        Path(args.review_md).expanduser().resolve()
+        if args.review_md
+        else out_json.with_suffix(".REVIEW.md")
+    )
     write_review_md(cards, out_md)
-    print(json.dumps({"count": len(cards), "out": str(out_json), "review_md": str(out_md)}, ensure_ascii=False, indent=2))
+    print(
+        json.dumps(
+            {"count": len(cards), "out": str(out_json), "review_md": str(out_md)},
+            ensure_ascii=False,
+            indent=2,
+        )
+    )
 
 
 def build_parser() -> argparse.ArgumentParser:

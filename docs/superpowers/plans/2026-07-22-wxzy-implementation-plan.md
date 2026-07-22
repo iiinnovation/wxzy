@@ -80,9 +80,31 @@ alembic upgrade head
 
 ## P0-T02 建立 Python 工程配置
 
-状态：`[ ]`
+状态：`[x]`
 
 目标：统一依赖、格式、lint 和测试入口。
+
+完成报告（2026-07-22）：
+
+- 修改文件：新增根级 `pyproject.toml`、`server/requirements-dev.txt`、`server/tests/`、`tools/tests/` 和 `tools/__init__.py`；更新运行依赖范围、Server README、Python 缓存忽略项，并对现有 Python 文件执行 Ruff 机械格式化。
+- 行为覆盖：health 公共访问、Bearer Token 缺失/错误/正确、过渡调度器四档评分/经过天数/非法评分、候选卡稳定 ID、HTML 表格解析和依赖清单一致性。
+- 验证环境：使用 uv 管理的 CPython `3.12.12` 在 `/tmp/wxzy-p0-t02-py312` 创建全新虚拟环境，并从 `server/requirements-dev.txt` 完整安装依赖；现有 Python 3.14 开发环境也通过相同门禁。
+- 验证命令：`ruff check server tools`、`ruff format --check server tools`、`mypy server/app tools`、`pytest -q`、`coverage run -m pytest -q && coverage report`、`pip check`、`python -m compileall -q server/app tools`、`git diff --check`。
+- 关键输出：Ruff 全通过，23 个文件格式正确，Mypy 检查 20 个源文件无问题，pytest `13 passed`，coverage 分支基线 `23%`，`pip check` 无破损依赖。
+- 数据迁移影响：无 schema、迁移或业务数据变更；API 测试固定使用命名共享内存 SQLite，不读取或写入 `server/wxzy.db`。
+- 恢复点：P0-T02 已完成；下一个满足依赖的串行任务是 P0-T03 数据库迁移基线，文档流水线可在另一工作流从 P3-T01 开始。
+
+依赖决策：
+
+| 依赖 | 维护/许可证 | 体积影响 | 采用原因与替代方案 |
+|---|---|---|---|
+| pytest + httpx | 活跃；MIT / BSD-3-Clause | 仅开发环境，小 | FastAPI 契约测试生态成熟；标准库 unittest 需要更多夹具和传输适配 |
+| Ruff | 活跃；MIT | 单个原生开发工具，中 | 同时承担 lint/import/format；替代 Black + Flake8 会增加工具和配置面 |
+| coverage.py | 活跃；Apache-2.0 | 仅开发环境，小 | 直接提供分支覆盖基线；pytest-cov 只是其 pytest 包装层，暂不增加 |
+| Mypy + types-requests | 活跃；MIT / Apache-2.0 | 仅开发环境，中 | Python 原生静态检查且适配现有类型标注；Pyright 需要额外 Node 工具链 |
+| requests + PyMuPDF | 活跃；Apache-2.0 / AGPL-3.0 或商业许可 | 仅 `documents` 可选组，PyMuPDF 较大 | 延续现有上传和 PDF 抽页实现，不进入 Server 运行依赖；P3 需继续核对 PyMuPDF 分发许可，pypdf 是纯 Python 备选 |
+
+剩余风险：pytest 有 3 条已知弃用告警；`on_event/create_all` 由 P0-T03 的 lifespan/迁移启动方式消除，Starlette TestClient 的 httpx 迁移在 P0-T06 固定 CI 依赖时复核。当前 23% 只是首个可量化基线，P0-T06 前不作为覆盖率阈值；文档工具全流程测试属于 P3。
 
 计划文件：
 
@@ -101,9 +123,23 @@ alembic upgrade head
 
 ## P0-T03 建立数据库迁移基线
 
-状态：`[ ]`
+状态：`[x]`
 
 需求：SP-040。
+
+完成报告（2026-07-22）：
+
+- 修改文件：新增 `server/alembic.ini`、`server/migrations/` 和 migration 集成测试；更新依赖、Dockerfile、Server README、测试 schema fixture，并从 `server/app/main.py` 移除生产 `create_all()`。
+- baseline：revision `20260722_0001` 精确描述 `books/cards/review_states/review_logs`、索引、唯一约束、外键和 UTC 时间列；SQLite/PostgreSQL 的 `alembic check` 均返回 `No new upgrade operations detected`。
+- SQLite 验证：空库 `upgrade -> downgrade -> upgrade` 通过；合成 legacy 库 `stamp -> upgrade` 保留 `2/15/15/4`；真实 `server/wxzy.db` 副本也保留 `2/15/15/4`，revision 正确。
+- PostgreSQL 验证：Docker PostgreSQL 16 独立测试库完成 `upgrade -> downgrade -> upgrade -> check`；最终包含 revision、四张业务表、13 个索引和 3 个外键。
+- 应用验证：独立进程访问 `/health` 后 SQLite 文件仍不存在，证明生产启动不再隐式建表；测试环境只在 autouse fixture 中显式 `create_all/drop_all`。
+- 全量命令：Python 3.12 下 Ruff、format、Mypy 22 个源文件、`pip check`、`docker compose config --quiet` 和含 PostgreSQL 的 `pytest -q` 全部通过，pytest 输出 `17 passed`。
+- 存量保护：仓库原库未 stamp、未迁移，SHA-256 仍为 `843175f98cd70f09d0e0321561fafb7fdd7210d1a2adb471f851db0dca7680a5`，计数仍为 `2/15/15/4`，`due_now=11`。
+- 数据与回滚：baseline 本身不改业务行；现有库采用“备份 -> stamp -> check -> upgrade”。对有数据的 baseline 库禁止用 `downgrade -1` 回滚，因为它会删除四张业务表；回滚必须恢复迁移前备份。
+- 依赖决策：Alembic 活跃维护、MIT、纯 Python 且体积小（附带 Mako）；它与 SQLAlchemy 原生集成并支持双数据库 autogenerate/check，优于另加 Liquibase/JVM 或自建 SQL 版本表。
+- 剩余风险：Dockerfile 已复制迁移文件且 Compose 配置有效，但 `python:3.12-slim` 因 Docker Hub 连续 EOF 未能完成镜像构建；这是外部验证缺口，P0-T06 CI 仍需重跑。pytest 只剩 Starlette TestClient/httpx 的 1 条上游弃用告警。
+- 恢复点：P0-T03 已完成，专用 PostgreSQL 测试库已删除、容器已停止；下一串行任务是 P0-T04 统一错误、request ID 和脱敏日志。
 
 计划文件：
 
@@ -118,7 +154,19 @@ alembic upgrade head
 
 ## P0-T04 统一错误、请求 ID 和日志
 
-状态：`[ ]`
+状态：`[x]`
+
+完成报告（2026-07-22）：
+
+- 修改文件：新增 `server/app/core/errors.py`、`server/app/core/logging.py`、`server/app/core/__init__.py`；更新 `main.py`、auth、review/import 服务和 `ErrorOut` schema；新增错误契约测试。
+- 错误契约：401/404/422/409/500 均返回 `code/message/request_id/details`，并在 `X-Request-ID` 响应头回传同一 ID；422 只返回 location/message/type，不回显 body/input。
+- 业务映射：卡片不存在 -> `CARD_NOT_FOUND`/404；无效导入 -> `INVALID_IMPORT_PAYLOAD`/400；数据库唯一冲突 -> `DATABASE_CONFLICT`/409；未知异常 -> `INTERNAL_ERROR`/500。
+- 日志与安全：结构化记录 `request_id/route/status/duration_ms/method`；关闭 Uvicorn query-bearing access log；递归脱敏 Authorization、Token、Secret、Password、URL query、原文摘录和异常敏感文本，500 日志只保留异常类型。
+- 自动验证：Python 3.12 下 `23 passed, 1 skipped, 1 warning`；Ruff check/format、Mypy 25 个源文件、pip check、git diff check 全通过；coverage 分支基线为 `29%`。
+- 运行验证：本机 `http://127.0.0.1:8000` 实测 health 200、带 request ID 的 401/404/422；结构化日志无 query、Token 或原文；书库鉴权请求仍返回 200。
+- 数据迁移影响：无 schema、migration 或业务数据写入；测试继续使用独立内存 SQLite，既有 2 本书/15 张卡数据未改变。
+- 剩余风险：唯一告警来自 Starlette TestClient/httpx 上游弃用，待 P0-T06 固定 CI 依赖时处理；用户 ID 尚未建立，日志暂不记录 user_id，待 P1/P2 身份任务补入。
+- 恢复点：P0-T04 已完成；下一任务是 P0-T05，把新业务接口挂到 `/api/v1`，保留旧路由兼容期。
 
 计划文件：`server/app/core/errors.py`、`server/app/core/logging.py`、`server/app/main.py`、API tests。
 
@@ -128,7 +176,20 @@ alembic upgrade head
 
 ## P0-T05 建立 API v1 路由骨架
 
-状态：`[ ]`
+状态：`[x]`
+
+完成报告（2026-07-22）：
+
+- 修改文件：新增 `server/app/api/`、`server/app/api/v1/router.py` 和 `server/tests/test_api_v1.py`；`main.py` 同时挂载 v1 聚合路由与 deprecated 兼容路由。
+- 路由结果：`/health` 保持根路径；books/cards/review/stats/admin 同时提供 `/api/v1/...` 与原根级路径，两个版本复用同一业务函数，没有复制实现。
+- OpenAPI 验证：v1 和兼容路径全部存在；v1 操作未标 deprecated，旧操作全部标记 deprecated；所有 operation ID 非空且全局唯一。
+- 行为验证：v1/旧 `/books` 在同一 Token 下返回相同 2 本书/15 张卡统计；v1 无 Token 继续使用 P0-T04 四字段错误契约。
+- 日志验证：实际 path 不含 query 地记录，`/api/v1/books` 与 `/books` 可在结构化日志中区分。
+- 自动门禁：Python 3.12 下 `26 passed, 1 skipped, 1 warning`；Ruff、format、Mypy 28 个源文件、compileall 和 git diff check 通过；coverage 分支基线为 `30%`。
+- 运行验证：本机 `http://127.0.0.1:8000/api/v1/books` 返回 200，与旧路径 payload 一致；后端已重启并保持运行。
+- 数据迁移影响：无数据库或内容变更；小程序仍调用兼容路径，迁移到 v1 留给 P7 API 适配任务。
+- 剩余风险：兼容路径暂不设置删除日期；领域目标路径最终会演进为 catalog/learning 结构，需在 P1/P7 规格下新增而不是静默改义。
+- 恢复点：P0-T05 已完成；下一任务 P0-T06 建立单一质量脚本和无密钥 CI。
 
 计划文件：`server/app/api/v1/router.py` 及兼容路由。
 
@@ -138,7 +199,20 @@ alembic upgrade head
 
 ## P0-T06 建立一键质量门禁和 CI
 
-状态：`[ ]`
+状态：`[x]`
+
+完成报告（2026-07-22）：
+
+- 修改文件：新增 `tools/quality-gate.sh`、`tools/quality_checks.py`、检查器测试和 `.github/workflows/quality.yml`；更新依赖、coverage 阈值与根 README。
+- 单一门禁：检查 Python 3.12+、Ruff lint/format、Mypy、测试存在性、pytest、coverage、6 个小程序 JS、8 个本地 JSON 和 13 份 Markdown 本地链接。
+- 成功证据：全新 Python 3.12 环境执行 `PYTHON=... tools/quality-gate.sh` 返回 PASS；`30 passed, 1 skipped, 1 warning`，分支 coverage `33%`，高于固定的 20% 阈值。
+- 失败证据：`/tmp` 非法 JSON 与两个空测试目录分别返回 exit code 1；单测另覆盖重复 JSON key 和 Markdown 断链，证明 gate 会正确失败。
+- CI：GitHub Actions 使用 Python 3.12 + Node 20，权限仅 `contents: read`，安装公开 requirements 后运行同一个 shell 脚本；默认不启动 PostgreSQL，也不读取 PDF、data、本地数据库或任何 Key。
+- 解析依赖：`markdown-it-py` 活跃维护、MIT、纯 Python 且体积小；用 AST 提取链接，替代易误判括号/转义的手写正则。
+- 文档与启动：README 已改为先 Alembic 后启动，v1 示例和 Docker 迁移顺序正确，并公开唯一质量命令。
+- 数据迁移影响：无数据/schema 变更；coverage、pytest、Mypy、Ruff 缓存与报告均由 `.gitignore` 排除。
+- 剩余风险：workflow 文件已本地解析但尚未随本轮改动 push，因此没有远端首个 run；Docker Hub EOF 导致 P0-T03 镜像构建仍待 CI/网络恢复后复验；TestClient/httpx 保留 1 条上游告警。
+- 恢复点：P0-T06 与 P0 阶段完成；下一串行任务是 P1-T01 唯一 User 与 LearningProfile。
 
 计划文件：`tools/quality-gate.sh`、CI workflow、README。
 
@@ -148,10 +222,12 @@ alembic upgrade head
 
 ### P0 退出门禁
 
-- 自动测试和 lint 可在新环境安装运行。
-- 数据库迁移可升级和回退。
-- 新接口有版本化和统一错误。
-- 后续模型有单一质量命令。
+- [x] 自动测试和 lint 可在全新 Python 3.12 环境安装运行。
+- [x] SQLite/PostgreSQL 数据库迁移可升级、回退和检查 drift。
+- [x] 新接口有 `/api/v1`、统一错误、request ID 和脱敏日志。
+- [x] 后续模型有单一 `tools/quality-gate.sh` 命令。
+
+P0 完成检查点：T01–T06 全部完成；当前后端保持在 `http://127.0.0.1:8000` 运行，原型数据库仍为 2 本书、15 张卡、15 个 review state 和 4 条 review log。P1 开始后，任何新表或旧表变化都必须新增 Alembic revision，不能修改 baseline。
 
 ---
 

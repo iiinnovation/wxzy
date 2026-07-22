@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-import json
 import hashlib
-from datetime import datetime, timezone
+import json
+from datetime import UTC, datetime
 from typing import Any
 
 from sqlalchemy import func, select
@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 
 from . import models
 from .config import get_settings
+from .core.errors import InvalidRequestError, ResourceNotFoundError
 from .fsrs_simple import schedule, utcnow
 from .schemas import CardOut, ImportResult, ReviewAnswerOut, ReviewDueItem, StatsOut
 
@@ -37,7 +38,11 @@ def card_to_out(card: models.Card) -> CardOut:
         answer=card.answer,
         answer_points=_loads_list(card.answer_points_json),
         source_excerpt=card.source_excerpt or "",
-        source_pages=[int(x) for x in _loads_list(card.source_pages_json) if str(x).isdigit() or isinstance(x, int)],
+        source_pages=[
+            int(x)
+            for x in _loads_list(card.source_pages_json)
+            if str(x).isdigit() or isinstance(x, int)
+        ],
         tags=[str(x) for x in _loads_list(card.tags_json)],
         status=card.status,
         confidence=card.confidence,
@@ -47,7 +52,10 @@ def card_to_out(card: models.Card) -> CardOut:
 def list_books(db: Session) -> list[dict[str, Any]]:
     rows = db.execute(
         select(models.Book, func.count(models.Card.id))
-        .outerjoin(models.Card, (models.Card.book_id == models.Book.id) & (models.Card.status == "approved"))
+        .outerjoin(
+            models.Card,
+            (models.Card.book_id == models.Book.id) & (models.Card.status == "approved"),
+        )
         .group_by(models.Book.id)
         .order_by(models.Book.id)
     ).all()
@@ -126,7 +134,10 @@ def list_due(db: Session, *, limit: int = 30) -> list[ReviewDueItem]:
 def answer_review(db: Session, *, card_id: int, rating: int) -> ReviewAnswerOut:
     card = db.get(models.Card, card_id)
     if card is None or card.status != "approved":
-        raise ValueError("card not found or not approved")
+        raise ResourceNotFoundError(
+            code="CARD_NOT_FOUND",
+            message="卡片不存在或尚未发布",
+        )
     st = ensure_review_state(db, card)
     before_due = st.due_at
     before_state = st.state
@@ -179,10 +190,15 @@ def answer_review(db: Session, *, card_id: int, rating: int) -> ReviewAnswerOut:
     )
 
 
-def import_payload(db: Session, payload: dict[str, Any], *, only_approved: bool = True) -> ImportResult:
+def import_payload(
+    db: Session, payload: dict[str, Any], *, only_approved: bool = True
+) -> ImportResult:
     cards_in = payload.get("cards") if isinstance(payload, dict) else None
     if not isinstance(cards_in, list):
-        raise ValueError("payload.cards must be a list")
+        raise InvalidRequestError(
+            code="INVALID_IMPORT_PAYLOAD",
+            message="卡片导入数据格式无效",
+        )
 
     books_created = 0
     cards_upserted = 0
@@ -282,24 +298,40 @@ def import_payload(db: Session, payload: dict[str, Any], *, only_approved: bool 
 
 def stats(db: Session) -> StatsOut:
     now = utcnow()
-    start = datetime(now.year, now.month, now.day, tzinfo=timezone.utc)
+    start = datetime(now.year, now.month, now.day, tzinfo=UTC)
     books = db.scalar(select(func.count()).select_from(models.Book)) or 0
-    approved = db.scalar(select(func.count()).select_from(models.Card).where(models.Card.status == "approved")) or 0
-    due = db.scalar(
-        select(func.count())
-        .select_from(models.ReviewState)
-        .join(models.Card)
-        .where(models.Card.status == "approved", models.ReviewState.due_at <= now)
-    ) or 0
-    reviewed_today = db.scalar(
-        select(func.count()).select_from(models.ReviewLog).where(models.ReviewLog.reviewed_at >= start)
-    ) or 0
-    new_cards = db.scalar(
-        select(func.count())
-        .select_from(models.ReviewState)
-        .join(models.Card)
-        .where(models.Card.status == "approved", models.ReviewState.state == "new")
-    ) or 0
+    approved = (
+        db.scalar(
+            select(func.count()).select_from(models.Card).where(models.Card.status == "approved")
+        )
+        or 0
+    )
+    due = (
+        db.scalar(
+            select(func.count())
+            .select_from(models.ReviewState)
+            .join(models.Card)
+            .where(models.Card.status == "approved", models.ReviewState.due_at <= now)
+        )
+        or 0
+    )
+    reviewed_today = (
+        db.scalar(
+            select(func.count())
+            .select_from(models.ReviewLog)
+            .where(models.ReviewLog.reviewed_at >= start)
+        )
+        or 0
+    )
+    new_cards = (
+        db.scalar(
+            select(func.count())
+            .select_from(models.ReviewState)
+            .join(models.Card)
+            .where(models.Card.status == "approved", models.ReviewState.state == "new")
+        )
+        or 0
+    )
     return StatsOut(
         books=int(books),
         cards_approved=int(approved),

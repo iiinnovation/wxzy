@@ -61,7 +61,9 @@ class ReviewState(Base):
     state: Mapped[str] = mapped_column(String(32), default="new")  # new|learning|review|relearning
     algorithm_version: Mapped[str] = mapped_column(String(32), default="fsrs-v1")
     last_rating: Mapped[int | None] = mapped_column(Integer, nullable=True)
-    last_reviewed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
+    last_reviewed_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), server_default=func.now(), onupdate=func.now()
     )
@@ -75,7 +77,9 @@ class ReviewLog(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     card_id: Mapped[int] = mapped_column(ForeignKey("cards.id"), index=True)
     rating: Mapped[int] = mapped_column(Integer)  # 1 again 2 hard 3 good 4 easy
-    reviewed_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+    reviewed_at: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True), server_default=func.now()
+    )
     due_before: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     due_after: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     stability_after: Mapped[float | None] = mapped_column(Float, nullable=True)

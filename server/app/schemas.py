@@ -85,4 +85,7 @@ class HealthOut(BaseModel):
 
 
 class ErrorOut(BaseModel):
-    detail: str
+    code: str
+    message: str
+    request_id: str
+    details: Any = None

@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from ..auth import require_token
@@ -24,7 +24,4 @@ def post_answer(
     db: Session = Depends(get_db),
     _token: str = Depends(require_token),
 ):
-    try:
-        return answer_review(db, card_id=body.card_id, rating=body.rating)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e)) from e
+    return answer_review(db, card_id=body.card_id, rating=body.rating)
