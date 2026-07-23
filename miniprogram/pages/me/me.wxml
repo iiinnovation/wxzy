@@ -10,10 +10,41 @@
     </view>
   </view>
 
-  <view class="settings-panel">
+  <view class="settings-panel auth-panel">
     <view class="panel-heading">
-      <view class="section-title">服务连接</view>
-      <view class="muted">配置只保存在当前设备</view>
+      <view class="section-title">登录状态</view>
+      <view class="muted">{{authStateLabel}}</view>
+    </view>
+    <view class="owner-row" wx:if="{{ownerName}}">
+      <view class="label">当前 Owner</view>
+      <view class="owner-name">{{ownerName}}</view>
+    </view>
+    <view class="muted" wx:else>尚未登录学习账户</view>
+
+    <view class="auth-actions">
+      <button
+        class="btn btn-primary"
+        bindtap="onWeChatLogin"
+        loading="{{loggingIn}}"
+        disabled="{{loggingIn || loggingOut}}"
+      >
+        微信登录
+      </button>
+      <button
+        class="btn"
+        bindtap="onLogout"
+        loading="{{loggingOut}}"
+        disabled="{{loggingIn || loggingOut}}"
+      >
+        退出登录
+      </button>
+    </view>
+  </view>
+
+  <view class="settings-panel" wx:if="{{showDevConfig}}">
+    <view class="panel-heading">
+      <view class="section-title">开发连接</view>
+      <view class="muted">仅开发模式显示，生产版不暴露 Token</view>
     </view>
 
     <view class="label">API 地址</view>
@@ -25,7 +56,7 @@
     />
 
     <view class="field-heading">
-      <view class="label token-label">API Token</view>
+      <view class="label token-label">开发 Token</view>
       <view class="token-toggle" bindtap="onToggleToken">{{showToken ? '隐藏' : '显示'}}</view>
     </view>
     <input
@@ -33,7 +64,7 @@
       value="{{token}}"
       bindinput="onToken"
       password="{{!showToken}}"
-      placeholder="填写服务端 API Token"
+      placeholder="AUTH_MODE=dev_token 时使用"
     />
 
     <view class="error" wx:if="{{error}}">{{error}}</view>
@@ -42,6 +73,16 @@
     <button class="btn btn-primary save-button" bindtap="onSave" loading="{{saving}}" disabled="{{saving}}">
       保存并检测连接
     </button>
+  </view>
+
+  <view class="settings-panel" wx:else>
+    <view class="panel-heading">
+      <view class="section-title">服务连接</view>
+      <view class="muted">生产模式使用微信 Session 鉴权</view>
+    </view>
+    <view class="error" wx:if="{{error}}">{{error}}</view>
+    <view class="ok" wx:if="{{ok}}">{{ok}}</view>
+    <view class="muted">API：{{apiBase}}</view>
   </view>
 
   <view class="section-header">
@@ -74,5 +115,7 @@
     </view>
   </view>
 
-  <view class="privacy-note">Token 仅用于访问你自己的服务端，不会上传到其他服务。</view>
+  <view class="privacy-note">
+    Session 与开发 Token 仅保存在本机，不会上传到第三方。生产环境不展示或要求填写 API Token。
+  </view>
 </view>
