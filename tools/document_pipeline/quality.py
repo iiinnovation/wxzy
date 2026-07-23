@@ -87,7 +87,10 @@ def quality_report_for_dir(result_dir: Path, sample_key: str | None = None) -> d
 
     clean_info = clean_markdown(md)
     report["cleaning_preview"] = {
+        "rule_version": clean_info.get("rule_version"),
+        "rule_ids_applied": clean_info.get("rule_ids_applied") or [],
         "corrections": clean_info["corrections"],
+        "replacement_count": len(clean_info.get("replacements") or []),
         "removed_header_count": clean_info["removed_header_count"],
         "removed_page_number_count": clean_info["removed_page_number_count"],
         "removed_headers": clean_info["removed_headers"][:20],

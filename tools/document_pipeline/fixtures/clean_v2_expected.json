@@ -1,0 +1,23 @@
+{
+  "must_contain": [
+    "粳米",
+    "㕮咀",
+    "漐漐",
+    "正文保留 学霸笔记 不删行内水印词",
+    "另起一行保留"
+  ],
+  "must_not_contain_lines": [
+    "中医考研 学朝 笔记",
+    "中医考研 学期笔记",
+    "/ 295",
+    "294"
+  ],
+  "rule_ids": [
+    "ocr.fangji.jingmi",
+    "ocr.fangji.fuju",
+    "ocr.fangji.zhenzhen",
+    "noise.header.kaoyan_note_md",
+    "noise.page_number.slash",
+    "noise.page_number.bare"
+  ]
+}

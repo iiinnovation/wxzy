@@ -13,6 +13,7 @@ from urllib.request import Request, urlopen
 from tools.document_pipeline.clean import write_cleaned_markdown
 from tools.document_pipeline.env import get_token, load_env
 from tools.document_pipeline.http_client import http_json, put_file
+from tools.document_pipeline.page_mapping import enrich_page_map_from_content_list_path
 from tools.document_pipeline.pages import parse_pages
 from tools.document_pipeline.paths import (
     DEFAULT_MINERU_BASE,
@@ -94,15 +95,26 @@ def cmd_clean_md(args: argparse.Namespace) -> None:
     if not target.exists():
         raise SystemExit(f"path not found: {target}")
 
-    md_path, _ = find_md_and_content_list(target)
+    md_path, cl_path = find_md_and_content_list(target)
     if md_path is None and target.is_file() and target.suffix == ".md":
         md_path = target
     if md_path is None:
         raise SystemExit(f"full.md not found under {target}")
 
     out = Path(args.out).expanduser().resolve() if args.out else None
+    page_map = None
+    if cl_path is not None and cl_path.is_file():
+        page_map = enrich_page_map_from_content_list_path(
+            cl_path,
+            source_pdf_page_start=int(args.source_pdf_page_start)
+            if getattr(args, "source_pdf_page_start", None)
+            else None,
+            expected_page_count=int(args.expected_pages)
+            if getattr(args, "expected_pages", None)
+            else None,
+        )
     try:
-        result = write_cleaned_markdown(md_path, out=out)
+        result = write_cleaned_markdown(md_path, out=out, page_map=page_map)
     except Exception as exc:  # noqa: BLE001 - CLI surface
         # Fallback for non-raw paths still uses pure clean_markdown if write guard fails unexpectedly
         raise SystemExit(str(exc)) from exc
@@ -467,6 +479,18 @@ def build_parser() -> argparse.ArgumentParser:
     pc = sub.add_parser("clean-md", help="Apply deterministic OCR/header cleaning to full.md")
     pc.add_argument("path", help="sample result dir or full.md path")
     pc.add_argument("--out", help="output cleaned markdown path")
+    pc.add_argument(
+        "--source-pdf-page-start",
+        type=int,
+        default=None,
+        help="1-based source PDF page for split page 0 (page map)",
+    )
+    pc.add_argument(
+        "--expected-pages",
+        type=int,
+        default=None,
+        help="expected split page count for complete page map",
+    )
     pc.set_defaults(func=cmd_clean_md)
 
     return p

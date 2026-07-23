@@ -131,4 +131,4 @@ def test_clean_markdown_hashes_stable() -> None:
     assert info["input_sha256"]
     assert info["output_sha256"]
     assert "㕮咀" in info["cleaned_md"]
-    assert info["rule_version"] == "clean.v1"
+    assert info["rule_version"] == "clean.v2"
