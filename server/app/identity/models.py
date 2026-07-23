@@ -121,3 +121,25 @@ class LearningProfile(Base):
     )
 
     user: Mapped[User] = relationship(back_populates="learning_profile")
+
+
+class LearningProfileAudit(Base):
+    """Append-only snapshot of learning-profile field changes."""
+
+    __tablename__ = "learning_profile_audits"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    profile_id: Mapped[int] = mapped_column(
+        ForeignKey("learning_profiles.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    changed_fields: Mapped[list[str]] = mapped_column(MutableList.as_mutable(JSON), nullable=False)
+    before_values: Mapped[dict[str, object]] = mapped_column(
+        MutableDict.as_mutable(JSON), nullable=False
+    )
+    after_values: Mapped[dict[str, object]] = mapped_column(
+        MutableDict.as_mutable(JSON), nullable=False
+    )
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), server_default=func.now())

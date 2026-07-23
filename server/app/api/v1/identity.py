@@ -6,7 +6,7 @@ from sqlalchemy.orm import Session
 
 from ...auth import require_owner, security
 from ...config import AuthMode, Settings, get_settings
-from ...core.errors import InvalidRequestError
+from ...core.errors import InvalidRequestError, ResourceNotFoundError
 from ...db import get_db
 from ...identity.auth import (
     AuthSessionResult,
@@ -18,7 +18,14 @@ from ...identity.auth import (
     revoke_session,
 )
 from ...identity.models import User
+from ...identity.schemas import LearningProfileOut, LearningProfileUpdate
 from ...identity.schemas_auth import OwnerOut, SessionTokenOut, WeChatLoginIn
+from ...identity.services import (
+    LearningProfileConflictError,
+    LearningProfileNotFoundError,
+    apply_learning_profile_update,
+    get_learning_profile,
+)
 from ...identity.wechat import (
     UrllibWeChatCodeExchange,
     WeChatCodeError,
@@ -165,3 +172,41 @@ def logout_auth_session(
 @router.get("/me", response_model=OwnerOut)
 def get_me(owner: User = Depends(require_owner)) -> OwnerOut:
     return OwnerOut.model_validate(owner, from_attributes=True)
+
+
+@router.get("/me/learning-profile", response_model=LearningProfileOut)
+def get_my_learning_profile(
+    owner: User = Depends(require_owner),
+    db: Session = Depends(get_db),
+) -> LearningProfileOut:
+    try:
+        profile = get_learning_profile(db, user_id=owner.id)
+    except LearningProfileNotFoundError as exc:
+        raise ResourceNotFoundError(
+            code="LEARNING_PROFILE_NOT_FOUND",
+            message="学习档案不存在",
+        ) from exc
+    return LearningProfileOut.from_entities(profile, owner)
+
+
+@router.put("/me/learning-profile", response_model=LearningProfileOut)
+def put_my_learning_profile(
+    body: LearningProfileUpdate,
+    owner: User = Depends(require_owner),
+    db: Session = Depends(get_db),
+) -> LearningProfileOut:
+    try:
+        profile = apply_learning_profile_update(db, owner=owner, update=body)
+    except LearningProfileNotFoundError as exc:
+        raise ResourceNotFoundError(
+            code="LEARNING_PROFILE_NOT_FOUND",
+            message="学习档案不存在",
+        ) from exc
+    except LearningProfileConflictError as exc:
+        raise InvalidRequestError(
+            code="LEARNING_PROFILE_CONFLICT",
+            message="学习档案已被其他请求更新，请刷新后重试",
+            status_code=409,
+            details={"current_updated_at": exc.current_updated_at.isoformat()},
+        ) from exc
+    return LearningProfileOut.from_entities(profile, owner)

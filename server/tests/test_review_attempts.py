@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import sys
 from collections.abc import Iterator
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime, timedelta
@@ -12,7 +13,7 @@ from sqlalchemy.orm import Session
 
 from app.catalog.models import Book, Card
 from app.db import engine
-from app.identity.models import LearningProfile, User, UserSession
+from app.identity.models import LearningProfile, LearningProfileAudit, User, UserSession
 from app.identity.schemas import OwnerCreate
 from app.identity.services import create_owner_with_default_profile
 from app.learning.models import (
@@ -57,6 +58,7 @@ def _clean_rows(db: Session) -> None:
     db.execute(delete(StudySession))
     db.execute(delete(CardReviewState))
     db.execute(delete(CardEnrollment))
+    db.execute(delete(LearningProfileAudit))
     db.execute(delete(LearningProfile))
     db.execute(delete(UserSession))
     db.execute(delete(User))
@@ -67,11 +69,21 @@ def _clean_rows(db: Session) -> None:
 
 @pytest.fixture
 def db() -> Iterator[Session]:
-    with Session(engine) as session:
-        _clean_rows(session)
+    session = Session(engine)
+    _clean_rows(session)
+    try:
         yield session
-        session.rollback()
-        _clean_rows(session)
+    finally:
+        try:
+            session.rollback()
+        except Exception:
+            pass
+        try:
+            session.close()
+        except Exception:
+            pass
+        with Session(engine) as cleanup:
+            _clean_rows(cleanup)
 
 
 def _create_context(db: Session, *, planned_tasks: int = 3) -> tuple[int, int, int]:
@@ -212,6 +224,10 @@ def test_duplicate_attempt_with_different_context_is_a_conflict(db: Session) -> 
         submit_review_attempt(db, conflicting, now=BASE_TIME + timedelta(minutes=3))
 
 
+@pytest.mark.skipif(
+    sys.version_info >= (3, 14),
+    reason="Python 3.14 + shared in-memory SQLite ThreadPool can segfault; covered by postgres marker",
+)
 def test_concurrent_duplicate_submission_creates_one_attempt(db: Session) -> None:
     user_id, card_id, session_id = _create_context(db)
     values = _attempt_values(user_id=user_id, card_id=card_id, session_id=session_id)
@@ -226,10 +242,10 @@ def test_concurrent_duplicate_submission_creates_one_attempt(db: Session) -> Non
 
     assert len({attempt_id for attempt_id, _replayed in results}) == 1
     assert sorted(replayed for _attempt_id, replayed in results) == [False, True]
-    db.expire_all()
-    assert db.scalar(select(func.count()).select_from(ReviewAttempt)) == 1
-    state = db.scalar(select(CardReviewState).where(CardReviewState.card_id == card_id))
-    assert state is not None and state.reps == 1
+    with Session(engine) as verify_db:
+        assert verify_db.scalar(select(func.count()).select_from(ReviewAttempt)) == 1
+        state = verify_db.scalar(select(CardReviewState).where(CardReviewState.card_id == card_id))
+        assert state is not None and state.reps == 1
 
 
 @pytest.mark.postgres

@@ -11,7 +11,7 @@ from sqlalchemy.orm import Session
 
 from app.catalog.models import Book, Card
 from app.db import engine
-from app.identity.models import LearningProfile, User, UserSession
+from app.identity.models import LearningProfile, LearningProfileAudit, User, UserSession
 from app.identity.schemas import OwnerCreate
 from app.identity.services import create_owner_with_default_profile
 from app.learning.models import CardEnrollment, CardReviewState
@@ -29,6 +29,7 @@ from app.learning.services import (
 def _clean_learning_rows(db: Session) -> None:
     db.execute(delete(CardReviewState))
     db.execute(delete(CardEnrollment))
+    db.execute(delete(LearningProfileAudit))
     db.execute(delete(LearningProfile))
     db.execute(delete(UserSession))
     db.execute(delete(User))

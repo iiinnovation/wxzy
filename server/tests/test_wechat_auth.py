@@ -13,7 +13,7 @@ from app.api.v1.identity import get_wechat_client
 from app.config import AppEnvironment, AuthMode, Settings
 from app.db import engine
 from app.identity.auth import hash_openid, hash_session_token
-from app.identity.models import LearningProfile, User, UserSession
+from app.identity.models import LearningProfile, LearningProfileAudit, User, UserSession
 from app.identity.schemas import OwnerCreate
 from app.identity.services import create_owner_with_default_profile
 from app.identity.wechat import (
@@ -39,6 +39,7 @@ def _clean_identity_rows(db: Session) -> None:
     db.execute(delete(StudySession))
     db.execute(delete(CardReviewState))
     db.execute(delete(CardEnrollment))
+    db.execute(delete(LearningProfileAudit))
     db.execute(delete(LearningProfile))
     db.execute(delete(UserSession))
     db.execute(delete(User))

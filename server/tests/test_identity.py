@@ -10,7 +10,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.db import engine
-from app.identity.models import LearningProfile, User, UserSession
+from app.identity.models import LearningProfile, LearningProfileAudit, User, UserSession
 from app.identity.schemas import GoalType, LearningProfileValues, OwnerCreate
 from app.identity.services import (
     ActiveOwnerExistsError,
@@ -23,6 +23,7 @@ from app.identity.services import (
 def db() -> Iterator[Session]:
     with Session(engine) as session:
         session.execute(delete(UserSession))
+        session.execute(delete(LearningProfileAudit))
         session.execute(delete(LearningProfile))
         session.execute(delete(User))
         session.commit()
