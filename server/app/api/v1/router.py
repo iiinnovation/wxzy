@@ -1,8 +1,10 @@
 from fastapi import APIRouter
 
 from ...routers import admin, books, cards, review, stats
+from .identity import router as identity_router
 
 router = APIRouter(prefix="/api/v1")
+router.include_router(identity_router)
 router.include_router(books.router)
 router.include_router(cards.router)
 router.include_router(review.router)

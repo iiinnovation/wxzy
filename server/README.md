@@ -59,5 +59,6 @@ Env:
 - `AUTH_MODE` (`dev_token` locally, `wechat` in production)
 - `API_TOKEN` (required only in `dev_token` mode; fixed tokens are rejected in production)
 - `WECHAT_APP_ID` and `WECHAT_APP_SECRET` (required in `wechat` mode)
+- `WECHAT_TIMEOUT_SECONDS` (default 5 seconds, maximum 30 seconds)
 - `SESSION_TTL_SECONDS` (default 30 days, maximum 365 days)
 - `DATABASE_URL` (default SQLite file `./wxzy.db`)

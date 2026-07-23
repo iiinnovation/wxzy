@@ -54,6 +54,12 @@ class Settings(BaseSettings):
         le=365 * 24 * 60 * 60,
         validation_alias=AliasChoices("SESSION_TTL_SECONDS", "SESSION_TTL"),
     )
+    wechat_timeout_seconds: float = Field(
+        default=5.0,
+        gt=0,
+        le=30,
+        validation_alias=AliasChoices("WECHAT_TIMEOUT_SECONDS", "WECHAT_TIMEOUT"),
+    )
     cors_origins: str = "*"
     algorithm_version: str = "fsrs-v1"
 
