@@ -1,0 +1,93 @@
+{
+  "schema_version": 1,
+  "kind": "inventory_coverage_summary",
+  "document_count": 7,
+  "page_total": 704,
+  "source_dir": "docs",
+  "documents": [
+    {
+      "document_key": "neike",
+      "title": "学霸笔记—中医内科学",
+      "source_file_name": "学霸笔记—中医内科学(1).pdf",
+      "source_sha256": "8ea7bc99141867f7d20eb9aeaec284dbb37f05566f1d955983f53b16572f7369",
+      "page_count": 149,
+      "size_bytes": 361839338,
+      "version": 1,
+      "document_version": "neike.v1.8ea7bc991418",
+      "copyright_scope": "personal-use",
+      "page_count_matches_plan": true
+    },
+    {
+      "document_key": "jichu",
+      "title": "学霸笔记—中医基础理论",
+      "source_file_name": "学霸笔记—中医基础理论(1).pdf",
+      "source_sha256": "1fcfabb4b4b33a6cc7d45ec11bb9c6ebbfe6a118f106af5254490e18148ba112",
+      "page_count": 102,
+      "size_bytes": 248592786,
+      "version": 1,
+      "document_version": "jichu.v1.1fcfabb4b4b3",
+      "copyright_scope": "personal-use",
+      "page_count_matches_plan": true
+    },
+    {
+      "document_key": "zhenduan",
+      "title": "学霸笔记—中医诊断学",
+      "source_file_name": "学霸笔记—中医诊断学(1).pdf",
+      "source_sha256": "cd4e4aaee343619975e2a8490d4e7be71457885f380deb2d2fcbe9761a580960",
+      "page_count": 92,
+      "size_bytes": 216036280,
+      "version": 1,
+      "document_version": "zhenduan.v1.cd4e4aaee343",
+      "copyright_scope": "personal-use",
+      "page_count_matches_plan": true
+    },
+    {
+      "document_key": "zhongyao",
+      "title": "学霸笔记—中药学",
+      "source_file_name": "学霸笔记—中药学(1).pdf",
+      "source_sha256": "e9037a7250213fbdef3c11197bac0b616c963fbe78207bf1bdd68cabbee8406b",
+      "page_count": 88,
+      "size_bytes": 199312804,
+      "version": 1,
+      "document_version": "zhongyao.v1.e9037a725021",
+      "copyright_scope": "personal-use",
+      "page_count_matches_plan": true
+    },
+    {
+      "document_key": "renwen",
+      "title": "学霸笔记—人文",
+      "source_file_name": "学霸笔记—人文(1).pdf",
+      "source_sha256": "20340ad679a8f4279bb10d59b2ee7bcb2fe74a522ad988646695a336712b714a",
+      "page_count": 39,
+      "size_bytes": 107277639,
+      "version": 1,
+      "document_version": "renwen.v1.20340ad679a8",
+      "copyright_scope": "personal-use",
+      "page_count_matches_plan": true
+    },
+    {
+      "document_key": "fangji",
+      "title": "学霸笔记—方剂学",
+      "source_file_name": "学霸笔记—方剂学(1).pdf",
+      "source_sha256": "0755d148d00a7967b953200453f5fc41ab43eeb485b8bab7c0d4ca1a02272781",
+      "page_count": 140,
+      "size_bytes": 343870577,
+      "version": 1,
+      "document_version": "fangji.v1.0755d148d00a",
+      "copyright_scope": "personal-use",
+      "page_count_matches_plan": true
+    },
+    {
+      "document_key": "zhenjiu",
+      "title": "学霸笔记—针灸学",
+      "source_file_name": "学霸笔记—针灸学(1).pdf",
+      "source_sha256": "e267e196ca4522562d63a7a23b21dd79c64fd953a74fe956f192e9c113435e1b",
+      "page_count": 94,
+      "size_bytes": 220422563,
+      "version": 1,
+      "document_version": "zhenjiu.v1.e267e196ca45",
+      "copyright_scope": "personal-use",
+      "page_count_matches_plan": true
+    }
+  ]
+}

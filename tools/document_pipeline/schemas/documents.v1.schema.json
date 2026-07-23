@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wxzy.local/schemas/documents.v1.schema.json",
+  "title": "wxzy document inventory v1",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "generated_at",
+    "source_dir",
+    "document_count",
+    "page_total",
+    "documents"
+  ],
+  "properties": {
+    "schema_version": { "type": "integer", "const": 1 },
+    "generated_at": { "type": "string" },
+    "source_dir": { "type": "string" },
+    "document_count": { "type": "integer", "minimum": 0 },
+    "page_total": { "type": "integer", "minimum": 0 },
+    "documents": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": [
+          "schema_version",
+          "document_key",
+          "title",
+          "source_file_name",
+          "source_sha256",
+          "page_count",
+          "size_bytes",
+          "copyright_scope",
+          "version",
+          "document_version",
+          "registered_at"
+        ],
+        "properties": {
+          "schema_version": { "type": "integer", "const": 1 },
+          "document_key": { "type": "string", "minLength": 1 },
+          "title": { "type": "string" },
+          "source_file_name": { "type": "string" },
+          "source_relpath": { "type": "string" },
+          "source_sha256": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+          "page_count": { "type": "integer", "minimum": 1 },
+          "size_bytes": { "type": "integer", "minimum": 0 },
+          "copyright_scope": { "type": "string" },
+          "version": { "type": "integer", "minimum": 1 },
+          "document_version": { "type": "string" },
+          "registered_at": { "type": "string" },
+          "planned_page_count": { "type": "integer" },
+          "page_count_matches_plan": { "type": "boolean" }
+        },
+        "additionalProperties": true
+      }
+    },
+    "missing_document_keys": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "unmapped_source_files": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  },
+  "additionalProperties": true
+}

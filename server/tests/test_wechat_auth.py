@@ -113,9 +113,12 @@ def test_first_login_claims_existing_legacy_owner_and_never_returns_openid(
         data=OwnerCreate(display_name="Existing Owner"),
     )
     owner_id = owner.id
+    # Detach fixture-owned row so later asserts do not reload through a
+    # connection that may have been recycled by concurrent request sessions.
+    db.expunge(owner)
+    db.commit()
 
     payload = _login(client)
-    db.expire_all()
 
     assert payload["owner"] == {
         "id": owner_id,
@@ -127,14 +130,18 @@ def test_first_login_claims_existing_legacy_owner_and_never_returns_openid(
     assert "session_key" not in payload
     token = payload["access_token"]
     assert token and len(token) >= 32
-    stored_owner = db.get(User, owner_id)
-    assert stored_owner is not None
-    assert stored_owner.wechat_openid_hash == hash_openid("openid-primary")
-    assert "openid-primary" not in stored_owner.wechat_openid_hash
-    session = db.scalar(select(UserSession).where(UserSession.user_id == owner_id))
-    assert session is not None
-    assert session.token_hash == hash_session_token(token)
-    assert session.expires_at > datetime.now(UTC)
+    # Read post-login state on a fresh session: request handlers close their own
+    # SessionLocal after commit; reusing an expired fixture identity map is brittle
+    # under shared in-memory SQLite + full-suite coverage.
+    with Session(engine) as verify:
+        stored_owner = verify.get(User, owner_id)
+        assert stored_owner is not None
+        assert stored_owner.wechat_openid_hash == hash_openid("openid-primary")
+        assert "openid-primary" not in stored_owner.wechat_openid_hash
+        session = verify.scalar(select(UserSession).where(UserSession.user_id == owner_id))
+        assert session is not None
+        assert session.token_hash == hash_session_token(token)
+        assert session.expires_at > datetime.now(UTC)
 
     me = client.get("/api/v1/me", headers={"Authorization": f"Bearer {token}"})
     assert me.status_code == 200
