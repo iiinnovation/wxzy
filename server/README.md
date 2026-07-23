@@ -55,5 +55,9 @@ mirror its compatible dependency ranges for the server Docker build.
 
 Env:
 
-- `API_TOKEN` (required in prod)
+- `APP_ENV` (`development`, `test`, or `production`; default `development`)
+- `AUTH_MODE` (`dev_token` locally, `wechat` in production)
+- `API_TOKEN` (required only in `dev_token` mode; fixed tokens are rejected in production)
+- `WECHAT_APP_ID` and `WECHAT_APP_SECRET` (required in `wechat` mode)
+- `SESSION_TTL_SECONDS` (default 30 days, maximum 365 days)
 - `DATABASE_URL` (default SQLite file `./wxzy.db`)

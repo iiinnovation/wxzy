@@ -18,8 +18,13 @@ services:
   api:
     build: ./server
     environment:
+      APP_ENV: ${APP_ENV:-development}
+      AUTH_MODE: ${AUTH_MODE:-dev_token}
       DATABASE_URL: postgresql+psycopg://wxzy:wxzy@db:5432/wxzy
       API_TOKEN: ${API_TOKEN:-dev-token-change-me}
+      WECHAT_APP_ID: ${WECHAT_APP_ID:-}
+      WECHAT_APP_SECRET: ${WECHAT_APP_SECRET:-}
+      SESSION_TTL_SECONDS: ${SESSION_TTL_SECONDS:-2592000}
       CORS_ORIGINS: "*"
     ports:
       - "8000:8000"

@@ -123,7 +123,7 @@ PYTHON=server/.venv/bin/python tools/quality-gate.sh
 ## 安全
 
 - 不要把 `AppSecret`、数据库密码、`API_TOKEN`、MinerU/Qwen Key 写进小程序代码或 git
-- 生产环境必须改掉默认 `API_TOKEN`，并走 HTTPS 合法域名
+- 开发环境显式使用 `AUTH_MODE=dev_token`；生产环境必须使用 `APP_ENV=production`、`AUTH_MODE=wechat` 及服务端微信 AppID/AppSecret，并走 HTTPS 合法域名
 
 ## 明确不做
 
