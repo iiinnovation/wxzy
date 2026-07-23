@@ -18,6 +18,7 @@ IDENTITY_REVISION = "20260722_0002"
 CATALOG_REVISION = "20260722_0003"
 ENROLLMENT_REVISION = "20260722_0004"
 ATTEMPT_REVISION = "20260722_0005"
+DATA_REVISION = "20260723_0006"
 BASELINE_TABLES = {"books", "cards", "review_states", "review_logs"}
 IDENTITY_TABLES = {"users", "user_sessions", "learning_profiles"}
 CATALOG_TABLES = {
@@ -48,6 +49,21 @@ def run_alembic(database_url: str, *arguments: str) -> subprocess.CompletedProce
     )
     assert result.returncode == 0, result.stdout + result.stderr
     return result
+
+
+def run_alembic_allow_failure(
+    database_url: str, *arguments: str
+) -> subprocess.CompletedProcess[str]:
+    env = os.environ.copy()
+    env["DATABASE_URL"] = database_url
+    return subprocess.run(
+        [sys.executable, "-m", "alembic", "-c", str(ALEMBIC_CONFIG), *arguments],
+        cwd=ROOT,
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
 
 
 def sqlite_url(path: Path) -> str:
@@ -136,6 +152,12 @@ def test_empty_sqlite_upgrade_downgrade_upgrade(tmp_path: Path) -> None:
     assert_sqlite_single_active_owner_constraint(database)
 
     run_alembic(url, "downgrade", "-1")
+    assert table_names(database) == HEAD_TABLES | {"alembic_version"}
+    with sqlite3.connect(database) as connection:
+        version = connection.execute("SELECT version_num FROM alembic_version").fetchone()
+    assert version == (ATTEMPT_REVISION,)
+
+    run_alembic(url, "downgrade", "-1")
     assert table_names(database) == PRE_ATTEMPT_TABLES | {"alembic_version"}
     with sqlite3.connect(database) as connection:
         version = connection.execute("SELECT version_num FROM alembic_version").fetchone()
@@ -159,7 +181,7 @@ def test_empty_sqlite_upgrade_downgrade_upgrade(tmp_path: Path) -> None:
     run_alembic(url, "upgrade", "head")
     with sqlite3.connect(database) as connection:
         version = connection.execute("SELECT version_num FROM alembic_version").fetchone()
-    assert version == (ATTEMPT_REVISION,)
+    assert version == (DATA_REVISION,)
     run_alembic(url, "check")
 
 
@@ -306,11 +328,64 @@ def test_legacy_sqlite_can_stamp_and_upgrade_without_data_loss(tmp_path: Path) -
             "SELECT MIN(content_revision), MAX(content_revision), "
             "MIN(answer_points), MAX(answer_points), MIN(tags), MAX(tags) FROM cards"
         ).fetchone()
+        migrated_counts = {
+            table: connection.execute(f"SELECT COUNT(*) FROM {table}").fetchone()[0]
+            for table in (
+                "users",
+                "learning_profiles",
+                "card_enrollments",
+                "card_review_states",
+                "study_sessions",
+                "review_attempts",
+            )
+        }
+        enrollment_statuses = connection.execute(
+            "SELECT status, source, COUNT(*) FROM card_enrollments GROUP BY status, source"
+        ).fetchall()
+        legacy_state_values = connection.execute(
+            "SELECT card_id, due_at, reps, lapses FROM review_states ORDER BY card_id"
+        ).fetchall()
+        personal_state_values = connection.execute(
+            "SELECT card_id, due_at, reps, lapses FROM card_review_states ORDER BY card_id"
+        ).fetchall()
+        attempt_keys = connection.execute(
+            "SELECT client_attempt_id FROM review_attempts ORDER BY id"
+        ).fetchall()
     assert counts == {"books": 2, "cards": 15, "review_states": 15, "review_logs": 4}
-    assert version == (ATTEMPT_REVISION,)
+    assert version == (DATA_REVISION,)
     assert card_defaults == (1, 1, "[]", "[]", "[]", "[]")
+    assert migrated_counts == {
+        "users": 1,
+        "learning_profiles": 1,
+        "card_enrollments": 15,
+        "card_review_states": 15,
+        "study_sessions": 1,
+        "review_attempts": 4,
+    }
+    assert enrollment_statuses == [("active", "manual", 15)]
+    assert [
+        (card_id, due_at.split(".", 1)[0], reps, lapses)
+        for card_id, due_at, reps, lapses in personal_state_values
+    ] == [
+        (card_id, due_at.split(".", 1)[0], reps, lapses)
+        for card_id, due_at, reps, lapses in legacy_state_values
+    ]
+    assert attempt_keys == [(f"legacy-review-log-{index}",) for index in range(1, 5)]
     assert table_names(database) == HEAD_TABLES | {"alembic_version"}
     run_alembic(url, "check")
+
+
+def test_legacy_data_migration_refuses_destructive_downgrade(tmp_path: Path) -> None:
+    database = tmp_path / "legacy-downgrade.db"
+    create_legacy_schema(database)
+    url = sqlite_url(database)
+
+    run_alembic(url, "stamp", BASELINE_REVISION)
+    run_alembic(url, "upgrade", "head")
+    result = run_alembic_allow_failure(url, "downgrade", "-1")
+
+    assert result.returncode != 0
+    assert "restore the pre-migration backup" in result.stdout + result.stderr
 
 
 def postgres_state(url: str) -> tuple[set[str], str | None]:
@@ -339,8 +414,11 @@ def test_empty_postgres_upgrade_when_configured() -> None:
     assert postgres_state(url) == ({"alembic_version"}, None)
 
     run_alembic(url, "upgrade", "head")
-    assert postgres_state(url) == (HEAD_TABLES | {"alembic_version"}, ATTEMPT_REVISION)
+    assert postgres_state(url) == (HEAD_TABLES | {"alembic_version"}, DATA_REVISION)
     assert_postgres_single_active_owner_constraint(url)
+
+    run_alembic(url, "downgrade", "-1")
+    assert postgres_state(url) == (HEAD_TABLES | {"alembic_version"}, ATTEMPT_REVISION)
 
     run_alembic(url, "downgrade", "-1")
     assert postgres_state(url) == (
@@ -361,5 +439,5 @@ def test_empty_postgres_upgrade_when_configured() -> None:
     assert postgres_state(url) == ({"alembic_version"}, None)
 
     run_alembic(url, "upgrade", "head")
-    assert postgres_state(url) == (HEAD_TABLES | {"alembic_version"}, ATTEMPT_REVISION)
+    assert postgres_state(url) == (HEAD_TABLES | {"alembic_version"}, DATA_REVISION)
     run_alembic(url, "check")

@@ -358,11 +358,32 @@ P0 完成检查点：T01–T06 全部完成；当前后端保持在 `http://127.
 
 ## P1-T05 迁移现有原型数据
 
-状态：`[ ]`
+状态：`[x]`
+
+完成报告（2026-07-23）：
+
+- 修改文件：新增 `20260723_0006_migrate_legacy_learning.py` 和 `tools/report_legacy_migration.py`；扩展迁移集成测试与系统设计/实施计划。
+- 迁移结果：检测到 legacy cards 时创建或复用唯一 active `Legacy Owner` 及默认 LearningProfile；15 张有 ReviewState 的卡建立 active enrollment 和 15 条个人 CardReviewState；保留 due、stability、difficulty、reps、lapses、state、algorithm_version 和 rating。
+- 历史对账：4 条 ReviewLog 迁移为 4 条 ReviewAttempt，使用稳定 `legacy-review-log-{id}` 幂等键，归入 1 个已完成 legacy review session；legacy 四张表不删除、不改写。enrollment 来源因原型无来源字段统一保守记为 `manual`，卡片原有 chapter/section 保持不变。
+- 幂等与回滚：0006 重复执行按 user/card 和稳定 attempt key 跳过已存在行；downgrade 发现任一 enrollment/state/session/attempt/issue 或 UserSession 时直接拒绝，要求停服恢复备份。
+- 核心验收：合成 legacy SQLite 对账为 `2/15/15/4`，新表为 `1 owner/1 profile/15 enrollment/15 state/1 session/4 attempt`；due/reps/lapses 逐卡一致；迁移回退保护测试通过。
+- 对账工具：`tools/report_legacy_migration.py` 输出 revision、Owner、legacy/new 状态差异、legacy Attempt key 缺失/多余项和孤儿计数；真实库报告 `ok=true`。
+- 自动验证：`tools/quality-gate.sh` PASS；Ruff、format、Mypy 49 个源文件、小程序 JS/JSON 和 13 份 Markdown 链接通过；pytest `63 passed, 2 skipped, 1 warning`，分支 coverage `52%`。两个 skip 均为默认未配置 PostgreSQL 的显式集成测试，PostgreSQL 16 空库升级/逐级回退专项另行 `1 passed`。
+- 真实数据迁移：停服后备份 `server/backups/wxzy-before-20260723-0006.db`，SHA-256 为 `6fe64ff09a0ea7c032323168997082f4021acccc42c87b5144dc6cd1f094dabc`；真实库已升至 `20260723_0006`，`PRAGMA integrity_check=ok`，对账无差异、无孤儿。
+- 运行验证：后端重启后 health、books、legacy due 和 stats 均返回 200；旧兼容 API 仍可访问，当前日期变化导致 due 统计按新日期重新计算。
+- 恢复点：P1-T05 已完成并验证；下一个串行任务是 P1-T06 拆分后端领域服务。
 
 计划文件：data migration、迁移测试、迁移报告脚本。
 
 工作：创建 legacy Owner；迁移 2 本书、15 张卡、ReviewState 和 ReviewLog；建立 enrollment；保持 due、reps、lapses 和来源。
+
+范围补充：新增 Alembic `20260723_0006` 只写新身份/个人学习表，不删除或改写 legacy
+`books/cards/review_states/review_logs`；空库不创建 Owner。迁移重复执行按稳定主键和
+`legacy-review-log-{id}` 幂等，真实库执行前必须停服并备份。
+
+回滚设计：0006 downgrade 只允许在该 Owner 没有 enrollment、review state、attempt 或
+issue 时删除迁移生成的 profile/session/Owner；一旦存在个人学习数据直接拒绝 downgrade，
+必须停服后恢复升级前备份。
 
 验收：迁移前后 books/cards/due/logs 对账一致；备份可恢复；回滚策略记录。
 

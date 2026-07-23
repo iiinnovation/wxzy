@@ -601,6 +601,14 @@ Admin 接口不暴露给普通小程序页面；初期由 CLI 调用。
 7. 校验迁移前后卡数、due 数和 review 数。
 8. 保留回滚备份，删除 `create_all` 生产依赖。
 
+当前实现（`20260723_0006`）：迁移只在检测到 legacy cards 时创建或复用唯一 active Owner；
+空库升级不会产生用户。每张有 ReviewState 的卡建立 active enrollment，因原型没有 enrollment
+来源字段，`source=manual` 是可审计的保守推断，原有 card chapter/section 字段保持不变。
+ReviewState 的 due、stability、difficulty、reps、lapses、state、algorithm_version 和 rating
+逐字段复制；每条 ReviewLog 使用 `legacy-review-log-{id}` 作为稳定 client_attempt_id，并归入
+一个已完成的 legacy review session。`tools/report_legacy_migration.py` 提供只读逐卡对账、映射
+和孤儿检查。0006 downgrade 在存在任何个人学习数据时拒绝执行，恢复必须使用迁移前备份。
+
 ## 20. 关键设计决策
 
 | ID | 决策 | 原因 |
