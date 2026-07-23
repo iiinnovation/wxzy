@@ -29,6 +29,7 @@ from app.catalog.schemas import (
 from app.catalog.services import (
     CatalogConflictError,
     CatalogReferenceError,
+    card_to_out,
     create_catalog_card,
     create_chapter,
     create_document_chunk,
@@ -250,6 +251,7 @@ def test_card_can_cite_multiple_chunks_with_unambiguous_source_contract(db: Sess
     assert card.answer_points_json is None
     assert card.tags_json is None
     assert len(card.sources) == 2
+    assert card_to_out(card).source_pages == [20, 21]
     assert db.scalar(select(ReviewState.id).where(ReviewState.card_id == card.id)) is None
 
     contracts = list_card_source_contracts(db, card_id=card.id)

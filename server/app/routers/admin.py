@@ -10,8 +10,8 @@ from sqlalchemy.orm import Session
 from ..auth import require_token
 from ..core.errors import InvalidRequestError, ResourceNotFoundError
 from ..db import get_db
+from ..publishing.services import import_payload
 from ..schemas import ImportResult
-from ..services_cards import import_payload
 
 router = APIRouter(prefix="/admin", tags=["admin"])
 

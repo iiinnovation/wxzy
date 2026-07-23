@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
 
 from ..auth import require_token
+from ..catalog.services import list_cards
 from ..db import get_db
 from ..schemas import CardOut
-from ..services_cards import list_cards
 
 router = APIRouter(prefix="/cards", tags=["cards"])
 

@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 
 from ..auth import require_token
 from ..db import get_db
+from ..learning.services import answer_review, list_due
 from ..schemas import ReviewAnswerIn, ReviewAnswerOut, ReviewDueItem
-from ..services_cards import answer_review, list_due
 
 router = APIRouter(prefix="/review", tags=["review"])
 

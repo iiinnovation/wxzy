@@ -4,12 +4,18 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from time import monotonic, sleep
 
-from sqlalchemy import and_, select
+from sqlalchemy import and_, func, select
 from sqlalchemy.exc import IntegrityError, OperationalError
 from sqlalchemy.orm import Session
 
-from ..catalog.models import Card
+from ..catalog.models import Book, Card
+from ..catalog.services import card_to_out
+from ..config import get_settings
+from ..core.errors import ResourceNotFoundError
+from ..fsrs_simple import schedule, utcnow
 from ..identity.models import User
+from ..models import ReviewLog, ReviewState
+from ..schemas import ReviewAnswerOut, ReviewDueItem, StatsOut
 from .models import CardEnrollment, CardIssue, CardReviewState, ReviewAttempt, StudySession
 from .schemas import (
     CardIssueCreate,
@@ -73,6 +79,148 @@ class IntroductionResult:
 class ReviewAttemptResult:
     attempt: ReviewAttempt
     replayed: bool
+
+
+def ensure_review_state(db: Session, card: Card) -> ReviewState:
+    if card.review_state:
+        return card.review_state
+    review_state = ReviewState(
+        card_id=card.id,
+        due_at=utcnow(),
+        stability=1.0,
+        difficulty=5.0,
+        state="new",
+        algorithm_version=get_settings().algorithm_version,
+    )
+    db.add(review_state)
+    db.flush()
+    return review_state
+
+
+def list_due(db: Session, *, limit: int = 30) -> list[ReviewDueItem]:
+    now = utcnow()
+    states = db.scalars(
+        select(ReviewState)
+        .join(Card)
+        .where(Card.status == "approved", ReviewState.due_at <= now)
+        .order_by(ReviewState.due_at.asc())
+        .limit(min(limit, 100))
+    ).all()
+    return [
+        ReviewDueItem(
+            card=card_to_out(state.card),
+            due_at=state.due_at,
+            state=state.state,
+            reps=state.reps,
+            lapses=state.lapses,
+            stability=state.stability,
+            difficulty=state.difficulty,
+        )
+        for state in states
+    ]
+
+
+def answer_review(db: Session, *, card_id: int, rating: int) -> ReviewAnswerOut:
+    card = db.get(Card, card_id)
+    if card is None or card.status != "approved":
+        raise ResourceNotFoundError(
+            code="CARD_NOT_FOUND",
+            message="卡片不存在或尚未发布",
+        )
+    try:
+        state = ensure_review_state(db, card)
+        before_due = state.due_at
+        before_state = state.state
+        reviewed_at = utcnow()
+        result = schedule(
+            rating=rating,
+            now=reviewed_at,
+            stability=state.stability,
+            difficulty=state.difficulty,
+            reps=state.reps,
+            lapses=state.lapses,
+            state=state.state,
+            last_reviewed_at=state.last_reviewed_at,
+        )
+        state.due_at = result.due_at
+        state.stability = result.stability
+        state.difficulty = result.difficulty
+        state.elapsed_days = result.elapsed_days
+        state.scheduled_days = result.scheduled_days
+        state.reps = result.reps
+        state.lapses = result.lapses
+        state.state = result.state
+        state.last_rating = rating
+        state.last_reviewed_at = reviewed_at
+        state.algorithm_version = get_settings().algorithm_version
+        db.add(
+            ReviewLog(
+                card_id=card.id,
+                rating=rating,
+                due_before=before_due,
+                due_after=result.due_at,
+                stability_after=result.stability,
+                difficulty_after=result.difficulty,
+                algorithm_version=state.algorithm_version,
+                state_before=before_state,
+                state_after=result.state,
+            )
+        )
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+    db.refresh(state)
+    return ReviewAnswerOut(
+        card_id=card.id,
+        rating=rating,
+        due_at=state.due_at,
+        scheduled_days=state.scheduled_days,
+        stability=state.stability,
+        difficulty=state.difficulty,
+        state=state.state,
+        reps=state.reps,
+        lapses=state.lapses,
+        algorithm_version=state.algorithm_version,
+    )
+
+
+def stats(db: Session) -> StatsOut:
+    now = utcnow()
+    start = datetime(now.year, now.month, now.day, tzinfo=UTC)
+    books = db.scalar(select(func.count()).select_from(Book)) or 0
+    approved = (
+        db.scalar(select(func.count()).select_from(Card).where(Card.status == "approved")) or 0
+    )
+    due = (
+        db.scalar(
+            select(func.count())
+            .select_from(ReviewState)
+            .join(Card)
+            .where(Card.status == "approved", ReviewState.due_at <= now)
+        )
+        or 0
+    )
+    reviewed_today = (
+        db.scalar(select(func.count()).select_from(ReviewLog).where(ReviewLog.reviewed_at >= start))
+        or 0
+    )
+    new_cards = (
+        db.scalar(
+            select(func.count())
+            .select_from(ReviewState)
+            .join(Card)
+            .where(Card.status == "approved", ReviewState.state == "new")
+        )
+        or 0
+    )
+    return StatsOut(
+        books=int(books),
+        cards_approved=int(approved),
+        due_now=int(due),
+        reviewed_today=int(reviewed_today),
+        new_cards=int(new_cards),
+    )
 
 
 def _utc_now() -> datetime:

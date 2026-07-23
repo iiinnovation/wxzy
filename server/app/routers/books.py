@@ -2,9 +2,9 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from ..auth import require_token
+from ..catalog.services import list_books
 from ..db import get_db
 from ..schemas import BookOut
-from ..services_cards import list_books
 
 router = APIRouter(prefix="/books", tags=["books"])
 

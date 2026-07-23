@@ -1,12 +1,14 @@
 from __future__ import annotations
 
+import json
 from dataclasses import dataclass
 from datetime import UTC, datetime
 
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy.orm import Session, joinedload
+from sqlalchemy.orm import Session, joinedload, selectinload
 
+from ..schemas import BookOut, CardOut
 from .models import Book, Card, CardSource, Chapter, Document, DocumentChunk, DocumentVersion
 from .schemas import (
     CardSourceOut,
@@ -31,6 +33,97 @@ class DocumentVersionRegistration:
     document: Document
     version: DocumentVersion
     created: bool
+
+
+def _legacy_list(raw: str | None) -> list[object]:
+    if not raw:
+        return []
+    try:
+        value = json.loads(raw)
+    except json.JSONDecodeError:
+        return []
+    return value if isinstance(value, list) else []
+
+
+def card_to_out(card: Card) -> CardOut:
+    answer_points = [str(item) for item in (card.answer_points or [])]
+    if not answer_points:
+        answer_points = [str(item) for item in _legacy_list(card.answer_points_json)]
+
+    tags = [str(item) for item in (card.tags or [])]
+    if not tags:
+        tags = [str(item) for item in _legacy_list(card.tags_json)]
+
+    source_pages: list[int] = []
+    for source in card.sources:
+        source_pages.extend(range(source.pdf_page_index_start + 1, source.pdf_page_index_end + 2))
+    if not source_pages:
+        for item in _legacy_list(card.source_pages_json):
+            if isinstance(item, bool):
+                continue
+            if isinstance(item, int) or (isinstance(item, str) and item.isdigit()):
+                source_pages.append(int(item))
+    source_pages = list(dict.fromkeys(source_pages))
+
+    return CardOut(
+        id=card.id,
+        external_id=card.external_id,
+        book_id=card.book_id,
+        book_name=card.book.name if card.book else None,
+        chapter=card.chapter,
+        section=card.section,
+        card_type=card.card_type,
+        question=card.question,
+        answer=card.answer,
+        answer_points=answer_points,
+        source_excerpt=card.source_excerpt or "",
+        source_pages=source_pages,
+        tags=tags,
+        status=card.status,
+        confidence=card.confidence,
+    )
+
+
+def list_books(db: Session) -> list[BookOut]:
+    rows = db.execute(
+        select(Book, func.count(Card.id))
+        .outerjoin(
+            Card,
+            (Card.book_id == Book.id) & (Card.status == "approved"),
+        )
+        .group_by(Book.id)
+        .order_by(Book.id)
+    ).all()
+    return [
+        BookOut(id=book.id, name=book.name, subject=book.subject, card_count=int(count or 0))
+        for book, count in rows
+    ]
+
+
+def list_cards(
+    db: Session,
+    *,
+    book_id: int | None = None,
+    status: str = "approved",
+    q: str | None = None,
+    limit: int = 50,
+    offset: int = 0,
+) -> list[CardOut]:
+    statement = (
+        select(Card)
+        .options(joinedload(Card.book), selectinload(Card.sources))
+        .join(Book)
+        .where(Card.status == status)
+    )
+    if book_id is not None:
+        statement = statement.where(Card.book_id == book_id)
+    if q:
+        like = f"%{q}%"
+        statement = statement.where(
+            (Card.question.ilike(like)) | (Card.answer.ilike(like)) | (Card.section.ilike(like))
+        )
+    statement = statement.order_by(Card.id).offset(offset).limit(min(limit, 200))
+    return [card_to_out(card) for card in db.scalars(statement).all()]
 
 
 def _utc_now() -> datetime:

@@ -3,8 +3,8 @@ from sqlalchemy.orm import Session
 
 from ..auth import require_token
 from ..db import get_db
+from ..learning.services import stats
 from ..schemas import StatsOut
-from ..services_cards import stats
 
 router = APIRouter(prefix="/stats", tags=["stats"])
 
