@@ -20,7 +20,7 @@ from tools.document_pipeline.http_client import http_json, redact_url
 from tools.document_pipeline.inventory import planned_corpus_summary, planned_document_keys
 from tools.document_pipeline.pages import parse_pages
 from tools.document_pipeline.paths import CORPUS_PAGE_TOTAL, DOCUMENT_KEYS
-from tools.document_pipeline.raw import is_safe_zip_member, unpack_zip
+from tools.document_pipeline.raw import RawError, is_safe_zip_member, unpack_zip
 from tools.document_pipeline.structure import load_content_list, page_number
 
 
@@ -88,7 +88,7 @@ def test_zip_member_safety_and_enforce(tmp_path: Path) -> None:
     bad_zip = tmp_path / "bad.zip"
     with zipfile.ZipFile(bad_zip, "w") as zf:
         zf.writestr("../escape.txt", "x")
-    with pytest.raises(ValueError, match="unsafe zip member"):
+    with pytest.raises((ValueError, RawError), match="unsafe zip member"):
         unpack_zip(bad_zip, tmp_path / "bad_out", enforce_safe_members=True)
 
 

@@ -30,7 +30,7 @@ from tools.document_pipeline.budget import (
 )
 from tools.document_pipeline.http_client import http_json, put_file, redact_url
 from tools.document_pipeline.paths import DEFAULT_MINERU_BASE, PIPELINE_DATA_ROOT, ROOT
-from tools.document_pipeline.raw import unpack_zip
+from tools.document_pipeline.raw import materialize_raw_from_zip
 
 JOB_SCHEMA_VERSION = 1
 TERMINAL_ITEM_STATES = frozenset({"done", "failed"})
@@ -805,13 +805,33 @@ def download_job(
         raw_dir = job_dir / "raw" / data_id
         raw_dir.mkdir(parents=True, exist_ok=True)
         zip_path = raw_dir / "result.zip"
-        client.download(zip_url, zip_path)
-        zip_hash = sha256_file(zip_path)
-        unpack_zip(zip_path, raw_dir / "unzipped", enforce_safe_members=enforce_safe_zip)
+        # Download to a temp name first, then materialize (verify + unpack + manifest).
+        tmp_zip = raw_dir / "result.zip.partial"
+        client.download(zip_url, tmp_zip)
+        try:
+            raw_meta = materialize_raw_from_zip(
+                tmp_zip,
+                raw_dir,
+                require_markdown=True,
+                copy_zip=True,
+            )
+        except Exception as exc:  # noqa: BLE001 - record and continue other items
+            tmp_zip.unlink(missing_ok=True)
+            item["err_msg"] = f"raw materialize failed: {exc}"[:500]
+            items[idx] = item
+            append_event(
+                job_dir,
+                {"type": "download_failed", "data_id": data_id, "error": str(exc)[:300]},
+            )
+            continue
+        finally:
+            tmp_zip.unlink(missing_ok=True)
+        zip_hash = str(raw_meta.get("zip_sha256") or sha256_file(zip_path))
         item["raw_relpath"] = relative_posix(raw_dir, root=base)
         item["zip_sha256"] = zip_hash
         item["full_zip_url_redacted"] = redact_url(zip_url)
         item["err_msg"] = None
+        item["raw_entry_check"] = raw_meta.get("entry_check")
         items[idx] = item
         any_downloaded = True
         append_event(
@@ -821,6 +841,7 @@ def download_job(
                 "data_id": data_id,
                 "zip_sha256": zip_hash,
                 "raw_relpath": item["raw_relpath"],
+                "output_hashes": raw_meta.get("output_hashes"),
             },
         )
 

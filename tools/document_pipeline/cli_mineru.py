@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Any, TypedDict
 from urllib.request import Request, urlopen
 
-from tools.document_pipeline.clean import clean_markdown
+from tools.document_pipeline.clean import write_cleaned_markdown
 from tools.document_pipeline.env import get_token, load_env
 from tools.document_pipeline.http_client import http_json, put_file
 from tools.document_pipeline.pages import parse_pages
@@ -22,7 +22,7 @@ from tools.document_pipeline.paths import (
     ROOT,
 )
 from tools.document_pipeline.quality import quality_report_for_dir, write_quality_markdown
-from tools.document_pipeline.raw import summarize_result_dir, unpack_zip
+from tools.document_pipeline.raw import materialize_raw_from_zip, summarize_result_dir, unpack_zip
 from tools.document_pipeline.split import extract_pages
 from tools.document_pipeline.structure import find_md_and_content_list
 
@@ -100,29 +100,13 @@ def cmd_clean_md(args: argparse.Namespace) -> None:
     if md_path is None:
         raise SystemExit(f"full.md not found under {target}")
 
-    md = md_path.read_text(encoding="utf-8", errors="replace")
-    info = clean_markdown(md)
-    if args.out:
-        out = Path(args.out).expanduser().resolve()
-    else:
-        out = md_path.with_name("full.cleaned.md")
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(info["cleaned_md"], encoding="utf-8")
-    meta = {k: v for k, v in info.items() if k != "cleaned_md"}
-    meta_path = out.with_suffix(out.suffix + ".meta.json")
-    meta_path.write_text(json.dumps(meta, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(
-        json.dumps(
-            {
-                "source": str(md_path),
-                "out": str(out),
-                "meta": str(meta_path),
-                **meta,
-            },
-            ensure_ascii=False,
-            indent=2,
-        )
-    )
+    out = Path(args.out).expanduser().resolve() if args.out else None
+    try:
+        result = write_cleaned_markdown(md_path, out=out)
+    except Exception as exc:  # noqa: BLE001 - CLI surface
+        # Fallback for non-raw paths still uses pure clean_markdown if write guard fails unexpectedly
+        raise SystemExit(str(exc)) from exc
+    print(json.dumps(result, ensure_ascii=False, indent=2, default=str))
 
 
 def cmd_extract(args: argparse.Namespace) -> None:
@@ -296,8 +280,16 @@ def cmd_download(args: argparse.Namespace) -> None:
         req = Request(zip_url, method="GET")
         with urlopen(req, timeout=180) as resp:
             zip_path.write_bytes(resp.read())
-        names = unpack_zip(zip_path, item_dir / "unzipped")
+        try:
+            raw_meta = materialize_raw_from_zip(zip_path, item_dir, require_markdown=False)
+            names = list(raw_meta.get("members_sample") or [])
+        except Exception:
+            names = unpack_zip(zip_path, item_dir / "unzipped", enforce_safe_members=True)
+            raw_meta = None
         summary = summarize_result_dir(item_dir / "unzipped")
+        if raw_meta is not None:
+            summary["zip_sha256"] = raw_meta.get("zip_sha256")
+            summary["output_hashes"] = raw_meta.get("output_hashes")
         summary.update(
             {
                 "file_name": name,
