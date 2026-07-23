@@ -1,0 +1,153 @@
+<view class="container profile-edit-page">
+  <view class="topbar">
+    <view>
+      <view class="eyebrow">学习偏好</view>
+      <view class="page-title">档案设置</view>
+    </view>
+  </view>
+
+  <view class="error" wx:if="{{error}}">{{error}}</view>
+  <view class="ok" wx:if="{{ok}}">{{ok}}</view>
+
+  <view class="card" wx:if="{{loading}}">
+    <view class="muted">正在加载档案…</view>
+  </view>
+
+  <block wx:if="{{!loading}}">
+    <view class="card">
+      <view class="section-title">基本信息</view>
+      <view class="label">显示昵称</view>
+      <input
+        class="input"
+        value="{{form.display_name}}"
+        bindinput="onDisplayName"
+        maxlength="64"
+        placeholder="可选"
+        disabled="{{saving}}"
+      />
+
+      <view class="label">学习目的</view>
+      <view class="chip-row">
+        <view
+          class="chip {{form.goal_type === item.value ? 'is-selected' : ''}}"
+          wx:for="{{goalOptions}}"
+          wx:key="value"
+          data-value="{{item.value}}"
+          bindtap="onSelectGoal"
+        >{{item.label}}</view>
+      </view>
+
+      <view class="label">目标日期</view>
+      <picker mode="date" value="{{form.target_date}}" bindchange="onTargetDate" disabled="{{saving}}">
+        <view class="input picker-input">{{form.target_date || '未设置'}}</view>
+      </picker>
+      <view class="muted tiny-action" bindtap="onClearDate" wx:if="{{form.target_date && !saving}}">清除日期</view>
+    </view>
+
+    <view class="card">
+      <view class="section-title">时间预算</view>
+      <view class="label">每日分钟</view>
+      <view class="chip-row">
+        <view
+          class="chip {{form.daily_minutes === item && !form.custom_minutes ? 'is-selected' : ''}}"
+          wx:for="{{minutePresets}}"
+          wx:key="*this"
+          data-value="{{item}}"
+          bindtap="onSelectMinutes"
+        >{{item}}</view>
+      </view>
+      <input
+        class="input"
+        type="number"
+        value="{{form.custom_minutes || form.daily_minutes}}"
+        bindinput="onCustomMinutes"
+        placeholder="5–240"
+        disabled="{{saving}}"
+      />
+
+      <view class="label">每周学习日</view>
+      <view class="day-row">
+        <view
+          class="day-chip {{form.study_days[index] ? 'is-selected' : ''}}"
+          wx:for="{{dayLabels}}"
+          wx:key="*this"
+          data-index="{{index}}"
+          bindtap="onToggleDay"
+        >{{item}}</view>
+      </view>
+    </view>
+
+    <view class="card">
+      <view class="section-title">学科优先级</view>
+      <view class="muted step-hint">可选。修改目标后会影响未来计划，不会删除历史记录。</view>
+      <view class="subject-row" wx:for="{{form.subject_rows}}" wx:key="name">
+        <view
+          class="subject-toggle {{item.enabled ? 'is-selected' : ''}}"
+          data-index="{{index}}"
+          bindtap="onToggleSubject"
+        >{{item.name}}</view>
+        <view class="score-group" wx:if="{{item.enabled}}">
+          <view class="score-label">优先级 {{item.priority}}</view>
+          <slider
+            min="1"
+            max="5"
+            step="1"
+            value="{{item.priority}}"
+            show-value
+            disabled="{{saving}}"
+            data-index="{{index}}"
+            data-field="priority"
+            bindchange="onSubjectScore"
+            activeColor="#0f766e"
+            block-size="16"
+          />
+          <view class="score-label">自评 {{item.assessment}}</view>
+          <slider
+            min="1"
+            max="5"
+            step="1"
+            value="{{item.assessment}}"
+            show-value
+            disabled="{{saving}}"
+            data-index="{{index}}"
+            data-field="assessment"
+            bindchange="onSubjectScore"
+            activeColor="#284b63"
+            block-size="16"
+          />
+        </view>
+      </view>
+    </view>
+
+    <view class="card advanced-card">
+      <view class="section-title" bindtap="onToggleAdvanced">
+        高级设置 {{showAdvanced ? '▾' : '▸'}}
+      </view>
+      <block wx:if="{{showAdvanced}}">
+        <view class="label">目标留存率（0.70–0.99）</view>
+        <input
+          class="input"
+          type="digit"
+          value="{{form.desired_retention}}"
+          bindinput="onRetention"
+          disabled="{{saving}}"
+        />
+        <view class="label">新卡上限 / 天</view>
+        <input
+          class="input"
+          type="number"
+          value="{{form.new_card_ceiling}}"
+          bindinput="onCeiling"
+          disabled="{{saving}}"
+        />
+      </block>
+    </view>
+
+    <button
+      class="btn btn-primary save-button"
+      bindtap="onSave"
+      loading="{{saving}}"
+      disabled="{{saving}}"
+    >保存档案</button>
+  </block>
+</view>

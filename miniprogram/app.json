@@ -3,7 +3,9 @@
     "pages/today/today",
     "pages/review/review",
     "pages/library/library",
-    "pages/me/me"
+    "pages/me/me",
+    "pages/onboarding/onboarding",
+    "pages/profile-edit/profile-edit"
   ],
   "window": {
     "navigationBarTitleText": "中医卡片",

@@ -1,0 +1,162 @@
+<view class="container onboarding-page">
+  <view class="topbar">
+    <view>
+      <view class="eyebrow">首次设置</view>
+      <view class="page-title">学习档案</view>
+    </view>
+    <view class="step-pill">{{step}} / {{totalSteps}}</view>
+  </view>
+
+  <view class="progress-track">
+    <view class="progress-fill" style="width: {{progressPercent}}%;"></view>
+  </view>
+
+  <view class="error" wx:if="{{error}}">{{error}}</view>
+  <view class="ok" wx:if="{{ok}}">{{ok}}</view>
+
+  <view class="card step-card" wx:if="{{loading}}">
+    <view class="muted">正在读取学习档案…</view>
+  </view>
+
+  <block wx:if="{{!loading}}">
+    <!-- Step 1: goal -->
+    <view class="card step-card" wx:if="{{step === 1}}">
+      <view class="section-title">学习目的</view>
+      <view class="muted step-hint">选一个最贴近当前阶段的目标，之后可改。</view>
+      <view
+        class="choice-row {{form.goal_type === item.value ? 'is-selected' : ''}}"
+        wx:for="{{goalOptions}}"
+        wx:key="value"
+        data-value="{{item.value}}"
+        bindtap="onSelectGoal"
+      >
+        <view class="choice-title">{{item.label}}</view>
+        <view class="choice-hint">{{item.hint}}</view>
+      </view>
+    </view>
+
+    <!-- Step 2: date + minutes -->
+    <view class="card step-card" wx:if="{{step === 2}}">
+      <view class="section-title">时间安排</view>
+      <view class="label">目标日期（可选）</view>
+      <picker mode="date" value="{{form.target_date}}" bindchange="onTargetDate">
+        <view class="input picker-input">{{form.target_date || '跳过，暂不设置'}}</view>
+      </picker>
+      <view class="muted tiny-action" bindtap="onClearDate" wx:if="{{form.target_date}}">清除日期</view>
+
+      <view class="label">每日可用时间</view>
+      <view class="chip-row">
+        <view
+          class="chip {{form.daily_minutes === item && !form.custom_minutes ? 'is-selected' : ''}}"
+          wx:for="{{minutePresets}}"
+          wx:key="*this"
+          data-value="{{item}}"
+          bindtap="onSelectMinutes"
+        >{{item}} 分钟</view>
+      </view>
+      <view class="label">自定义分钟</view>
+      <input
+        class="input"
+        type="number"
+        value="{{form.custom_minutes}}"
+        bindinput="onCustomMinutes"
+        placeholder="5–240"
+      />
+    </view>
+
+    <!-- Step 3: study days -->
+    <view class="card step-card" wx:if="{{step === 3}}">
+      <view class="section-title">每周学习日</view>
+      <view class="muted step-hint">至少选择一天。默认全选，可直接下一步。</view>
+      <view class="day-row">
+        <view
+          class="day-chip {{form.study_days[index] ? 'is-selected' : ''}}"
+          wx:for="{{dayLabels}}"
+          wx:key="*this"
+          data-index="{{index}}"
+          bindtap="onToggleDay"
+        >{{item}}</view>
+      </view>
+    </view>
+
+    <!-- Step 4: subjects (optional) -->
+    <view class="card step-card" wx:if="{{step === 4}}">
+      <view class="section-title">学科优先级</view>
+      <view class="muted step-hint">可选。点选学科并设置优先级与自评（1–5）。</view>
+      <view class="subject-row" wx:for="{{form.subject_rows}}" wx:key="name">
+        <view
+          class="subject-toggle {{item.enabled ? 'is-selected' : ''}}"
+          data-index="{{index}}"
+          bindtap="onToggleSubject"
+        >
+          <text>{{item.name}}</text>
+        </view>
+        <view class="score-group" wx:if="{{item.enabled}}">
+          <view class="score-label">优先</view>
+          <slider
+            min="1"
+            max="5"
+            step="1"
+            value="{{item.priority}}"
+            show-value
+            data-index="{{index}}"
+            data-field="priority"
+            bindchange="onSubjectScore"
+            activeColor="#0f766e"
+            block-size="16"
+          />
+          <view class="score-label">自评</view>
+          <slider
+            min="1"
+            max="5"
+            step="1"
+            value="{{item.assessment}}"
+            show-value
+            data-index="{{index}}"
+            data-field="assessment"
+            bindchange="onSubjectScore"
+            activeColor="#284b63"
+            block-size="16"
+          />
+        </view>
+      </view>
+    </view>
+
+    <!-- Step 5: confirm -->
+    <view class="card step-card" wx:if="{{step === 5}}">
+      <view class="section-title">确认并开始</view>
+      <view class="summary-line"><text class="muted">目的</text><text>{{summary.goalLabel}}</text></view>
+      <view class="summary-line"><text class="muted">每日</text><text>{{summary.minutesLabel}}</text></view>
+      <view class="summary-line"><text class="muted">学习日</text><text>{{summary.daysLabel}}</text></view>
+      <view class="summary-line" wx:if="{{summary.targetDateLabel}}">
+        <text class="muted">目标日</text><text>{{summary.targetDateLabel}}</text>
+      </view>
+      <view class="summary-line"><text class="muted">学科</text><text>{{summary.subjectsLabel}}</text></view>
+
+      <view class="label">显示昵称（可选）</view>
+      <input
+        class="input"
+        value="{{form.display_name}}"
+        bindinput="onDisplayName"
+        maxlength="64"
+        placeholder="例如：学习者"
+      />
+    </view>
+
+    <view class="footer-actions">
+      <button class="btn btn-quiet" bindtap="onBack" disabled="{{saving || step === 1}}">上一步</button>
+      <button
+        class="btn btn-secondary"
+        wx:if="{{step < totalSteps}}"
+        bindtap="onSkipOptional"
+        disabled="{{saving}}"
+      >跳过可选项</button>
+      <button
+        class="btn btn-primary"
+        bindtap="onNext"
+        loading="{{saving}}"
+        disabled="{{saving}}"
+      >{{step === totalSteps ? '完成设置' : '下一步'}}</button>
+    </view>
+  </block>
+</view>

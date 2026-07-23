@@ -7,6 +7,8 @@
 
 var httpModule = require('./http')
 var authApiModule = require('./auth-api')
+var profileApiModule = require('./profile-api')
+var formHelpers = require('../utils/profile-form')
 
 function client() {
   return httpModule.getDefaultClient()
@@ -14,6 +16,10 @@ function client() {
 
 function authApi() {
   return authApiModule.getDefaultAuthApi()
+}
+
+function profileApi() {
+  return profileApiModule.getDefaultProfileApi()
 }
 
 function getConfig() {
@@ -81,6 +87,26 @@ function fetchMe() {
   return authApi().fetchMe()
 }
 
+function getLearningProfile() {
+  return profileApi().getLearningProfile()
+}
+
+function updateLearningProfile(payload) {
+  return profileApi().updateLearningProfile(payload)
+}
+
+function saveLearningProfileForm(form, options) {
+  return profileApi().saveForm(form, options)
+}
+
+function summarizeProfile(profile) {
+  return formHelpers.summarizeProfile(profile)
+}
+
+function isOnboardingComplete(profile) {
+  return formHelpers.isOnboardingComplete(profile)
+}
+
 module.exports = {
   getConfig: getConfig,
   getAuthSnapshot: getAuthSnapshot,
@@ -95,5 +121,10 @@ module.exports = {
   loginWithWx: loginWithWx,
   logout: logout,
   bootstrapAuth: bootstrapAuth,
-  fetchMe: fetchMe
+  fetchMe: fetchMe,
+  getLearningProfile: getLearningProfile,
+  updateLearningProfile: updateLearningProfile,
+  saveLearningProfileForm: saveLearningProfileForm,
+  summarizeProfile: summarizeProfile,
+  isOnboardingComplete: isOnboardingComplete
 }

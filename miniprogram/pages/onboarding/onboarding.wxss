@@ -1,0 +1,159 @@
+.onboarding-page {
+  padding-bottom: 120rpx;
+}
+
+.step-pill {
+  background: #e8ecef;
+  color: #344054;
+  border-radius: 999rpx;
+  padding: 8rpx 18rpx;
+  font-size: 22rpx;
+}
+
+.progress-track {
+  height: 8rpx;
+  background: #e1e6eb;
+  border-radius: 999rpx;
+  overflow: hidden;
+  margin-bottom: 24rpx;
+}
+
+.progress-fill {
+  height: 100%;
+  background: #0f766e;
+}
+
+.step-card {
+  margin-bottom: 20rpx;
+}
+
+.step-hint {
+  margin: 8rpx 0 20rpx;
+}
+
+.choice-row {
+  border: 1rpx solid #e1e6eb;
+  border-radius: 8rpx;
+  padding: 22rpx 20rpx;
+  margin-bottom: 14rpx;
+  background: #f8fafb;
+}
+
+.choice-row.is-selected {
+  border-color: #0f766e;
+  background: #eaf7f1;
+}
+
+.choice-title {
+  font-size: 30rpx;
+  font-weight: 600;
+  color: #17212b;
+}
+
+.choice-hint {
+  margin-top: 6rpx;
+  color: #6b7280;
+  font-size: 24rpx;
+}
+
+.chip-row,
+.day-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 8rpx;
+}
+
+.chip,
+.day-chip {
+  min-width: 88rpx;
+  text-align: center;
+  padding: 14rpx 20rpx;
+  border-radius: 8rpx;
+  border: 1rpx solid #d9e0e5;
+  background: #ffffff;
+  color: #344054;
+  font-size: 24rpx;
+}
+
+.chip.is-selected,
+.day-chip.is-selected {
+  border-color: #0f766e;
+  background: #eaf7f1;
+  color: #17664d;
+  font-weight: 600;
+}
+
+.picker-input {
+  line-height: 1.4;
+}
+
+.tiny-action {
+  color: #0f766e;
+  font-size: 22rpx;
+  margin-top: 8rpx;
+}
+
+.subject-row {
+  border-top: 1rpx solid #edf0f2;
+  padding: 18rpx 0;
+}
+
+.subject-row:first-of-type {
+  border-top: 0;
+}
+
+.subject-toggle {
+  padding: 12rpx 16rpx;
+  border-radius: 8rpx;
+  border: 1rpx solid #d9e0e5;
+  background: #ffffff;
+}
+
+.subject-toggle.is-selected {
+  border-color: #0f766e;
+  background: #eaf7f1;
+  color: #17664d;
+  font-weight: 600;
+}
+
+.score-group {
+  margin-top: 12rpx;
+  padding: 0 4rpx;
+}
+
+.score-label {
+  color: #6b7280;
+  font-size: 22rpx;
+  margin-top: 8rpx;
+}
+
+.summary-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 20rpx;
+  padding: 14rpx 0;
+  border-bottom: 1rpx solid #edf0f2;
+  font-size: 26rpx;
+}
+
+.footer-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 12rpx;
+}
+
+.footer-actions .btn {
+  flex: 1;
+  min-width: 180rpx;
+}
+
+.ok {
+  color: #17664d;
+  background: #eaf7f1;
+  border-radius: 8rpx;
+  padding: 16rpx 18rpx;
+  margin-bottom: 16rpx;
+  font-size: 24rpx;
+}

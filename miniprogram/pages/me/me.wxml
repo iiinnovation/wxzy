@@ -41,6 +41,21 @@
     </view>
   </view>
 
+  <view class="settings-panel profile-panel" wx:if="{{authState === 'ready'}}">
+    <view class="panel-heading">
+      <view class="section-title">学习档案</view>
+      <view class="muted">{{needsOnboarding ? '尚未完成引导' : '已设置'}}</view>
+    </view>
+    <view class="profile-line"><text class="muted">目的</text><text>{{profileSummary.goalLabel}}</text></view>
+    <view class="profile-line"><text class="muted">每日</text><text>{{profileSummary.minutesLabel}}</text></view>
+    <view class="profile-line"><text class="muted">学习日</text><text>{{profileSummary.daysLabel}}</text></view>
+    <view class="profile-line"><text class="muted">学科</text><text>{{profileSummary.subjectsLabel}}</text></view>
+    <view class="auth-actions">
+      <button class="btn btn-primary" bindtap="onOpenOnboarding" wx:if="{{needsOnboarding}}">完成引导</button>
+      <button class="btn {{needsOnboarding ? 'btn-secondary' : 'btn-primary'}}" bindtap="onOpenProfileEdit">编辑档案</button>
+    </view>
+  </view>
+
   <view class="settings-panel" wx:if="{{showDevConfig}}">
     <view class="panel-heading">
       <view class="section-title">开发连接</view>

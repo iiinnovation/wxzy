@@ -27,6 +27,21 @@ Page({
       return
     }
     try {
+      if (api.getLearningProfile) {
+        try {
+          const profile = await api.getLearningProfile()
+          if (profile && !api.isOnboardingComplete(profile)) {
+            this.setData({
+              loading: false,
+              needsSetup: true,
+              error: '尚未完成学习档案设置，可先完成引导再开始今日计划。'
+            })
+            return
+          }
+        } catch (profileErr) {
+          // If profile cannot load, continue with stats; auth errors handled below.
+        }
+      }
       const [stats, due] = await Promise.all([api.getStats(), api.getDue(5)])
       const preview = (due || []).map((item, index) => ({
         id: item.card.id,
@@ -63,6 +78,11 @@ Page({
   },
 
   onOpenSettings() {
+    const message = this.data.error || ''
+    if (message.indexOf('学习档案') >= 0) {
+      wx.navigateTo({ url: '/pages/onboarding/onboarding' })
+      return
+    }
     wx.switchTab({ url: '/pages/me/me' })
   }
 })

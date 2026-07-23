@@ -27,7 +27,15 @@ Page({
     authState: 'booting',
     authStateLabel: '启动中',
     ownerName: '',
-    ownerId: null
+    ownerId: null,
+    profileSummary: {
+      goalLabel: '未设置',
+      minutesLabel: '—',
+      daysLabel: '—',
+      onboardingDone: false,
+      subjectsLabel: '未设置学科优先级'
+    },
+    needsOnboarding: false
   },
 
   onShow: function () {
@@ -35,6 +43,7 @@ Page({
     var snap = api.getAuthSnapshot()
     if (snap.authState === 'ready') {
       this.onRefreshStats()
+      this.loadProfileSummary()
     }
   },
 
@@ -179,6 +188,34 @@ Page({
           error: (e && e.message) || '退出失败'
         })
       })
+  },
+
+  loadProfileSummary: function () {
+    var self = this
+    return api
+      .getLearningProfile()
+      .then(function (profile) {
+        var summary = api.summarizeProfile(profile)
+        self.setData({
+          profileSummary: summary,
+          needsOnboarding: !summary.onboardingDone,
+          ownerName:
+            summary.displayName ||
+            self.data.ownerName ||
+            (self.data.ownerId != null ? 'Owner #' + self.data.ownerId : '')
+        })
+      })
+      .catch(function () {
+        // keep last summary; stats errors already surface separately
+      })
+  },
+
+  onOpenOnboarding: function () {
+    wx.navigateTo({ url: '/pages/onboarding/onboarding' })
+  },
+
+  onOpenProfileEdit: function () {
+    wx.navigateTo({ url: '/pages/profile-edit/profile-edit' })
   },
 
   onRefreshStats: function () {

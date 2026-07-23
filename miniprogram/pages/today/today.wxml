@@ -12,7 +12,7 @@
 
   <view class="error" wx:if="{{error}}">
     <view>{{error}}</view>
-    <button class="error-action" wx:if="{{needsSetup}}" bindtap="onOpenSettings">去连接设置 →</button>
+    <button class="error-action" wx:if="{{needsSetup}}" bindtap="onOpenSettings">去设置 →</button>
   </view>
 
   <view class="summary-card" wx:if="{{!error}}">

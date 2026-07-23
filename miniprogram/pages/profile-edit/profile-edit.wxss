@@ -1,0 +1,91 @@
+.profile-edit-page {
+  padding-bottom: 80rpx;
+}
+
+.chip-row,
+.day-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12rpx;
+  margin-top: 8rpx;
+}
+
+.chip,
+.day-chip {
+  min-width: 88rpx;
+  text-align: center;
+  padding: 14rpx 20rpx;
+  border-radius: 8rpx;
+  border: 1rpx solid #d9e0e5;
+  background: #ffffff;
+  color: #344054;
+  font-size: 24rpx;
+}
+
+.chip.is-selected,
+.day-chip.is-selected {
+  border-color: #0f766e;
+  background: #eaf7f1;
+  color: #17664d;
+  font-weight: 600;
+}
+
+.picker-input {
+  line-height: 1.4;
+}
+
+.tiny-action {
+  color: #0f766e;
+  font-size: 22rpx;
+  margin-top: 8rpx;
+}
+
+.subject-row {
+  border-top: 1rpx solid #edf0f2;
+  padding: 18rpx 0;
+}
+
+.subject-toggle {
+  padding: 12rpx 16rpx;
+  border-radius: 8rpx;
+  border: 1rpx solid #d9e0e5;
+  background: #ffffff;
+}
+
+.subject-toggle.is-selected {
+  border-color: #0f766e;
+  background: #eaf7f1;
+  color: #17664d;
+  font-weight: 600;
+}
+
+.score-group {
+  margin-top: 12rpx;
+}
+
+.score-label {
+  color: #6b7280;
+  font-size: 22rpx;
+  margin-top: 8rpx;
+}
+
+.step-hint {
+  margin: 8rpx 0 12rpx;
+}
+
+.advanced-card .section-title {
+  padding: 4rpx 0;
+}
+
+.save-button {
+  margin-top: 8rpx;
+}
+
+.ok {
+  color: #17664d;
+  background: #eaf7f1;
+  border-radius: 8rpx;
+  padding: 16rpx 18rpx;
+  margin-bottom: 16rpx;
+  font-size: 24rpx;
+}
