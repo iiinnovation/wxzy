@@ -810,9 +810,20 @@ issue 时删除迁移生成的 profile/session/Owner；一旦存在个人学习�
 
 ## P4-T06 中医内科学全量
 
-状态：`[ ]`
+状态：`[x]`
 
 目标：149/149 页 terminal；多教材版本和证型表不混合。
+
+完成报告（2026-07-24）：
+- Job：`neike_p4t06_v1` batch `81d45cfa-f41e-408a-bb73-1672a2babf8e`。
+- 149/149 terminal：pass 24 / needs_review 125 / fail 0；split 状态 1 pass + 5 needs_review。
+- page map 6/6 complete；pages 1..149 contiguous。
+- clean.v2 → structure.v1 → quality.v1。
+- 表块 206；`bad_tables` 不存在；抽查关键词 split 命中 证型/治法/代表方/版本标记 = 6/6/6/6。
+- Issue codes：`empty_pages`（5 个 split 近空页，显式 needs_review，无 silent fail）。
+- Tracked 无原文报告：`docs/superpowers/reports/2026-07-24-neike-p4t06.{json,md}`。
+- 预算后：files 32/5000，pages 641/1000（remaining 4968 / 359）。
+- 恢复点：下一串行任务 **P4-T07 针灸学全量**。
 
 ## P4-T07 针灸学全量
 
