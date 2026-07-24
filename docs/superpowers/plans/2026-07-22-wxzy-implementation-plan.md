@@ -814,7 +814,7 @@ issue 时删除迁移生成的 profile/session/Owner；一旦存在个人学习�
 
 目标：149/149 页 terminal；多教材版本和证型表不混合。
 
-完成报告（2026-07-24，commit ）：
+完成报告（2026-07-24，commit `970f9f4`）：
 - Job：`neike_p4t06_v1` batch `81d45cfa-f41e-408a-bb73-1672a2babf8e`。
 - 149/149 terminal：pass 24 / needs_review 125 / fail 0；split 状态 1 pass + 5 needs_review。
 - page map 6/6 complete；pages 1..149 contiguous。
