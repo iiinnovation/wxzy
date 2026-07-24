@@ -1,0 +1,7 @@
+{
+  "expected_pages": 1,
+  "source_pdf_page_start": 294,
+  "document_version_id": "quality.suspicious.v1",
+  "expect_terminal": "fail",
+  "expect_issue_codes": ["suspicious_ocr"]
+}

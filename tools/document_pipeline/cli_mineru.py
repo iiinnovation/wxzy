@@ -22,7 +22,11 @@ from tools.document_pipeline.paths import (
     DEFAULT_SAMPLES,
     ROOT,
 )
-from tools.document_pipeline.quality import quality_report_for_dir, write_quality_markdown
+from tools.document_pipeline.quality import (
+    aggregate_gate_result,
+    quality_report_for_dir,
+    write_quality_markdown,
+)
 from tools.document_pipeline.raw import materialize_raw_from_zip, summarize_result_dir, unpack_zip
 from tools.document_pipeline.split import extract_pages
 from tools.document_pipeline.structure import find_md_and_content_list, structure_result_dir
@@ -41,6 +45,7 @@ class SampleSpec(TypedDict):
 
 
 def cmd_quality_report(args: argparse.Namespace) -> None:
+    """Scan MinerU result dir(s), write JSON/MD summary, exit nonzero on gate fail."""
     target = Path(args.path).expanduser().resolve()
     if not target.exists():
         raise SystemExit(f"path not found: {target}")
@@ -61,7 +66,38 @@ def cmd_quality_report(args: argparse.Namespace) -> None:
     if not sample_dirs:
         raise SystemExit(f"no sample result dirs found under {target}")
 
-    reports = [quality_report_for_dir(d, sample_key=d.name) for d in sample_dirs]
+    expected_pages = (
+        int(args.expected_pages) if getattr(args, "expected_pages", None) is not None else None
+    )
+    source_pdf_page_start = (
+        int(args.source_pdf_page_start)
+        if getattr(args, "source_pdf_page_start", None) is not None
+        else None
+    )
+    # Gate is on by default; --no-gate only writes the report without failing exit.
+    gate = not bool(getattr(args, "no_gate", False))
+
+    reports = [
+        quality_report_for_dir(
+            d,
+            sample_key=d.name,
+            expected_pages=expected_pages,
+            source_pdf_page_start=source_pdf_page_start,
+            gate=True,
+        )
+        for d in sample_dirs
+    ]
+    gate_result = aggregate_gate_result(reports)
+    payload = {
+        "samples": len(reports),
+        "gate": gate_result,
+        "exit_code": gate_result["exit_code"] if gate else 0,
+        "recommendations": {r["sample"]: r.get("recommendation") for r in reports},
+        "ok": {r["sample"]: r.get("ok") for r in reports},
+        "terminal_status": {r["sample"]: r.get("terminal_status") for r in reports},
+        "reports": reports,
+    }
+
     out_json = (
         Path(args.out_json).expanduser().resolve()
         if args.out_json
@@ -73,21 +109,31 @@ def cmd_quality_report(args: argparse.Namespace) -> None:
         else (target / "AUTO_QUALITY_REPORT.md")
     )
     out_json.parent.mkdir(parents=True, exist_ok=True)
-    out_json.write_text(json.dumps(reports, ensure_ascii=False, indent=2), encoding="utf-8")
+    out_json.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
     write_quality_markdown(reports, out_md)
+
     print(
         json.dumps(
             {
                 "samples": len(reports),
                 "out_json": str(out_json),
                 "out_md": str(out_md),
-                "recommendations": {r["sample"]: r.get("recommendation") for r in reports},
-                "ok": {r["sample"]: r.get("ok") for r in reports},
+                "exit_code": payload["exit_code"],
+                "gate": {
+                    "exit_code": gate_result["exit_code"],
+                    "all_pass": gate_result["all_pass"],
+                    "status_counts": gate_result["status_counts"],
+                    "terminal_by_sample": gate_result["terminal_by_sample"],
+                },
+                "recommendations": payload["recommendations"],
+                "ok": payload["ok"],
             },
             ensure_ascii=False,
             indent=2,
         )
     )
+    if gate and gate_result["exit_code"] != 0:
+        raise SystemExit(gate_result["exit_code"])
 
 
 def cmd_clean_md(args: argparse.Namespace) -> None:
@@ -500,11 +546,29 @@ def build_parser() -> argparse.ArgumentParser:
     pr.set_defaults(func=cmd_run_samples)
 
     pq = sub.add_parser(
-        "quality-report", help="Scan MinerU result dir(s) and write auto quality report"
+        "quality-report",
+        help="Scan MinerU result dir(s), write quality report, exit nonzero on gate fail",
     )
     pq.add_argument("path", help="batch result dir or single sample dir")
     pq.add_argument("--out-json")
     pq.add_argument("--out-md")
+    pq.add_argument(
+        "--expected-pages",
+        type=int,
+        default=None,
+        help="expected split page count for coverage / mapping gate",
+    )
+    pq.add_argument(
+        "--source-pdf-page-start",
+        type=int,
+        default=None,
+        help="1-based source PDF page for split page 0 (page map)",
+    )
+    pq.add_argument(
+        "--no-gate",
+        action="store_true",
+        help="write report only; always exit 0 even when samples fail",
+    )
     pq.set_defaults(func=cmd_quality_report)
 
     pc = sub.add_parser("clean-md", help="Apply deterministic OCR/header cleaning to full.md")
@@ -545,3 +609,7 @@ def main() -> None:
     parser = build_parser()
     args = parser.parse_args()
     args.func(args)
+
+
+if __name__ == "__main__":
+    main()

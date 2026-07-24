@@ -1,0 +1,8 @@
+[
+  {"type": "text", "text": "第一章 测试缺页", "text_level": 1, "page_idx": 0},
+  {"type": "text", "text": "第一页正文内容，用于质量门禁缺页检测。", "page_idx": 0},
+  {"type": "page_number", "text": "1", "page_idx": 0},
+  {"type": "text", "text": "第三节 第三页", "text_level": 1, "page_idx": 2},
+  {"type": "text", "text": "第三页正文，中间缺页应失败。", "page_idx": 2},
+  {"type": "page_number", "text": "3", "page_idx": 2}
+]

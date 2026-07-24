@@ -1,0 +1,7 @@
+{
+  "expected_pages": 3,
+  "source_pdf_page_start": 1,
+  "document_version_id": "quality.missing_page.v1",
+  "expect_terminal": "fail",
+  "expect_issue_codes": ["missing_pages"]
+}

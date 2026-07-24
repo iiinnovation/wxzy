@@ -1,0 +1,11 @@
+[
+  {"type": "text", "text": "第一章 中医学理论体系的形成与发展", "text_level": 1, "page_idx": 0},
+  {"type": "text", "text": "一、中医学理论体系的形成", "text_level": 2, "page_idx": 0},
+  {"type": "text", "text": "中医学理论体系形成于秦汉时期，历经历代医家完善。", "page_idx": 0},
+  {"type": "page_number", "text": "1", "page_idx": 0},
+  {"type": "text", "text": "第二节 阴阳学说", "text_level": 1, "page_idx": 1},
+  {"type": "text", "text": "1. 阴阳的基本概念", "text_level": 2, "page_idx": 1},
+  {"type": "text", "text": "阴阳是对自然界相互关联的事物或现象对立双方属性的概括。", "page_idx": 1},
+  {"type": "table", "table_body": "<table><tr><td>对立制约</td><td>阴阳双方相互抑制</td></tr><tr><td>互根互用</td><td>阴阳相互依存</td></tr></table>", "page_idx": 1},
+  {"type": "page_number", "text": "2", "page_idx": 1}
+]

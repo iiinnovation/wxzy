@@ -1,0 +1,7 @@
+{
+  "expected_pages": 2,
+  "source_pdf_page_start": 1,
+  "document_version_id": "quality.pass.v1",
+  "expect_terminal": "pass",
+  "expect_issue_codes": []
+}
