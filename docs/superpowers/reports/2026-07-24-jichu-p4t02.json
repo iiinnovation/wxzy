@@ -1,0 +1,1096 @@
+{
+  "schema_version": 1,
+  "task": "P4-T02",
+  "document_key": "jichu",
+  "document_version": "jichu.v1.1fcfabb4b4b3",
+  "generated_at": "2026-07-24T05:02:11Z",
+  "job_id": "jichu_p4t02_v1",
+  "batch_id": "b7783253-a4c1-4fae-9a9d-3f4007469496",
+  "stage": "done",
+  "downloaded": true,
+  "file_count": 5,
+  "page_total": 102,
+  "budget": {
+    "reserved_files": 5,
+    "reserved_pages": 102,
+    "ledger_after": {
+      "schema_version": 1,
+      "updated_at": "2026-07-24T04:04:20Z",
+      "file_budget": 5000,
+      "page_budget": 1000,
+      "files_used": 12,
+      "pages_used": 172,
+      "files_remaining": 4988,
+      "pages_remaining": 828
+    }
+  },
+  "frozen_mineru_params": {
+    "model_version": "vlm",
+    "language": "ch",
+    "is_ocr": true,
+    "enable_formula": true,
+    "enable_table": true,
+    "notes": "Wave 0 freeze applied to jichu full run"
+  },
+  "github_policy": {
+    "source_pdfs": "local only (docs/*.pdf gitignored)",
+    "split_pdfs": "local only (data/ gitignored)",
+    "raw_ocr": "local only",
+    "cleaned_fulltext": "local only",
+    "structured_fulltext": "local only",
+    "tracked": "schema/rules/fixtures + no-fulltext coverage summaries under docs/superpowers/reports/"
+  },
+  "acceptance": {
+    "criterion": "102/102 pages terminal (pass or explicit needs_review; no silent fail)",
+    "met": true,
+    "total_pages": 102,
+    "terminal_pages": 102,
+    "pass_pages": 0,
+    "needs_review_pages": 102,
+    "fail_pages": 0,
+    "split_status_counts": {
+      "pass": 0,
+      "needs_review": 5,
+      "fail": 0
+    },
+    "page_map_complete_splits": "5/5",
+    "chapter_ranges_contiguous": true
+  },
+  "continuity": {
+    "split_count": 5,
+    "page_ranges_contiguous": true,
+    "gaps": [],
+    "overlaps": []
+  },
+  "spot_check": {
+    "capability": "page_map_complete_allows_source_pdf_page_lookup",
+    "all_splits_page_map_complete": true,
+    "sample_lookup_pages": [
+      1,
+      22,
+      43,
+      63,
+      83,
+      102
+    ],
+    "note": "No full text in tracked report; local raw/cleaned allow random page re-source check"
+  },
+  "aggregates": {
+    "total_chapters": 76,
+    "total_low_confidence_chapters": 15,
+    "total_content_blocks": 309,
+    "issue_codes_union": [
+      "empty_pages",
+      "suspicious_ocr_source"
+    ],
+    "pdf_coverage_min": 1.0,
+    "pdf_coverage_max": 1.0,
+    "printed_coverage_min": 0.9048,
+    "printed_coverage_max": 1.0
+  },
+  "splits": [
+    {
+      "split_id": "jichu.v1.1fcfabb4b4b3.p0001-0021",
+      "page_start": 1,
+      "page_end": 21,
+      "page_count": 21,
+      "terminal_status": "needs_review",
+      "issue_codes": [
+        "empty_pages",
+        "suspicious_ocr_source"
+      ],
+      "issues": [
+        "empty or near-empty pages: [16]",
+        "suspicious OCR in raw source (fixable by clean): 2"
+      ],
+      "empty_pages_local": [
+        16
+      ],
+      "metrics": {
+        "markdown_chars": 24267,
+        "page_count_est": 21,
+        "missing_page_count": 0,
+        "empty_page_count": 1,
+        "html_table_count": 14,
+        "bad_table_count": 0,
+        "heading_count": 38,
+        "hard_suspicious_hit_count": 2,
+        "garble_hit_count": 0
+      },
+      "page_map_coverage": {
+        "page_count": 21,
+        "pdf_mapped_count": 21,
+        "printed_mapped_count": 19,
+        "pdf_coverage": 1.0,
+        "printed_coverage": 0.9048,
+        "split_indices_contiguous": true,
+        "complete": true
+      },
+      "structure": {
+        "chapter_count": 15,
+        "low_confidence_chapter_count": 5,
+        "content_block_count": 73,
+        "page_map_coverage": {
+          "page_count": 21,
+          "pdf_mapped_count": 21,
+          "printed_mapped_count": 19,
+          "pdf_coverage": 1.0,
+          "printed_coverage": 0.9048,
+          "split_indices_contiguous": true,
+          "complete": true
+        }
+      },
+      "clean": {
+        "rule_version": "clean.v2",
+        "rule_ids_applied": [
+          "noise.header.kaoyan_note_md",
+          "ocr.watermark.xueqi_space"
+        ],
+        "removed_header_count": 4,
+        "raw_unchanged": null,
+        "original_chars": 24267,
+        "cleaned_chars": 24213,
+        "correction_count": 1,
+        "replacement_count": 5
+      },
+      "zip_sha256": "7695d27b0a8e8268baf2cd930a55240f7518bf8734f67428851e376c5db30b36",
+      "chapter_title_count": 36,
+      "chapter_titles": [
+        {
+          "title": "前言",
+          "confidence": 0.45,
+          "method": "unclassified_heading"
+        },
+        {
+          "title": "一、中医基础理论",
+          "confidence": 0.75,
+          "method": "numbered_heading"
+        },
+        {
+          "title": "二、中医诊断学",
+          "confidence": 0.75,
+          "method": "numbered_heading"
+        },
+        {
+          "title": "三、中药学",
+          "confidence": 0.75,
+          "method": "numbered_heading"
+        },
+        {
+          "title": "四、方剂学",
+          "confidence": 0.75,
+          "method": "numbered_heading"
+        },
+        {
+          "title": "五、中医内科学",
+          "confidence": 0.75,
+          "method": "numbered_heading"
+        },
+        {
+          "title": "六、针灸学",
+          "confidence": 0.75,
+          "method": "numbered_heading"
+        },
+        {
+          "title": "七、人文精神",
+          "confidence": 0.75,
+          "method": "numbered_heading"
+        },
+        {
+          "title": "目录",
+          "confidence": 0.45,
+          "method": "unclassified_heading"
+        },
+        {
+          "title": "上篇",
+          "confidence": 0.45,
+          "method": "unclassified_heading"
+        },
+        {
+          "title": "第一章 考研政策介绍",
+          "confidence": 0.9,
+          "method": "chapter_pattern"
+        },
+        {
+          "title": "第一节 考研简介",
+          "confidence": 0.88,
+          "method": "section_pattern"
+        },
+        {
+          "title": "一、初试",
+          "confidence": 0.75,
+          "method": "numbered_heading"
+        },
+        {
+          "title": "二、复试",
+          "confidence": 0.75,
+          "method": "numbered_heading"
+        },
+        {
+          "title": "三、考研基本流程",
+          "confidence": 0.75,
+          "method": "numbered_heading"
+        },
+        {
+          "title": "1. 2025 年: 准备初试",
+          "confidence": 0.75,
+          "method": "numbered_heading"
+        },
+        {
+          "title": "第二章 中医综合变化",
+          "confidence": 0.9,
+          "method": "chapter_pattern"
+        },
+        {
+          "title": "第二章 中医综合变化",
+          "confidence": 0.9,
+          "method": "chapter_pattern"
+        },
+        {
+          "title": "一、学硕、专硕分开考试",
+          "confidence": 0.75,
+          "method": "numbered_heading"
+        },
+        {
+          "title": "二、临床医学综合能力(中医)",
+          "confidence": 0.75,
+          "method": "numbered_heading"
+        },
+        {
+          "title": "三、近几年中综大纲变化情况",
+          "confidence": 0.75,
+          "method": "numbered_heading"
+        },
+        {
+          "title": "第三章 高分经验与活动资料领取",
+          "confidence": 0.9,
+          "method": "chapter_pattern"
+        },
+        {
+          "title": "一、高分经验",
+          "confidence": 0.75,
+          "method": "numbered_heading"
+        },
+        {
+          "title": "二、干货资料",
+          "confidence": 0.75,
+          "method": "numbered_heading"
+        },
+        {
+          "title": "第一部分 中医基础理论",
+          "confidence": 0.45,
+          "method": "unclassified_heading"
+        },
+        {
+          "title": "第一章 绪论",
+          "confidence": 0.9,
+          "method": "chapter_pattern"
+        },
+        {
+          "title": "【考纲】",
+          "confidence": 0.45,
+          "method": "unclassified_heading"
+        },
+        {
+          "title": "第一节 中医学的基本概念",
+          "confidence": 0.88,
+          "method": "section_pattern"
+        },
+        {
+          "title": "第二节 中医理论体系的形成与发展",
+          "confidence": 0.88,
+          "method": "section_pattern"
+        },
+        {
+          "title": "第二章 中医哲学基础",
+          "confidence": 0.9,
+          "method": "chapter_pattern"
+        },
+        {
+          "title": "第一节 精气学说",
+          "confidence": 0.88,
+          "method": "section_pattern"
+        },
+        {
+          "title": "第一部分 中医基础理论 | 第二章 中医哲学基础",
+          "confidence": 0.92,
+          "method": "pipe_running_header"
+        },
+        {
+          "title": "第二节 阴阳学说",
+          "confidence": 0.88,
+          "method": "section_pattern"
+        },
+        {
+          "title": "第三章 药性理论 …… 194 第四章 中药的配伍 …… 197 第五章 各类药物总论 …… 202 第六章 解表药 …… 210 第七章 清热药 …… 214 第八章 泻下药 …… 223 第九章 祛风湿药 …… 225 第十章 化湿药 …… 228 第十一章 利水渗湿药 …… 229 第十二章 温里药 …… 232 第十三章 理气药 …… 234 第十四章 消食药 …… 236 第十五章 驱虫药 …… 237 第十六章 止血药 …… 238 第十七章 活血化瘀药 …… 241 第十八章 化痰止咳平喘药 …… 247 第十九章 安神药 …… 251 第二十章 平肝息风药 …… 253 第二十一章 开窍药 …… 256 第二十二章 补益药 …… 257 第二十三章 收涩药 …… 265 第二十四章 涌吐药 …… 268 第二十五章 攻毒杀虫止痒药 …… 269 第二十六章 拔毒化腐生肌药 …… 270 附录 部分中药鉴别与中药功效歌诀 …… 272 四部分 方剂学 …… 275 第一章 绪论 …… 275 第二章 方剂与治法 …… 276 第三章 方剂的分类 …… 278 第四章 方剂与药物的联系与区别 …… 280 第五章 方剂的组成 …… 280 第六章 方剂变化 …… 281 第七章 剂型 …… 282 第八章 各类方剂 …… 283 第九章 解表剂 …… 293 第十章 泻下剂 …… 303",
+          "confidence": 0.9,
+          "method": "chapter_pattern"
+        },
+        {
+          "title": "第十一章 和解剂 …… 309 第十二章 清热剂 …… 314 第十三章 祛暑剂 …… 327 第十四章 温里剂 …… 330 第十五章 表里双解剂 …… 335 第十六章 补益剂 …… 338 第十七章 安神剂 …… 351 第十八章 开窍剂 …… 355 第十九章 固涩剂 …… 357 第二十章 理气剂 …… 361 第二十一章 理血剂 …… 369 第二十二章 治风剂 …… 377 第二十三章 治燥剂 …… 382 第二十四章 祛湿剂 …… 387 第二十五章 祛痰剂 …… 397 第二十六章 消导化积剂 …… 404 第二十七章 驱虫剂 …… 407 第二十八章 其他 …… 408 附录一 方剂部分内容历年真题考查点汇总 …… 410 附录二 同名方 …… 413 附录三 方剂简表 …… 414 五部分 中医内科学 …… 415 各病历史沿革 …… 415 第一章 肺系病证 …… 424 第二章 心系病证 …… 439 第三章 脑系病证 …… 447 第四章 脾胃系病证 …… 462 第五章 肝胆系病证 …… 481 第六章 肾系病证 …… 493 第七章 气血津液病证 …… 504 第八章 肢体经络病证 …… 526 附录一 比较鉴别 …… 535 附录二 病证转化联系 …… 549 附录三 医著论述 …… 553 附录四 中内歌诀 …… 555 附录五 中医内科证型小结 …… 560",
+          "confidence": 0.9,
+          "method": "chapter_pattern"
+        },
+        {
+          "title": "第一部分 中医基础理论 | 第一章 绪论",
+          "confidence": 0.92,
+          "method": "pipe_running_header"
+        }
+      ]
+    },
+    {
+      "split_id": "jichu.v1.1fcfabb4b4b3.p0022-0042",
+      "page_start": 22,
+      "page_end": 42,
+      "page_count": 21,
+      "terminal_status": "needs_review",
+      "issue_codes": [
+        "empty_pages",
+        "suspicious_ocr_source"
+      ],
+      "issues": [
+        "empty or near-empty pages: [1, 6, 9, 10, 11, 18, 19]",
+        "suspicious OCR in raw source (fixable by clean): 3"
+      ],
+      "empty_pages_local": [
+        1,
+        6,
+        9,
+        10,
+        11,
+        18,
+        19
+      ],
+      "metrics": {
+        "markdown_chars": 41530,
+        "page_count_est": 21,
+        "missing_page_count": 0,
+        "empty_page_count": 7,
+        "html_table_count": 20,
+        "bad_table_count": 0,
+        "heading_count": 15,
+        "hard_suspicious_hit_count": 3,
+        "garble_hit_count": 0
+      },
+      "page_map_coverage": {
+        "page_count": 21,
+        "pdf_mapped_count": 21,
+        "printed_mapped_count": 21,
+        "pdf_coverage": 1.0,
+        "printed_coverage": 1.0,
+        "split_indices_contiguous": true,
+        "complete": true
+      },
+      "structure": {
+        "chapter_count": 8,
+        "low_confidence_chapter_count": 2,
+        "content_block_count": 40,
+        "page_map_coverage": {
+          "page_count": 21,
+          "pdf_mapped_count": 21,
+          "printed_mapped_count": 21,
+          "pdf_coverage": 1.0,
+          "printed_coverage": 1.0,
+          "split_indices_contiguous": true,
+          "complete": true
+        }
+      },
+      "clean": {
+        "rule_version": "clean.v2",
+        "rule_ids_applied": [
+          "noise.header.kaoyan_note_md",
+          "ocr.watermark.xueba_space",
+          "ocr.watermark.xueqi_space"
+        ],
+        "removed_header_count": 5,
+        "raw_unchanged": null,
+        "original_chars": 41530,
+        "cleaned_chars": 41460,
+        "correction_count": 2,
+        "replacement_count": 7
+      },
+      "zip_sha256": "b3ebc19670626edbf95c54cb07783f7434152b1156a4aaa899bc0c89746f2865",
+      "chapter_title_count": 10,
+      "chapter_titles": [
+        {
+          "title": "附录:阴阳对照表",
+          "confidence": 0.45,
+          "method": "unclassified_heading"
+        },
+        {
+          "title": "第三节 五行学说",
+          "confidence": 0.88,
+          "method": "section_pattern"
+        },
+        {
+          "title": "第一部分 中医基础理论 | 第二章 中医哲学基础",
+          "confidence": 0.92,
+          "method": "pipe_running_header"
+        },
+        {
+          "title": "第三章 藏象",
+          "confidence": 0.9,
+          "method": "chapter_pattern"
+        },
+        {
+          "title": "【考纲】",
+          "confidence": 0.45,
+          "method": "unclassified_heading"
+        },
+        {
+          "title": "第一节 藏象",
+          "confidence": 0.88,
+          "method": "section_pattern"
+        },
+        {
+          "title": "第二节 五脏",
+          "confidence": 0.88,
+          "method": "section_pattern"
+        },
+        {
+          "title": "第一部分 中医基础理论 | 第三章 藏象",
+          "confidence": 0.92,
+          "method": "pipe_running_header"
+        },
+        {
+          "title": "第一部分 中医基础理论 | 第三章 藏象",
+          "confidence": 0.92,
+          "method": "pipe_running_header"
+        },
+        {
+          "title": "第三节 六腑",
+          "confidence": 0.88,
+          "method": "section_pattern"
+        }
+      ]
+    },
+    {
+      "split_id": "jichu.v1.1fcfabb4b4b3.p0043-0062",
+      "page_start": 43,
+      "page_end": 62,
+      "page_count": 20,
+      "terminal_status": "needs_review",
+      "issue_codes": [
+        "empty_pages",
+        "suspicious_ocr_source"
+      ],
+      "issues": [
+        "empty or near-empty pages: [1, 2, 16, 18]",
+        "suspicious OCR in raw source (fixable by clean): 5"
+      ],
+      "empty_pages_local": [
+        1,
+        2,
+        16,
+        18
+      ],
+      "metrics": {
+        "markdown_chars": 33963,
+        "page_count_est": 20,
+        "missing_page_count": 0,
+        "empty_page_count": 4,
+        "html_table_count": 22,
+        "bad_table_count": 0,
+        "heading_count": 28,
+        "hard_suspicious_hit_count": 5,
+        "garble_hit_count": 0
+      },
+      "page_map_coverage": {
+        "page_count": 20,
+        "pdf_mapped_count": 20,
+        "printed_mapped_count": 20,
+        "pdf_coverage": 1.0,
+        "printed_coverage": 1.0,
+        "split_indices_contiguous": true,
+        "complete": true
+      },
+      "structure": {
+        "chapter_count": 17,
+        "low_confidence_chapter_count": 4,
+        "content_block_count": 56,
+        "page_map_coverage": {
+          "page_count": 20,
+          "pdf_mapped_count": 20,
+          "printed_mapped_count": 20,
+          "pdf_coverage": 1.0,
+          "printed_coverage": 1.0,
+          "split_indices_contiguous": true,
+          "complete": true
+        }
+      },
+      "clean": {
+        "rule_version": "clean.v2",
+        "rule_ids_applied": [
+          "noise.header.kaoyan_note_md",
+          "ocr.watermark.xueba_space",
+          "ocr.watermark.xueqi_space"
+        ],
+        "removed_header_count": 5,
+        "raw_unchanged": null,
+        "original_chars": 33963,
+        "cleaned_chars": 33894,
+        "correction_count": 2,
+        "replacement_count": 7
+      },
+      "zip_sha256": "0dc3e2546e37b4b181a995387e49e5ca2024bb3688c65e9c634a0003b005ec7f",
+      "chapter_title_count": 25,
+      "chapter_titles": [
+        {
+          "title": "第五节 脏腑之间的关系",
+          "confidence": 0.88,
+          "method": "section_pattern"
+        },
+        {
+          "title": "第四章 精、气、血、津液、神",
+          "confidence": 0.9,
+          "method": "chapter_pattern"
+        },
+        {
+          "title": "【考纲】",
+          "confidence": 0.45,
+          "method": "unclassified_heading"
+        },
+        {
+          "title": "2. 气",
+          "confidence": 0.75,
+          "method": "numbered_heading"
+        },
+        {
+          "title": "3. 血",
+          "confidence": 0.75,
+          "method": "numbered_heading"
+        },
+        {
+          "title": "4. 津液",
+          "confidence": 0.75,
+          "method": "numbered_heading"
+        },
+        {
+          "title": "5. 神",
+          "confidence": 0.75,
+          "method": "numbered_heading"
+        },
+        {
+          "title": "第一部分 中医基础理论 | 第四章 精、气、血、津液、神",
+          "confidence": 0.92,
+          "method": "pipe_running_header"
+        },
+        {
+          "title": "第一节 精",
+          "confidence": 0.88,
+          "method": "section_pattern"
+        },
+        {
+          "title": "第二节 气",
+          "confidence": 0.88,
+          "method": "section_pattern"
+        },
+        {
+          "title": "第一部分 中医基础理论 | 第四章 精、气、血、津液、神",
+          "confidence": 0.92,
+          "method": "pipe_running_header"
+        },
+        {
+          "title": "第三节 血",
+          "confidence": 0.88,
+          "method": "section_pattern"
+        },
+        {
+          "title": "第一部分 中医基础理论 | 第四章 精、气、血、津液、神",
+          "confidence": 0.92,
+          "method": "pipe_running_header"
+        },
+        {
+          "title": "第四节 津液",
+          "confidence": 0.88,
+          "method": "section_pattern"
+        },
+        {
+          "title": "津液",
+          "confidence": 0.45,
+          "method": "unclassified_heading"
+        },
+        {
+          "title": "第五节 神",
+          "confidence": 0.88,
+          "method": "section_pattern"
+        },
+        {
+          "title": "第一部分 中医基础理论 | 第四章 精、气、血、津液、神",
+          "confidence": 0.92,
+          "method": "pipe_running_header"
+        },
+        {
+          "title": "第五章 经络",
+          "confidence": 0.9,
+          "method": "chapter_pattern"
+        },
+        {
+          "title": "【考纲】",
+          "confidence": 0.45,
+          "method": "unclassified_heading"
+        },
+        {
+          "title": "第三节 十二经脉的循行",
+          "confidence": 0.88,
+          "method": "section_pattern"
+        },
+        {
+          "title": "十二经脉循行",
+          "confidence": 0.45,
+          "method": "unclassified_heading"
+        },
+        {
+          "title": "第四节 奇经八脉",
+          "confidence": 0.88,
+          "method": "section_pattern"
+        },
+        {
+          "title": "第五节 经别、别络、经筋、皮部",
+          "confidence": 0.88,
+          "method": "section_pattern"
+        },
+        {
+          "title": "第一部分 中医基础理论 | 第三章 藏象",
+          "confidence": 0.92,
+          "method": "pipe_running_header"
+        },
+        {
+          "title": "第一部分 中医基础理论 | 第五章 经络",
+          "confidence": 0.92,
+          "method": "pipe_running_header"
+        }
+      ]
+    },
+    {
+      "split_id": "jichu.v1.1fcfabb4b4b3.p0063-0082",
+      "page_start": 63,
+      "page_end": 82,
+      "page_count": 20,
+      "terminal_status": "needs_review",
+      "issue_codes": [
+        "suspicious_ocr_source"
+      ],
+      "issues": [
+        "suspicious OCR in raw source (fixable by clean): 4"
+      ],
+      "empty_pages_local": [],
+      "metrics": {
+        "markdown_chars": 34443,
+        "page_count_est": 20,
+        "missing_page_count": 0,
+        "empty_page_count": 0,
+        "html_table_count": 28,
+        "bad_table_count": 0,
+        "heading_count": 44,
+        "hard_suspicious_hit_count": 4,
+        "garble_hit_count": 0
+      },
+      "page_map_coverage": {
+        "page_count": 20,
+        "pdf_mapped_count": 20,
+        "printed_mapped_count": 20,
+        "pdf_coverage": 1.0,
+        "printed_coverage": 1.0,
+        "split_indices_contiguous": true,
+        "complete": true
+      },
+      "structure": {
+        "chapter_count": 23,
+        "low_confidence_chapter_count": 2,
+        "content_block_count": 89,
+        "page_map_coverage": {
+          "page_count": 20,
+          "pdf_mapped_count": 20,
+          "printed_mapped_count": 20,
+          "pdf_coverage": 1.0,
+          "printed_coverage": 1.0,
+          "split_indices_contiguous": true,
+          "complete": true
+        }
+      },
+      "clean": {
+        "rule_version": "clean.v2",
+        "rule_ids_applied": [
+          "noise.header.kaoyan_note_md",
+          "ocr.watermark.xueba_space",
+          "ocr.watermark.xueqi_space"
+        ],
+        "removed_header_count": 5,
+        "raw_unchanged": null,
+        "original_chars": 34443,
+        "cleaned_chars": 34374,
+        "correction_count": 2,
+        "replacement_count": 7
+      },
+      "zip_sha256": "29681deea0793fd0caef2ae8ab4bff5989e32868ec036b60c30318bafb86b360",
+      "chapter_title_count": 39,
+      "chapter_titles": [
+        {
+          "title": "第六节 经络的生理功能及经络学说的应用",
+          "confidence": 0.88,
+          "method": "section_pattern"
+        },
+        {
+          "title": "一、经络的生理功能",
+          "confidence": 0.75,
+          "method": "numbered_heading"
+        },
+        {
+          "title": "二、经络学说的应用",
+          "confidence": 0.75,
+          "method": "numbered_heading"
+        },
+        {
+          "title": "第六章 体质",
+          "confidence": 0.9,
+          "method": "chapter_pattern"
+        },
+        {
+          "title": "第一部分 中医基础理论 | 第七章 病因与发病",
+          "confidence": 0.92,
+          "method": "pipe_running_header"
+        },
+        {
+          "title": "第七章 病因与发病",
+          "confidence": 0.9,
+          "method": "chapter_pattern"
+        },
+        {
+          "title": "2. 发病",
+          "confidence": 0.75,
+          "method": "numbered_heading"
+        },
+        {
+          "title": "第一节 病因分类",
+          "confidence": 0.88,
+          "method": "section_pattern"
+        },
+        {
+          "title": "第二节 六淫",
+          "confidence": 0.88,
+          "method": "section_pattern"
+        },
+        {
+          "title": "第一部分 中医基础理论 | 第七章 病因与发病",
+          "confidence": 0.92,
+          "method": "pipe_running_header"
+        },
+        {
+          "title": "第一部分 中医基础理论 | 第七章 病因与发病",
+          "confidence": 0.92,
+          "method": "pipe_running_header"
+        },
+        {
+          "title": "第三节 防气",
+          "confidence": 0.88,
+          "method": "section_pattern"
+        },
+        {
+          "title": "第四节 七情内伤",
+          "confidence": 0.88,
+          "method": "section_pattern"
+        },
+        {
+          "title": "第五节 饮食失宜",
+          "confidence": 0.88,
+          "method": "section_pattern"
+        },
+        {
+          "title": "第一部分 中医基础理论 | 第七章 病因与发病",
+          "confidence": 0.92,
+          "method": "pipe_running_header"
+        },
+        {
+          "title": "第六节 劳逸损伤",
+          "confidence": 0.88,
+          "method": "section_pattern"
+        },
+        {
+          "title": "第一部分 中医基础理论 | 第七章 病因与发病",
+          "confidence": 0.92,
+          "method": "pipe_running_header"
+        },
+        {
+          "title": "第八节 其他致病因素",
+          "confidence": 0.88,
+          "method": "section_pattern"
+        },
+        {
+          "title": "第九节 发病",
+          "confidence": 0.88,
+          "method": "section_pattern"
+        },
+        {
+          "title": "第八章 病机",
+          "confidence": 0.9,
+          "method": "chapter_pattern"
+        },
+        {
+          "title": "【考纲】",
+          "confidence": 0.45,
+          "method": "unclassified_heading"
+        },
+        {
+          "title": "3.阴阳失调病机",
+          "confidence": 0.75,
+          "method": "numbered_heading"
+        },
+        {
+          "title": "4. 精气血失常病机",
+          "confidence": 0.75,
+          "method": "numbered_heading"
+        },
+        {
+          "title": "5. 津液代谢失常病机",
+          "confidence": 0.75,
+          "method": "numbered_heading"
+        },
+        {
+          "title": "6. 内生“五邪”病机",
+          "confidence": 0.75,
+          "method": "numbered_heading"
+        },
+        {
+          "title": "7. 经络病机",
+          "confidence": 0.75,
+          "method": "numbered_heading"
+        },
+        {
+          "title": "8. 脏腑病机",
+          "confidence": 0.75,
+          "method": "numbered_heading"
+        },
+        {
+          "title": "(1) 脏腑病机的概念。",
+          "confidence": 0.55,
+          "method": "paren_item"
+        },
+        {
+          "title": "第一节 病机的概念",
+          "confidence": 0.88,
+          "method": "section_pattern"
+        },
+        {
+          "title": "第二节 邪正盛衰",
+          "confidence": 0.88,
+          "method": "section_pattern"
+        },
+        {
+          "title": "第三节 阴阳失调",
+          "confidence": 0.88,
+          "method": "section_pattern"
+        },
+        {
+          "title": "一、阴阳偏胜(实证——邪气盛则实)",
+          "confidence": 0.75,
+          "method": "numbered_heading"
+        },
+        {
+          "title": "二、阴阳偏衰(虚证——精气夺则虚)——阴阳对立制约关系",
+          "confidence": 0.75,
+          "method": "numbered_heading"
+        },
+        {
+          "title": "三、阴阳互损",
+          "confidence": 0.75,
+          "method": "numbered_heading"
+        },
+        {
+          "title": "四、阴阳格拒",
+          "confidence": 0.75,
+          "method": "numbered_heading"
+        },
+        {
+          "title": "第一部分 中医基础理论 | 第八章 病机",
+          "confidence": 0.92,
+          "method": "pipe_running_header"
+        },
+        {
+          "title": "五、阴阳亡失",
+          "confidence": 0.75,
+          "method": "numbered_heading"
+        },
+        {
+          "title": "第一部分 中医基础理论 | 第八章 病机",
+          "confidence": 0.92,
+          "method": "pipe_running_header"
+        },
+        {
+          "title": "第一部分 中医基础理论 | 第五章 经络",
+          "confidence": 0.92,
+          "method": "pipe_running_header"
+        }
+      ]
+    },
+    {
+      "split_id": "jichu.v1.1fcfabb4b4b3.p0083-0102",
+      "page_start": 83,
+      "page_end": 102,
+      "page_count": 20,
+      "terminal_status": "needs_review",
+      "issue_codes": [
+        "empty_pages",
+        "suspicious_ocr_source"
+      ],
+      "issues": [
+        "empty or near-empty pages: [18]",
+        "suspicious OCR in raw source (fixable by clean): 7"
+      ],
+      "empty_pages_local": [
+        18
+      ],
+      "metrics": {
+        "markdown_chars": 35037,
+        "page_count_est": 20,
+        "missing_page_count": 0,
+        "empty_page_count": 1,
+        "html_table_count": 27,
+        "bad_table_count": 0,
+        "heading_count": 27,
+        "hard_suspicious_hit_count": 7,
+        "garble_hit_count": 0
+      },
+      "page_map_coverage": {
+        "page_count": 20,
+        "pdf_mapped_count": 20,
+        "printed_mapped_count": 20,
+        "pdf_coverage": 1.0,
+        "printed_coverage": 1.0,
+        "split_indices_contiguous": true,
+        "complete": true
+      },
+      "structure": {
+        "chapter_count": 13,
+        "low_confidence_chapter_count": 2,
+        "content_block_count": 51,
+        "page_map_coverage": {
+          "page_count": 20,
+          "pdf_mapped_count": 20,
+          "printed_mapped_count": 20,
+          "pdf_coverage": 1.0,
+          "printed_coverage": 1.0,
+          "split_indices_contiguous": true,
+          "complete": true
+        }
+      },
+      "clean": {
+        "rule_version": "clean.v2",
+        "rule_ids_applied": [
+          "noise.header.kaoyan_note_md",
+          "ocr.watermark.xueba_space",
+          "ocr.watermark.xueqi_space"
+        ],
+        "removed_header_count": 9,
+        "raw_unchanged": null,
+        "original_chars": 35037,
+        "cleaned_chars": 34912,
+        "correction_count": 2,
+        "replacement_count": 11
+      },
+      "zip_sha256": "d84bb7136c55565333f94c877d7a056e6f86a842d90bc4443dc4cf04953ce544",
+      "chapter_title_count": 18,
+      "chapter_titles": [
+        {
+          "title": "第一部分 中医基础理论 | 第八章 病机",
+          "confidence": 0.92,
+          "method": "pipe_running_header"
+        },
+        {
+          "title": "第六节 内生五邪",
+          "confidence": 0.88,
+          "method": "section_pattern"
+        },
+        {
+          "title": "第八节 脏腑病机",
+          "confidence": 0.88,
+          "method": "section_pattern"
+        },
+        {
+          "title": "一、五脏病机",
+          "confidence": 0.75,
+          "method": "numbered_heading"
+        },
+        {
+          "title": "(一)心",
+          "confidence": 0.45,
+          "method": "unclassified_heading"
+        },
+        {
+          "title": "第一部分 中医基础理论 | 第八章 病机",
+          "confidence": 0.92,
+          "method": "pipe_running_header"
+        },
+        {
+          "title": "第一部分 中医基础理论 | 第八章 病机",
+          "confidence": 0.92,
+          "method": "pipe_running_header"
+        },
+        {
+          "title": "第一部分 中医基础理论 | 第八章 病机",
+          "confidence": 0.92,
+          "method": "pipe_running_header"
+        },
+        {
+          "title": "二、六腑病机",
+          "confidence": 0.75,
+          "method": "numbered_heading"
+        },
+        {
+          "title": "三、奇恒之腑病机",
+          "confidence": 0.75,
+          "method": "numbered_heading"
+        },
+        {
+          "title": "第九章 养生与防治原则",
+          "confidence": 0.9,
+          "method": "chapter_pattern"
+        },
+        {
+          "title": "【考纲】",
+          "confidence": 0.45,
+          "method": "unclassified_heading"
+        },
+        {
+          "title": "第一节 养生",
+          "confidence": 0.88,
+          "method": "section_pattern"
+        },
+        {
+          "title": "第一部分 中医基础理论 | 第九章 养生与防治原则",
+          "confidence": 0.92,
+          "method": "pipe_running_header"
+        },
+        {
+          "title": "第二节 预防",
+          "confidence": 0.88,
+          "method": "section_pattern"
+        },
+        {
+          "title": "第三节 治则",
+          "confidence": 0.88,
+          "method": "section_pattern"
+        },
+        {
+          "title": "第一部分 中医基础理论 | 第九章 养生与防治原则",
+          "confidence": 0.92,
+          "method": "pipe_running_header"
+        },
+        {
+          "title": "第一部分 中医基础理论 | 第九章 养生与防治原则",
+          "confidence": 0.92,
+          "method": "pipe_running_header"
+        }
+      ]
+    }
+  ],
+  "local_artifacts": {
+    "job_dir": "data/document-pipeline/jobs/jichu_p4t02_v1",
+    "raw": "data/document-pipeline/jobs/jichu_p4t02_v1/raw/",
+    "cleaned": "data/document-pipeline/jobs/jichu_p4t02_v1/cleaned/",
+    "structured": "data/document-pipeline/jobs/jichu_p4t02_v1/structured/",
+    "quality": "data/document-pipeline/jobs/jichu_p4t02_v1/quality/",
+    "splits": "data/document-pipeline/splits/jichu.v1.1fcfabb4b4b3/"
+  },
+  "disposition": "All 5 splits terminal needs_review (explicit). Publication still blocked by nonzero quality gate exit unless residual clean pass + human review. clean.v2 removed watermark headers; raw watermark OCR flagged as suspicious_ocr_source. 102/102 pages have page maps and terminal status."
+}
