@@ -827,9 +827,20 @@ issue 时删除迁移生成的 profile/session/Owner；一旦存在个人学习�
 
 ## P4-T07 针灸学全量
 
-状态：`[ ]`
+状态：`[x]`
 
 目标：94/94 页 terminal；穴位定位/操作高风险标记。
+
+完成报告（2026-07-24，commit `PENDING`）：
+- Job：`zhenjiu_p4t07_v1` batch `17a72b8e-382e-46f3-b921-003ef6b355fe`。
+- 94/94 terminal：pass 0 / needs_review 94 / fail 0；split 状态 4 needs_review。
+- page map 4/4 complete；pages 1..94 contiguous。
+- clean.v2 → structure.v1 → quality.v1。
+- 表块 113；`bad_tables` 不存在；抽查关键词 split 命中 穴位/定位/操作/手法 = 4/4/4/4。
+- Issue codes：`empty_pages`（4 个 split 近空页，显式 needs_review，无 silent fail）。
+- Tracked 无原文报告：`docs/superpowers/reports/2026-07-24-zhenjiu-p4t07.{json,md}`。
+- 预算后：files 36/5000，pages 735/1000（remaining 4964 / 265）。
+- 恢复点：下一串行任务 **P4-T08 人文全量**。
 
 ## P4-T08 人文全量
 
