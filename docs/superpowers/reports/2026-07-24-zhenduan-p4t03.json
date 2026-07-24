@@ -1,0 +1,246 @@
+{
+  "schema_version": 1,
+  "task": "P4-T03",
+  "document_key": "zhenduan",
+  "document_version": "zhenduan.v1.cd4e4aaee343",
+  "generated_at": "2026-07-24T06:29:28Z",
+  "job_id": "zhenduan_p4t03_v1",
+  "batch_id": "d49c509e-7cf4-4f46-8f26-3d4950985bce",
+  "stage": "done",
+  "downloaded": true,
+  "file_count": 4,
+  "page_total": 92,
+  "budget": {
+    "reserved_files": 4,
+    "reserved_pages": 92,
+    "ledger_after": {
+      "file_budget": 5000,
+      "page_budget": 1000,
+      "files_used": 16,
+      "pages_used": 264,
+      "files_remaining": 4984,
+      "pages_remaining": 736
+    }
+  },
+  "frozen_mineru_params": {
+    "model_version": "vlm",
+    "language": "ch",
+    "is_ocr": true,
+    "enable_formula": true,
+    "enable_table": true,
+    "notes": "Wave 0 freeze applied to zhenduan full run"
+  },
+  "github_policy": {
+    "source_pdfs": "local only (docs/*.pdf gitignored)",
+    "split_pdfs": "local only (data/ gitignored)",
+    "raw_ocr": "local only",
+    "cleaned_fulltext": "local only",
+    "structured_fulltext": "local only",
+    "tracked": "schema/rules/fixtures + no-fulltext coverage summaries under docs/superpowers/reports/"
+  },
+  "acceptance": {
+    "criterion": "92/92 pages terminal (pass or explicit needs_review; no silent fail); syndrome/symptom tables not column-scrambled",
+    "met": true,
+    "total_pages": 92,
+    "terminal_pages": 92,
+    "pass_pages": 46,
+    "needs_review_pages": 46,
+    "fail_pages": 0,
+    "split_status_counts": {
+      "pass": 2,
+      "needs_review": 2
+    },
+    "page_map_complete_splits": "4/4",
+    "chapter_ranges_contiguous": true,
+    "table_spot_check": {
+      "focus": "证候/症状表列不串行",
+      "method": "content_blocks table_rows + html tr/td counts; ignore rowspan/colspan intentional irregularity; focus keywords 证候/症状/主症/次症/鉴别/辨证",
+      "bad_tables_issue_present": false,
+      "table_blocks_total": 171,
+      "focus_tables_checked": 63,
+      "column_skew_tables": 0,
+      "column_skew_ok": true,
+      "focus_column_skew_tables": 0
+    }
+  },
+  "continuity": {
+    "split_count": 4,
+    "page_ranges_contiguous": true,
+    "gaps": [],
+    "overlaps": []
+  },
+  "spot_check": {
+    "capability": "page_map_complete_allows_source_pdf_page_lookup",
+    "all_splits_page_map_complete": true,
+    "sample_lookup_pages": [
+      1,
+      24,
+      47,
+      70,
+      92
+    ],
+    "note": "No full text in tracked report; local raw/cleaned allow random page re-source check",
+    "table_focus": "证候/症状表列",
+    "table_column_skew_tables": 0,
+    "focus_column_skew_tables": 0
+  },
+  "aggregates": {
+    "total_chapters": 85,
+    "total_low_confidence_chapters": 26,
+    "total_content_blocks": 451,
+    "issue_codes_union": [
+      "empty_pages"
+    ],
+    "pdf_coverage_min": 1.0,
+    "pdf_coverage_max": 1.0,
+    "printed_coverage_min": 1.0,
+    "printed_coverage_max": 1.0
+  },
+  "splits": [
+    {
+      "split_id": "zhenduan.v1.cd4e4aaee343.p0001-0023",
+      "source_pdf_page_start": 1,
+      "source_pdf_page_end": 23,
+      "page_count": 23,
+      "terminal_status": "pass",
+      "issue_codes": [],
+      "chapter_count": 19,
+      "low_confidence_chapter_count": 9,
+      "content_block_count": 125,
+      "page_map_coverage": {
+        "page_count": 23,
+        "pdf_mapped_count": 23,
+        "printed_mapped_count": 23,
+        "pdf_coverage": 1.0,
+        "printed_coverage": 1.0,
+        "split_indices_contiguous": true,
+        "complete": true
+      },
+      "page_map_complete": true,
+      "quality_json": "data/document-pipeline/jobs/zhenduan_p4t03_v1/quality/zhenduan.v1.cd4e4aaee343.p0001-0023.quality.json",
+      "metrics": {
+        "heading_count": 53,
+        "content_list_heading_count": 54,
+        "table_block_count": 51,
+        "paragraph_block_count": 24,
+        "heading_block_count": 50,
+        "needs_review_block_count": 24,
+        "uncertain_chapter_block_count": 24,
+        "blocks_with_source_pages": 125
+      },
+      "recommendation": "PASS"
+    },
+    {
+      "split_id": "zhenduan.v1.cd4e4aaee343.p0024-0046",
+      "source_pdf_page_start": 24,
+      "source_pdf_page_end": 46,
+      "page_count": 23,
+      "terminal_status": "needs_review",
+      "issue_codes": [
+        "empty_pages"
+      ],
+      "chapter_count": 17,
+      "low_confidence_chapter_count": 6,
+      "content_block_count": 128,
+      "page_map_coverage": {
+        "page_count": 23,
+        "pdf_mapped_count": 23,
+        "printed_mapped_count": 23,
+        "pdf_coverage": 1.0,
+        "printed_coverage": 1.0,
+        "split_indices_contiguous": true,
+        "complete": true
+      },
+      "page_map_complete": true,
+      "quality_json": "data/document-pipeline/jobs/zhenduan_p4t03_v1/quality/zhenduan.v1.cd4e4aaee343.p0024-0046.quality.json",
+      "metrics": {
+        "heading_count": 54,
+        "content_list_heading_count": 58,
+        "table_block_count": 48,
+        "paragraph_block_count": 26,
+        "heading_block_count": 54,
+        "needs_review_block_count": 19,
+        "uncertain_chapter_block_count": 19,
+        "blocks_with_source_pages": 128
+      },
+      "recommendation": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "split_id": "zhenduan.v1.cd4e4aaee343.p0047-0069",
+      "source_pdf_page_start": 47,
+      "source_pdf_page_end": 69,
+      "page_count": 23,
+      "terminal_status": "needs_review",
+      "issue_codes": [
+        "empty_pages"
+      ],
+      "chapter_count": 24,
+      "low_confidence_chapter_count": 9,
+      "content_block_count": 108,
+      "page_map_coverage": {
+        "page_count": 23,
+        "pdf_mapped_count": 23,
+        "printed_mapped_count": 23,
+        "pdf_coverage": 1.0,
+        "printed_coverage": 1.0,
+        "split_indices_contiguous": true,
+        "complete": true
+      },
+      "page_map_complete": true,
+      "quality_json": "data/document-pipeline/jobs/zhenduan_p4t03_v1/quality/zhenduan.v1.cd4e4aaee343.p0047-0069.quality.json",
+      "metrics": {
+        "heading_count": 53,
+        "content_list_heading_count": 55,
+        "table_block_count": 37,
+        "paragraph_block_count": 20,
+        "heading_block_count": 51,
+        "needs_review_block_count": 19,
+        "uncertain_chapter_block_count": 19,
+        "blocks_with_source_pages": 108
+      },
+      "recommendation": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "split_id": "zhenduan.v1.cd4e4aaee343.p0070-0092",
+      "source_pdf_page_start": 70,
+      "source_pdf_page_end": 92,
+      "page_count": 23,
+      "terminal_status": "pass",
+      "issue_codes": [],
+      "chapter_count": 25,
+      "low_confidence_chapter_count": 2,
+      "content_block_count": 90,
+      "page_map_coverage": {
+        "page_count": 23,
+        "pdf_mapped_count": 23,
+        "printed_mapped_count": 23,
+        "pdf_coverage": 1.0,
+        "printed_coverage": 1.0,
+        "split_indices_contiguous": true,
+        "complete": true
+      },
+      "page_map_complete": true,
+      "quality_json": "data/document-pipeline/jobs/zhenduan_p4t03_v1/quality/zhenduan.v1.cd4e4aaee343.p0070-0092.quality.json",
+      "metrics": {
+        "heading_count": 36,
+        "content_list_heading_count": 38,
+        "table_block_count": 35,
+        "paragraph_block_count": 19,
+        "heading_block_count": 36,
+        "needs_review_block_count": 4,
+        "uncertain_chapter_block_count": 4,
+        "blocks_with_source_pages": 90
+      },
+      "recommendation": "PASS"
+    }
+  ],
+  "disposition": "All 4 splits terminal {'pass': 2, 'needs_review': 2}. Publication blocked by nonzero quality gate unless residual clean pass + human review. 92/92 pages have page maps and terminal status.",
+  "local_artifacts": {
+    "job_dir": "data/document-pipeline/jobs/zhenduan_p4t03_v1",
+    "raw": "data/document-pipeline/jobs/zhenduan_p4t03_v1/raw/",
+    "cleaned": "data/document-pipeline/jobs/zhenduan_p4t03_v1/cleaned/",
+    "structured": "data/document-pipeline/jobs/zhenduan_p4t03_v1/structured/",
+    "quality": "data/document-pipeline/jobs/zhenduan_p4t03_v1/quality/",
+    "splits": "data/document-pipeline/splits/zhenduan.v1.cd4e4aaee343/"
+  }
+}
