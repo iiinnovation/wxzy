@@ -792,9 +792,21 @@ issue 时删除迁移生成的 profile/session/Owner；一旦存在个人学习�
 
 ## P4-T05 方剂学全量
 
-状态：`[ ]`
+状态：`[x]`
 
 目标：140/140 页 terminal；已知 OCR 词典、剂量、方歌和跨页方剂表抽查。
+
+完成报告（2026-07-24）：
+- Job：`fangji_p4t05_v1` batch `a03a9258-c839-4466-a425-6b7033d001ec`。
+- 140/140 terminal：pass 0 / needs_review 140 / fail 0；split 状态 6 needs_review。
+- page map 6/6 complete；pages 1..140 contiguous。
+- clean.v2 → structure.v1 → quality.v1。
+- 表块 149；`bad_tables` 不存在；抽查关键词 split 命中 OCR词典/剂量/方歌/方剂表 = 6/6/6/6。
+- Issue codes：`empty_pages`（6 个 split 均有近空页，显式 needs_review，无 silent fail）。
+- 首次 submit 因末片 OSS DNS/Fake-IP 失败后 re-apply 成功；预算在 uploaded 后 reserve。
+- Tracked 无原文报告：`docs/superpowers/reports/2026-07-24-fangji-p4t05.{json,md}`。
+- 预算后：files 26/5000，pages 492/1000（remaining 4974 / 508）。
+- 恢复点：下一串行任务 **P4-T06 中医内科学全量**。
 
 ## P4-T06 中医内科学全量
 
