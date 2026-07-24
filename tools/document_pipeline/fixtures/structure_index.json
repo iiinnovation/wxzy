@@ -1,0 +1,12 @@
+{
+  "templates": {
+    "jichu": "structure_jichu",
+    "zhenduan": "structure_zhenduan",
+    "zhongyao": "structure_zhongyao",
+    "fangji": "structure_fangji",
+    "neike": "structure_neike",
+    "zhenjiu": "structure_zhenjiu",
+    "renwen": "structure_renwen"
+  },
+  "low_confidence": "structure_low_confidence"
+}

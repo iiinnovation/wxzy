@@ -1,0 +1,7 @@
+{
+  "book_template": "renwen",
+  "title": "人文",
+  "source_pdf_page_start": 1,
+  "expected_pages": 2,
+  "document_version_id": "renwen.fixture.v1"
+}

@@ -1,0 +1,35 @@
+[
+  {
+    "type": "text",
+    "text": "第一章 明确章节",
+    "text_level": 1,
+    "page_idx": 0
+  },
+  {
+    "type": "page_number",
+    "text": "1",
+    "page_idx": 0
+  },
+  {
+    "type": "text",
+    "text": "可能是标题也可能不是的奇怪句子没有章节目",
+    "text_level": 2,
+    "page_idx": 1
+  },
+  {
+    "type": "page_number",
+    "text": "2",
+    "page_idx": 1
+  },
+  {
+    "type": "text",
+    "text": "第二节 明确小节",
+    "text_level": 2,
+    "page_idx": 2
+  },
+  {
+    "type": "page_number",
+    "text": "3",
+    "page_idx": 2
+  }
+]

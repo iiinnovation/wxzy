@@ -1,0 +1,7 @@
+{
+  "book_template": "jichu",
+  "title": "中医基础理论",
+  "source_pdf_page_start": 1,
+  "expected_pages": 2,
+  "document_version_id": "jichu.fixture.v1"
+}

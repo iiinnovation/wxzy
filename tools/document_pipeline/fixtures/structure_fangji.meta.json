@@ -1,0 +1,7 @@
+{
+  "book_template": "fangji",
+  "title": "方剂学",
+  "source_pdf_page_start": 50,
+  "expected_pages": 2,
+  "document_version_id": "fangji.fixture.v1"
+}

@@ -1,0 +1,7 @@
+{
+  "book_template": "zhongyao",
+  "title": "中药学",
+  "source_pdf_page_start": 20,
+  "expected_pages": 2,
+  "document_version_id": "zhongyao.fixture.v1"
+}

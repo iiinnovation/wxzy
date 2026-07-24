@@ -1,0 +1,7 @@
+{
+  "book_template": "neike",
+  "title": "中医内科学",
+  "source_pdf_page_start": 88,
+  "expected_pages": 2,
+  "document_version_id": "neike.fixture.v1"
+}

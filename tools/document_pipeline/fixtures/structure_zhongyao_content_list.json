@@ -1,0 +1,30 @@
+[
+  {
+    "type": "text",
+    "text": "第三章 解表药",
+    "text_level": 1,
+    "page_idx": 0
+  },
+  {
+    "type": "text",
+    "text": "第一节 辛温解表药",
+    "text_level": 2,
+    "page_idx": 0
+  },
+  {
+    "type": "page_number",
+    "text": "20",
+    "page_idx": 0
+  },
+  {
+    "type": "text",
+    "text": "麻黄",
+    "text_level": 2,
+    "page_idx": 1
+  },
+  {
+    "type": "page_number",
+    "text": "21",
+    "page_idx": 1
+  }
+]

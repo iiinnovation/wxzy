@@ -1,0 +1,7 @@
+{
+  "book_template": "zhenduan",
+  "title": "中医诊断学",
+  "source_pdf_page_start": 10,
+  "expected_pages": 2,
+  "document_version_id": "zhenduan.fixture.v1"
+}

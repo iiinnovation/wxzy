@@ -25,7 +25,7 @@ from tools.document_pipeline.paths import (
 from tools.document_pipeline.quality import quality_report_for_dir, write_quality_markdown
 from tools.document_pipeline.raw import materialize_raw_from_zip, summarize_result_dir, unpack_zip
 from tools.document_pipeline.split import extract_pages
-from tools.document_pipeline.structure import find_md_and_content_list
+from tools.document_pipeline.structure import find_md_and_content_list, structure_result_dir
 
 try:
     import fitz  # PyMuPDF
@@ -119,6 +119,37 @@ def cmd_clean_md(args: argparse.Namespace) -> None:
         # Fallback for non-raw paths still uses pure clean_markdown if write guard fails unexpectedly
         raise SystemExit(str(exc)) from exc
     print(json.dumps(result, ensure_ascii=False, indent=2, default=str))
+
+
+def cmd_structure(args: argparse.Namespace) -> None:
+    target = Path(args.path).expanduser().resolve()
+    if not target.exists():
+        raise SystemExit(f"path not found: {target}")
+    out = Path(args.out).expanduser().resolve() if args.out else None
+    try:
+        result = structure_result_dir(
+            target,
+            document_version_id=args.document_version_id,
+            book_template=args.book_template,
+            out_dir=out,
+            source_pdf_page_start=args.source_pdf_page_start,
+            expected_page_count=args.expected_pages,
+        )
+    except Exception as exc:  # noqa: BLE001 - CLI surface
+        raise SystemExit(str(exc)) from exc
+    # Compact summary for stdout (no full cleaned text dump)
+    summary = {
+        "document_version_id": result.get("document_version_id"),
+        "book_template": result.get("book_template"),
+        "content_block_count": result.get("content_block_count"),
+        "chapter_count": result.get("chapter_count"),
+        "low_confidence_chapter_count": result.get("low_confidence_chapter_count"),
+        "page_map_coverage": result.get("page_map_coverage"),
+        "metrics": result.get("metrics"),
+        "out_dir": result.get("out_dir"),
+        "summary": result.get("summary"),
+    }
+    print(json.dumps(summary, ensure_ascii=False, indent=2, default=str))
 
 
 def cmd_extract(args: argparse.Namespace) -> None:
@@ -492,6 +523,19 @@ def build_parser() -> argparse.ArgumentParser:
         help="expected split page count for complete page map",
     )
     pc.set_defaults(func=cmd_clean_md)
+
+    ps = sub.add_parser("structure", help="Build chapter tree, PageRecords, and ContentBlocks")
+    ps.add_argument("path", help="sample result dir or markdown parent")
+    ps.add_argument("--out", help="structured output directory")
+    ps.add_argument("--document-version-id", default=None, help="stable document version id")
+    ps.add_argument(
+        "--book-template",
+        default=None,
+        help="one of jichu/zhenduan/zhongyao/fangji/neike/zhenjiu/renwen",
+    )
+    ps.add_argument("--source-pdf-page-start", type=int, default=None)
+    ps.add_argument("--expected-pages", type=int, default=None)
+    ps.set_defaults(func=cmd_structure)
 
     return p
 
