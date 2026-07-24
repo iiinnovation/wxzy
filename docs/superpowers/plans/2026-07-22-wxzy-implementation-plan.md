@@ -796,7 +796,7 @@ issue 时删除迁移生成的 profile/session/Owner；一旦存在个人学习�
 
 目标：140/140 页 terminal；已知 OCR 词典、剂量、方歌和跨页方剂表抽查。
 
-完成报告（2026-07-24）：
+完成报告（2026-07-24，commit ）：
 - Job：`fangji_p4t05_v1` batch `a03a9258-c839-4466-a425-6b7033d001ec`。
 - 140/140 terminal：pass 0 / needs_review 140 / fail 0；split 状态 6 needs_review。
 - page map 6/6 complete；pages 1..140 contiguous。
