@@ -455,8 +455,9 @@ def quality_report_for_dir(
             )
         )
 
-    # Residual hard suspicious OCR fails the gate. Prefer residual-after-clean
-    # when clean fixes known dictionary entries; otherwise fail on source hits.
+    # Residual hard suspicious OCR fails the gate only after clean.v2 is applied.
+    # Known watermark/OCR dictionary entries in raw full.md are expected and are
+    # recorded as needs_review so publication still requires an explicit clean pass.
     if residual_after_clean:
         issue_records.append(
             _issue(
@@ -465,14 +466,12 @@ def quality_report_for_dir(
                 detail={"hits": residual_after_clean[:10]},
             )
         )
-    elif hard_hits and gate:
-        # Source still contains known bad tokens (clean would fix some, but gate
-        # on raw result directories should surface them). Fail so fixtures fail
-        # before optional clean step.
+    elif hard_hits:
         issue_records.append(
             _issue(
-                "suspicious_ocr",
-                f"suspicious OCR patterns in source: {len(hard_hits)}",
+                "suspicious_ocr_source",
+                f"suspicious OCR in raw source (fixable by clean): {len(hard_hits)}",
+                severity="needs_review",
                 detail={"hits": hard_hits[:10]},
             )
         )

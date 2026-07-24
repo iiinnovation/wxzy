@@ -1,0 +1,502 @@
+{
+  "schema_version": 1,
+  "task": "P4-T01",
+  "wave": "wave0",
+  "generated_at": "2026-07-24T02:59:20Z",
+  "job_id": "wave0_p4t01_v1",
+  "batch_id": "18737047-058c-4210-9258-1967fac2d6a4",
+  "stage": "done",
+  "downloaded": true,
+  "file_count": 7,
+  "page_total": 70,
+  "budget": {
+    "reserved_files": 7,
+    "reserved_pages": 70,
+    "ledger_after": {
+      "file_budget": 5000,
+      "page_budget": 1000,
+      "files_used": 7,
+      "pages_used": 70,
+      "files_remaining": 4993,
+      "pages_remaining": 930
+    }
+  },
+  "frozen_mineru_params": {
+    "model_version": "vlm",
+    "language": "ch",
+    "is_ocr": true,
+    "enable_formula": true,
+    "enable_table": true,
+    "batch_size_files": 7,
+    "pages_per_sample": 10,
+    "notes": "Wave 0 freeze: vlm + OCR + ch + formula/table on; batch of 7 x 10 pages"
+  },
+  "timeline": {
+    "job_created": "2026-07-24T02:06:33Z",
+    "submitted": "2026-07-24T02:10:50Z",
+    "uploaded": "2026-07-24T02:20:56Z",
+    "budget_reserved": "2026-07-24T02:20:56Z",
+    "events": [
+      {
+        "at": "2026-07-24T02:06:33Z",
+        "type": "job_created"
+      },
+      {
+        "at": "2026-07-24T02:07:47Z",
+        "type": "submitted"
+      },
+      {
+        "at": "2026-07-24T02:09:32Z",
+        "type": "submit_skipped"
+      },
+      {
+        "at": "2026-07-24T02:10:49Z",
+        "type": "manual_reset_for_reupload"
+      },
+      {
+        "at": "2026-07-24T02:10:50Z",
+        "type": "submitted"
+      },
+      {
+        "at": "2026-07-24T02:20:56Z",
+        "type": "uploaded"
+      },
+      {
+        "at": "2026-07-24T02:20:56Z",
+        "type": "budget_reserved"
+      },
+      {
+        "at": "2026-07-24T02:39:38Z",
+        "type": "poll_state"
+      },
+      {
+        "at": "2026-07-24T02:39:38Z",
+        "type": "poll_terminal"
+      },
+      {
+        "at": "2026-07-24T02:43:13Z",
+        "type": "downloaded"
+      },
+      {
+        "at": "2026-07-24T02:44:28Z",
+        "type": "downloaded"
+      },
+      {
+        "at": "2026-07-24T02:45:29Z",
+        "type": "downloaded"
+      },
+      {
+        "at": "2026-07-24T02:47:46Z",
+        "type": "downloaded"
+      },
+      {
+        "at": "2026-07-24T02:48:59Z",
+        "type": "downloaded"
+      },
+      {
+        "at": "2026-07-24T02:50:21Z",
+        "type": "downloaded"
+      },
+      {
+        "at": "2026-07-24T02:52:12Z",
+        "type": "downloaded"
+      },
+      {
+        "at": "2026-07-24T02:52:12Z",
+        "type": "download_finished"
+      }
+    ]
+  },
+  "cost": {
+    "files": 7,
+    "priority_pages": 70,
+    "daily_file_budget": 5000,
+    "daily_priority_page_budget": 1000,
+    "files_remaining_after": 4993,
+    "pages_remaining_after": 930,
+    "upload_wall_approx_minutes": 10,
+    "parse_already_done_at_first_poll": true
+  },
+  "status_counts": {
+    "pass": 0,
+    "needs_review": 7,
+    "fail": 0
+  },
+  "acceptance": {
+    "criterion": "7/7 pass or explicit needs_review",
+    "met": true,
+    "pass": 0,
+    "needs_review": 7,
+    "fail": 0
+  },
+  "quality_gate_note": "quality.v1 hard-fails only residual suspicious OCR after clean.v2; raw watermark tokens (学朝/学期笔记) are needs_review when clean residual is 0.",
+  "samples": [
+    {
+      "data_id": "jichu_wave0",
+      "document_key": "jichu",
+      "document_version": "jichu.v1.1fcfabb4b4b3",
+      "source_pdf_page_start": 15,
+      "source_pdf_page_end": 24,
+      "page_count": 10,
+      "upload_status": "http_200",
+      "zip_sha256": "f565bef4a469434ce9507a36d4eb7bfb3cd1b63463ae1a5ef65e2df43d272f07",
+      "raw_relpath": "data/document-pipeline/jobs/wave0_p4t01_v1/raw/jichu_wave0",
+      "quality_terminal_status": "needs_review",
+      "quality_issue_codes": [
+        "empty_pages",
+        "suspicious_ocr_source"
+      ],
+      "quality_metrics": {
+        "markdown_chars": 17005,
+        "heading_count": 13,
+        "html_table_count": 10,
+        "empty_page_count": 2,
+        "hard_suspicious_hit_count": 2,
+        "residual_suspicious_after_clean": 0
+      },
+      "page_map_coverage": {
+        "page_count": 10,
+        "pdf_mapped_count": 10,
+        "printed_mapped_count": 10,
+        "pdf_coverage": 1.0,
+        "printed_coverage": 1.0,
+        "split_indices_contiguous": true,
+        "complete": true
+      },
+      "structure": {
+        "chapter_count": 8,
+        "content_block_count": 26,
+        "low_confidence_chapter_count": 2,
+        "needs_review_block_count": 3
+      },
+      "clean": {
+        "rule_version": "clean.v2",
+        "rule_ids_applied": [
+          "noise.header.kaoyan_note_md",
+          "ocr.watermark.xueba_space",
+          "ocr.watermark.xueqi_space"
+        ],
+        "removed_header_count": 4,
+        "raw_unchanged": true,
+        "page_map_complete": true
+      },
+      "disposition": "needs_review",
+      "disposition_reason": "raw watermark OCR tokens expected pre-clean; residual after clean.v2 is 0; structure/page map complete; explicit needs_review for Wave 0 freeze"
+    },
+    {
+      "data_id": "zhenduan_wave0",
+      "document_key": "zhenduan",
+      "document_version": "zhenduan.v1.cd4e4aaee343",
+      "source_pdf_page_start": 15,
+      "source_pdf_page_end": 24,
+      "page_count": 10,
+      "upload_status": "http_200",
+      "zip_sha256": "43d222b17e66d68892212b4f085fb02f6ababf74e8b22611800f3992aae2e525",
+      "raw_relpath": "data/document-pipeline/jobs/wave0_p4t01_v1/raw/zhenduan_wave0",
+      "quality_terminal_status": "needs_review",
+      "quality_issue_codes": [
+        "suspicious_ocr_source"
+      ],
+      "quality_metrics": {
+        "markdown_chars": 17440,
+        "heading_count": 27,
+        "html_table_count": 26,
+        "empty_page_count": 0,
+        "hard_suspicious_hit_count": 4,
+        "residual_suspicious_after_clean": 0
+      },
+      "page_map_coverage": {
+        "page_count": 10,
+        "pdf_mapped_count": 10,
+        "printed_mapped_count": 10,
+        "pdf_coverage": 1.0,
+        "printed_coverage": 1.0,
+        "split_indices_contiguous": true,
+        "complete": true
+      },
+      "structure": {
+        "chapter_count": 7,
+        "content_block_count": 62,
+        "low_confidence_chapter_count": 4,
+        "needs_review_block_count": 8
+      },
+      "clean": {
+        "rule_version": "clean.v2",
+        "rule_ids_applied": [
+          "noise.header.kaoyan_note_md",
+          "ocr.watermark.xueba_space"
+        ],
+        "removed_header_count": 4,
+        "raw_unchanged": true,
+        "page_map_complete": true
+      },
+      "disposition": "needs_review",
+      "disposition_reason": "raw watermark OCR tokens expected pre-clean; residual after clean.v2 is 0; structure/page map complete; explicit needs_review for Wave 0 freeze"
+    },
+    {
+      "data_id": "zhongyao_wave0",
+      "document_key": "zhongyao",
+      "document_version": "zhongyao.v1.e9037a725021",
+      "source_pdf_page_start": 15,
+      "source_pdf_page_end": 24,
+      "page_count": 10,
+      "upload_status": "http_200",
+      "zip_sha256": "8f9b9727f231c7f35f13a8ebf40763a9b75a2bcd2b95780803aa3269640a9f54",
+      "raw_relpath": "data/document-pipeline/jobs/wave0_p4t01_v1/raw/zhongyao_wave0",
+      "quality_terminal_status": "needs_review",
+      "quality_issue_codes": [
+        "suspicious_ocr_source"
+      ],
+      "quality_metrics": {
+        "markdown_chars": 13600,
+        "heading_count": 29,
+        "html_table_count": 28,
+        "empty_page_count": 0,
+        "hard_suspicious_hit_count": 3,
+        "residual_suspicious_after_clean": 0
+      },
+      "page_map_coverage": {
+        "page_count": 10,
+        "pdf_mapped_count": 10,
+        "printed_mapped_count": 10,
+        "pdf_coverage": 1.0,
+        "printed_coverage": 1.0,
+        "split_indices_contiguous": true,
+        "complete": true
+      },
+      "structure": {
+        "chapter_count": 24,
+        "content_block_count": 59,
+        "low_confidence_chapter_count": 2,
+        "needs_review_block_count": 4
+      },
+      "clean": {
+        "rule_version": "clean.v2",
+        "rule_ids_applied": [
+          "noise.header.kaoyan_note_md",
+          "ocr.watermark.xueba_space"
+        ],
+        "removed_header_count": 3,
+        "raw_unchanged": true,
+        "page_map_complete": true
+      },
+      "disposition": "needs_review",
+      "disposition_reason": "raw watermark OCR tokens expected pre-clean; residual after clean.v2 is 0; structure/page map complete; explicit needs_review for Wave 0 freeze"
+    },
+    {
+      "data_id": "fangji_wave0",
+      "document_key": "fangji",
+      "document_version": "fangji.v1.0755d148d00a",
+      "source_pdf_page_start": 20,
+      "source_pdf_page_end": 29,
+      "page_count": 10,
+      "upload_status": "http_200",
+      "zip_sha256": "4359d0624d7c61fc23d4b94bb73a8b3af4044f6559710d0d3cb2e248cccee9c4",
+      "raw_relpath": "data/document-pipeline/jobs/wave0_p4t01_v1/raw/fangji_wave0",
+      "quality_terminal_status": "needs_review",
+      "quality_issue_codes": [
+        "suspicious_ocr_source"
+      ],
+      "quality_metrics": {
+        "markdown_chars": 16858,
+        "heading_count": 11,
+        "html_table_count": 12,
+        "empty_page_count": 0,
+        "hard_suspicious_hit_count": 8,
+        "residual_suspicious_after_clean": 0
+      },
+      "page_map_coverage": {
+        "page_count": 10,
+        "pdf_mapped_count": 10,
+        "printed_mapped_count": 10,
+        "pdf_coverage": 1.0,
+        "printed_coverage": 1.0,
+        "split_indices_contiguous": true,
+        "complete": true
+      },
+      "structure": {
+        "chapter_count": 7,
+        "content_block_count": 20,
+        "low_confidence_chapter_count": 0,
+        "needs_review_block_count": 0
+      },
+      "clean": {
+        "rule_version": "clean.v2",
+        "rule_ids_applied": [
+          "noise.header.kaoyan_note_md",
+          "ocr.fangji.fuju",
+          "ocr.fangji.zhenzhen",
+          "ocr.watermark.xueba_space",
+          "ocr.watermark.xueqi",
+          "ocr.watermark.xueqi_space"
+        ],
+        "removed_header_count": 5,
+        "raw_unchanged": true,
+        "page_map_complete": true
+      },
+      "disposition": "needs_review",
+      "disposition_reason": "raw watermark OCR tokens expected pre-clean; residual after clean.v2 is 0; structure/page map complete; explicit needs_review for Wave 0 freeze"
+    },
+    {
+      "data_id": "neike_wave0",
+      "document_key": "neike",
+      "document_version": "neike.v1.8ea7bc991418",
+      "source_pdf_page_start": 40,
+      "source_pdf_page_end": 49,
+      "page_count": 10,
+      "upload_status": "http_200",
+      "zip_sha256": "857c93b86e62ab03a40289cc6ba407681a7f34673e708cd39cf4e50d7ba4664d",
+      "raw_relpath": "data/document-pipeline/jobs/wave0_p4t01_v1/raw/neike_wave0",
+      "quality_terminal_status": "needs_review",
+      "quality_issue_codes": [
+        "suspicious_ocr_source"
+      ],
+      "quality_metrics": {
+        "markdown_chars": 16791,
+        "heading_count": 15,
+        "html_table_count": 14,
+        "empty_page_count": 0,
+        "hard_suspicious_hit_count": 1,
+        "residual_suspicious_after_clean": 0
+      },
+      "page_map_coverage": {
+        "page_count": 10,
+        "pdf_mapped_count": 10,
+        "printed_mapped_count": 10,
+        "pdf_coverage": 1.0,
+        "printed_coverage": 1.0,
+        "split_indices_contiguous": true,
+        "complete": true
+      },
+      "structure": {
+        "chapter_count": 7,
+        "content_block_count": 35,
+        "low_confidence_chapter_count": 2,
+        "needs_review_block_count": 8
+      },
+      "clean": {
+        "rule_version": "clean.v2",
+        "rule_ids_applied": [
+          "noise.header.kaoyan_note_md",
+          "ocr.watermark.xueba_space"
+        ],
+        "removed_header_count": 1,
+        "raw_unchanged": true,
+        "page_map_complete": true
+      },
+      "disposition": "needs_review",
+      "disposition_reason": "raw watermark OCR tokens expected pre-clean; residual after clean.v2 is 0; structure/page map complete; explicit needs_review for Wave 0 freeze"
+    },
+    {
+      "data_id": "zhenjiu_wave0",
+      "document_key": "zhenjiu",
+      "document_version": "zhenjiu.v1.e267e196ca45",
+      "source_pdf_page_start": 20,
+      "source_pdf_page_end": 29,
+      "page_count": 10,
+      "upload_status": "http_200",
+      "zip_sha256": "6739e12bba8dc662df8d5a45b7c2da56afdc32cc749e86c50b2bb3d03483452b",
+      "raw_relpath": "data/document-pipeline/jobs/wave0_p4t01_v1/raw/zhenjiu_wave0",
+      "quality_terminal_status": "needs_review",
+      "quality_issue_codes": [
+        "suspicious_ocr_source"
+      ],
+      "quality_metrics": {
+        "markdown_chars": 13367,
+        "heading_count": 15,
+        "html_table_count": 16,
+        "empty_page_count": 0,
+        "hard_suspicious_hit_count": 5,
+        "residual_suspicious_after_clean": 0
+      },
+      "page_map_coverage": {
+        "page_count": 10,
+        "pdf_mapped_count": 10,
+        "printed_mapped_count": 10,
+        "pdf_coverage": 1.0,
+        "printed_coverage": 1.0,
+        "split_indices_contiguous": true,
+        "complete": true
+      },
+      "structure": {
+        "chapter_count": 5,
+        "content_block_count": 28,
+        "low_confidence_chapter_count": 0,
+        "needs_review_block_count": 0
+      },
+      "clean": {
+        "rule_version": "clean.v2",
+        "rule_ids_applied": [
+          "noise.header.kaoyan_note_md",
+          "ocr.watermark.xueba_space",
+          "ocr.watermark.xueqi_space"
+        ],
+        "removed_header_count": 5,
+        "raw_unchanged": true,
+        "page_map_complete": true
+      },
+      "disposition": "needs_review",
+      "disposition_reason": "raw watermark OCR tokens expected pre-clean; residual after clean.v2 is 0; structure/page map complete; explicit needs_review for Wave 0 freeze"
+    },
+    {
+      "data_id": "renwen_wave0",
+      "document_key": "renwen",
+      "document_version": "renwen.v1.20340ad679a8",
+      "source_pdf_page_start": 10,
+      "source_pdf_page_end": 19,
+      "page_count": 10,
+      "upload_status": "http_200",
+      "zip_sha256": "d3c7812500bf0cb287c77b1168b34a560ed3f84b28d750eaf09f4e6c42afb984",
+      "raw_relpath": "data/document-pipeline/jobs/wave0_p4t01_v1/raw/renwen_wave0",
+      "quality_terminal_status": "needs_review",
+      "quality_issue_codes": [
+        "empty_pages",
+        "suspicious_ocr_source"
+      ],
+      "quality_metrics": {
+        "markdown_chars": 15777,
+        "heading_count": 18,
+        "html_table_count": 6,
+        "empty_page_count": 2,
+        "hard_suspicious_hit_count": 3,
+        "residual_suspicious_after_clean": 0
+      },
+      "page_map_coverage": {
+        "page_count": 10,
+        "pdf_mapped_count": 10,
+        "printed_mapped_count": 10,
+        "pdf_coverage": 1.0,
+        "printed_coverage": 1.0,
+        "split_indices_contiguous": true,
+        "complete": true
+      },
+      "structure": {
+        "chapter_count": 15,
+        "content_block_count": 30,
+        "low_confidence_chapter_count": 2,
+        "needs_review_block_count": 3
+      },
+      "clean": {
+        "rule_version": "clean.v2",
+        "rule_ids_applied": [
+          "noise.header.kaoyan_note_md",
+          "ocr.watermark.xueba_space",
+          "ocr.watermark.xueqi_space"
+        ],
+        "removed_header_count": 3,
+        "raw_unchanged": true,
+        "page_map_complete": true
+      },
+      "disposition": "needs_review",
+      "disposition_reason": "raw watermark OCR tokens expected pre-clean; residual after clean.v2 is 0; structure/page map complete; explicit needs_review for Wave 0 freeze"
+    }
+  ],
+  "artifacts": {
+    "job_dir": "data/document-pipeline/jobs/wave0_p4t01_v1",
+    "selection": "data/document-pipeline/wave0/wave0-selection.v1.json",
+    "quality_batch": "data/document-pipeline/jobs/wave0_p4t01_v1/quality/wave0_batch.quality.json",
+    "cleaned_root": "data/document-pipeline/jobs/wave0_p4t01_v1/cleaned",
+    "structured_root": "data/document-pipeline/jobs/wave0_p4t01_v1/structured",
+    "raw_root": "data/document-pipeline/jobs/wave0_p4t01_v1/raw"
+  }
+}
