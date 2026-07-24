@@ -17,6 +17,7 @@ from tools.document_pipeline.jobs import (
     job_path,
     load_events,
     load_manifest,
+    save_manifest,
     poll_job,
     redact_for_storage,
     stable_data_id,
@@ -208,6 +209,42 @@ def test_submit_poll_download_happy_path(tmp_path: Path) -> None:
     downloads_before = len(client.downloads)
     download_job(jdir, client, root=tmp_path, results=poll["results"])
     assert len(client.downloads) == downloads_before
+
+
+def test_submit_resumes_incomplete_submitted_stage(tmp_path: Path) -> None:
+    """Apply-then-crash leaves stage=submitted with planned items; re-submit must re-apply."""
+    pdf = _write_pdf(tmp_path / "splits" / "a.pdf")
+    create_job(
+        [JobFileSpec(split_id="split_a", source_path=pdf, page_count=3)],
+        root=tmp_path,
+        job_id="job_mid_submit",
+    )
+    jdir = job_path("job_mid_submit", root=tmp_path)
+    ledger = tmp_path / "budget.json"
+
+    # Simulate interrupted submit: batch_id saved, uploads never recorded.
+    manifest = load_manifest(jdir)
+    manifest["stage"] = "submitted"
+    manifest["batch_id"] = "batch-stale-no-upload"
+    for item in manifest["items"]:
+        item["state"] = "planned"
+        item["upload_status"] = None
+    save_manifest(jdir, manifest)
+
+    client = FakeMinerU(states=["done"])
+    resumed = submit_job(jdir, client, root=tmp_path, budget_ledger_path=ledger)
+    assert resumed["stage"] == "uploaded"
+    assert resumed["batch_id"] == "batch-test-1"
+    assert client.apply_calls == 1
+    assert len(client.uploads) == 1
+    assert resumed["items"][0]["upload_status"] == "http_200"
+    assert resumed["items"][0]["state"] == "waiting"
+    events = load_events(jdir)
+    assert any(e.get("type") == "submit_resume_reapply" for e in events)
+    # budget reserved once on successful upload completion
+    ledger_data = json.loads(ledger.read_text(encoding="utf-8"))
+    assert ledger_data["files_used"] == 1
+    assert ledger_data["pages_used"] == 3
 
 
 def test_poll_failed_and_timeout_keep_batch_id(tmp_path: Path) -> None:

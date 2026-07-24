@@ -334,7 +334,7 @@ class HttpMinerUClient:
     def upload(self, upload_url: str, file_path: Path) -> int:
         if self.upload_fn is not None:
             return self.upload_fn(upload_url, file_path)
-        return put_file(upload_url, file_path, timeout=max(self.timeout, 300))
+        return put_file(upload_url, file_path, timeout=max(self.timeout, 900))
 
     def download(self, url: str, dest: Path) -> None:
         if self.download_fn is not None:
@@ -380,10 +380,12 @@ def submit_job(
     manifest = load_manifest(job_dir)
     stage = str(manifest.get("stage") or "planned")
 
-    # Successful submit stages are idempotent. upload_failed may re-apply a new batch
-    # (signed URLs are not retained). timed_out/done/failed keep batch_id for poll/download.
+    # Fully successful / terminal stages are idempotent.
+    # "submitted" alone is NOT success: apply persists batch_id before PUT uploads finish.
+    # If the process dies mid-upload, items stay planned with upload_status=None.
+    # Signed URLs are never retained, so incomplete "submitted" must re-apply a new batch
+    # (same recovery path as upload_failed). timed_out/done/failed keep batch_id for poll/download.
     if manifest.get("batch_id") and stage in {
-        "submitted",
         "uploaded",
         "polling",
         "done",
@@ -401,7 +403,37 @@ def submit_job(
         )
         return manifest
 
-    if stage not in {"planned", "submit_failed", "upload_failed"}:
+    if stage == "submitted":
+        items_preview = list(manifest.get("items") or [])
+        uploads_complete = bool(items_preview) and all(
+            str(it.get("upload_status") or "").startswith("http_2")
+            and str(it.get("state") or "") not in {"planned", ""}
+            for it in items_preview
+        )
+        if uploads_complete:
+            # Defensive: treat fully-uploaded submitted as already done for submit.
+            append_event(
+                job_dir,
+                {
+                    "type": "submit_skipped",
+                    "reason": "already_submitted",
+                    "batch_id": manifest.get("batch_id"),
+                    "stage": stage,
+                },
+            )
+            return manifest
+        append_event(
+            job_dir,
+            {
+                "type": "submit_resume_reapply",
+                "reason": "submitted_without_completed_uploads",
+                "previous_batch_id": manifest.get("batch_id"),
+                "stage": stage,
+            },
+        )
+        # Fall through and re-apply; old batch had no durable upload progress.
+
+    if stage not in {"planned", "submit_failed", "upload_failed", "submitted"}:
         raise JobError(f"cannot submit from stage={stage}")
 
     items = list(manifest["items"])

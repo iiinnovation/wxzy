@@ -1,0 +1,247 @@
+{
+  "schema_version": 1,
+  "task": "P4-T04",
+  "document_key": "zhongyao",
+  "document_version": "zhongyao.v1.e9037a725021",
+  "generated_at": "2026-07-24T09:59:22Z",
+  "job_id": "zhongyao_p4t04_v1",
+  "batch_id": "0cde6505-4608-4a95-b30f-a05c6b210e73",
+  "stage": "done",
+  "downloaded": true,
+  "file_count": 4,
+  "page_total": 88,
+  "budget": {
+    "reserved_files": 4,
+    "reserved_pages": 88,
+    "ledger_after": {
+      "file_budget": 5000,
+      "page_budget": 1000,
+      "files_used": 20,
+      "pages_used": 352,
+      "files_remaining": 4980,
+      "pages_remaining": 648
+    }
+  },
+  "frozen_mineru_params": {
+    "model_version": "vlm",
+    "language": "ch",
+    "is_ocr": true,
+    "enable_formula": true,
+    "enable_table": true,
+    "notes": "Wave 0 freeze applied to zhongyao full run"
+  },
+  "github_policy": {
+    "source_pdfs": "local only (docs/*.pdf gitignored)",
+    "split_pdfs": "local only (data/ gitignored)",
+    "raw_ocr": "local only",
+    "cleaned_fulltext": "local only",
+    "structured_fulltext": "local only",
+    "tracked": "schema/rules/fixtures + no-fulltext coverage summaries under docs/superpowers/reports/"
+  },
+  "acceptance": {
+    "criterion": "88/88 pages terminal (pass or explicit needs_review; no silent fail); 药名/剂量/毒性/禁忌 risk flags intact; no silent fail",
+    "met": true,
+    "total_pages": 88,
+    "terminal_pages": 88,
+    "pass_pages": 66,
+    "needs_review_pages": 22,
+    "fail_pages": 0,
+    "split_status_counts": {
+      "pass": 3,
+      "needs_review": 1
+    },
+    "page_map_complete_splits": "4/4",
+    "chapter_ranges_contiguous": true,
+    "table_spot_check": {
+      "focus": "药名/剂量/毒性/禁忌风险 flags",
+      "method": "quality issue codes + structure metrics + keyword risk-flag scan on local cleaned text (counts only, no fulltext tracked)",
+      "bad_tables_issue_present": false,
+      "table_blocks_total": 136,
+      "risk_keyword_split_hits": {
+        "药名": 4,
+        "剂量": 4,
+        "毒性": 4,
+        "禁忌": 4
+      },
+      "risk_keywords_present_all": true
+    }
+  },
+  "continuity": {
+    "split_count": 4,
+    "page_ranges_contiguous": true,
+    "gaps": [],
+    "overlaps": []
+  },
+  "spot_check": {
+    "capability": "page_map_complete_allows_source_pdf_page_lookup",
+    "all_splits_page_map_complete": true,
+    "sample_lookup_pages": [
+      1,
+      23,
+      45,
+      67,
+      88
+    ],
+    "note": "No full text in tracked report; local raw/cleaned allow random page re-source check",
+    "table_focus": "药名/剂量/毒性/禁忌"
+  },
+  "aggregates": {
+    "total_chapters": 115,
+    "total_low_confidence_chapters": 7,
+    "total_content_blocks": 288,
+    "issue_codes_union": [
+      "empty or near-empty pages: [2, 6]",
+      "empty_pages"
+    ],
+    "pdf_coverage_min": 1.0,
+    "pdf_coverage_max": 1.0,
+    "printed_coverage_min": 1.0,
+    "printed_coverage_max": 1.0
+  },
+  "splits": [
+    {
+      "split_id": "zhongyao.v1.e9037a725021.p0001-0022",
+      "source_pdf_page_start": 1,
+      "source_pdf_page_end": 22,
+      "page_count": 22,
+      "terminal_status": "pass",
+      "issue_codes": [],
+      "chapter_count": 32,
+      "low_confidence_chapter_count": 4,
+      "content_block_count": 94,
+      "page_map_coverage": {
+        "page_count": 22,
+        "pdf_mapped_count": 22,
+        "printed_mapped_count": 22,
+        "pdf_coverage": 1.0,
+        "printed_coverage": 1.0,
+        "split_indices_contiguous": true,
+        "complete": true
+      },
+      "page_map_complete": true,
+      "quality_json": "data/document-pipeline/jobs/zhongyao_p4t04_v1/quality/zhongyao.v1.e9037a725021.p0001-0022.quality.json",
+      "metrics": {
+        "heading_count": 38,
+        "content_list_heading_count": 43,
+        "table_block_count": 38,
+        "paragraph_block_count": 18,
+        "heading_block_count": 38,
+        "needs_review_block_count": 7,
+        "uncertain_chapter_block_count": 7,
+        "blocks_with_source_pages": 94
+      },
+      "recommendation": "PASS"
+    },
+    {
+      "split_id": "zhongyao.v1.e9037a725021.p0023-0044",
+      "source_pdf_page_start": 23,
+      "source_pdf_page_end": 44,
+      "page_count": 22,
+      "terminal_status": "needs_review",
+      "issue_codes": [
+        "empty or near-empty pages: [2, 6]",
+        "empty_pages"
+      ],
+      "chapter_count": 31,
+      "low_confidence_chapter_count": 1,
+      "content_block_count": 67,
+      "page_map_coverage": {
+        "page_count": 22,
+        "pdf_mapped_count": 22,
+        "printed_mapped_count": 22,
+        "pdf_coverage": 1.0,
+        "printed_coverage": 1.0,
+        "split_indices_contiguous": true,
+        "complete": true
+      },
+      "page_map_complete": true,
+      "quality_json": "data/document-pipeline/jobs/zhongyao_p4t04_v1/quality/zhongyao.v1.e9037a725021.p0023-0044.quality.json",
+      "metrics": {
+        "heading_count": 31,
+        "content_list_heading_count": 35,
+        "table_block_count": 33,
+        "paragraph_block_count": 4,
+        "heading_block_count": 30,
+        "needs_review_block_count": 2,
+        "uncertain_chapter_block_count": 2,
+        "blocks_with_source_pages": 67
+      },
+      "recommendation": "NEEDS_HUMAN_REVIEW"
+    },
+    {
+      "split_id": "zhongyao.v1.e9037a725021.p0045-0066",
+      "source_pdf_page_start": 45,
+      "source_pdf_page_end": 66,
+      "page_count": 22,
+      "terminal_status": "pass",
+      "issue_codes": [],
+      "chapter_count": 30,
+      "low_confidence_chapter_count": 0,
+      "content_block_count": 68,
+      "page_map_coverage": {
+        "page_count": 22,
+        "pdf_mapped_count": 22,
+        "printed_mapped_count": 22,
+        "pdf_coverage": 1.0,
+        "printed_coverage": 1.0,
+        "split_indices_contiguous": true,
+        "complete": true
+      },
+      "page_map_complete": true,
+      "quality_json": "data/document-pipeline/jobs/zhongyao_p4t04_v1/quality/zhongyao.v1.e9037a725021.p0045-0066.quality.json",
+      "metrics": {
+        "heading_count": 30,
+        "content_list_heading_count": 32,
+        "table_block_count": 37,
+        "paragraph_block_count": 1,
+        "heading_block_count": 30,
+        "needs_review_block_count": 0,
+        "uncertain_chapter_block_count": 0,
+        "blocks_with_source_pages": 68
+      },
+      "recommendation": "PASS"
+    },
+    {
+      "split_id": "zhongyao.v1.e9037a725021.p0067-0088",
+      "source_pdf_page_start": 67,
+      "source_pdf_page_end": 88,
+      "page_count": 22,
+      "terminal_status": "pass",
+      "issue_codes": [],
+      "chapter_count": 22,
+      "low_confidence_chapter_count": 2,
+      "content_block_count": 59,
+      "page_map_coverage": {
+        "page_count": 22,
+        "pdf_mapped_count": 22,
+        "printed_mapped_count": 22,
+        "pdf_coverage": 1.0,
+        "printed_coverage": 1.0,
+        "split_indices_contiguous": true,
+        "complete": true
+      },
+      "page_map_complete": true,
+      "quality_json": "data/document-pipeline/jobs/zhongyao_p4t04_v1/quality/zhongyao.v1.e9037a725021.p0067-0088.quality.json",
+      "metrics": {
+        "heading_count": 24,
+        "content_list_heading_count": 26,
+        "table_block_count": 28,
+        "paragraph_block_count": 7,
+        "heading_block_count": 24,
+        "needs_review_block_count": 4,
+        "uncertain_chapter_block_count": 4,
+        "blocks_with_source_pages": 59
+      },
+      "recommendation": "PASS"
+    }
+  ],
+  "disposition": "All 4 splits terminal {'pass': 3, 'needs_review': 1}. Publication blocked by nonzero quality gate unless residual clean pass + human review. 88/88 pages have page maps and terminal status. Risk flags for 药名/剂量/毒性/禁忌 preserved as local quality signals.",
+  "local_artifacts": {
+    "job_dir": "data/document-pipeline/jobs/zhongyao_p4t04_v1",
+    "raw": "data/document-pipeline/jobs/zhongyao_p4t04_v1/raw/",
+    "cleaned": "data/document-pipeline/jobs/zhongyao_p4t04_v1/cleaned/",
+    "structured": "data/document-pipeline/jobs/zhongyao_p4t04_v1/structured/",
+    "quality": "data/document-pipeline/jobs/zhongyao_p4t04_v1/quality/",
+    "splits": "data/document-pipeline/splits/zhongyao.v1.e9037a725021/"
+  }
+}
