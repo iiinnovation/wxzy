@@ -20,9 +20,11 @@ ENROLLMENT_REVISION = "20260722_0004"
 ATTEMPT_REVISION = "20260722_0005"
 DATA_REVISION = "20260723_0006"
 PROFILE_AUDIT_REVISION = "20260723_0007"
+PUBLICATION_IMPORT_REVISION = "20260725_0008"
 BASELINE_TABLES = {"books", "cards", "review_states", "review_logs"}
 IDENTITY_TABLES = {"users", "user_sessions", "learning_profiles"}
 PROFILE_AUDIT_TABLES = {"learning_profile_audits"}
+PUBLICATION_IMPORT_TABLES = {"publication_imports"}
 CATALOG_TABLES = {
     "documents",
     "document_versions",
@@ -36,7 +38,8 @@ PRE_CATALOG_TABLES = BASELINE_TABLES | IDENTITY_TABLES
 PRE_ENROLLMENT_TABLES = PRE_CATALOG_TABLES | CATALOG_TABLES
 PRE_ATTEMPT_TABLES = PRE_ENROLLMENT_TABLES | ENROLLMENT_TABLES
 DATA_TABLES = PRE_ATTEMPT_TABLES | ATTEMPT_TABLES
-HEAD_TABLES = DATA_TABLES | PROFILE_AUDIT_TABLES
+PRE_PUBLICATION_TABLES = DATA_TABLES | PROFILE_AUDIT_TABLES
+HEAD_TABLES = PRE_PUBLICATION_TABLES | PUBLICATION_IMPORT_TABLES
 
 
 def run_alembic(database_url: str, *arguments: str) -> subprocess.CompletedProcess[str]:
@@ -155,6 +158,12 @@ def test_empty_sqlite_upgrade_downgrade_upgrade(tmp_path: Path) -> None:
     assert_sqlite_single_active_owner_constraint(database)
 
     run_alembic(url, "downgrade", "-1")
+    assert table_names(database) == PRE_PUBLICATION_TABLES | {"alembic_version"}
+    with sqlite3.connect(database) as connection:
+        version = connection.execute("SELECT version_num FROM alembic_version").fetchone()
+    assert version == (PROFILE_AUDIT_REVISION,)
+
+    run_alembic(url, "downgrade", "-1")
     assert table_names(database) == DATA_TABLES | {"alembic_version"}
     with sqlite3.connect(database) as connection:
         version = connection.execute("SELECT version_num FROM alembic_version").fetchone()
@@ -190,7 +199,7 @@ def test_empty_sqlite_upgrade_downgrade_upgrade(tmp_path: Path) -> None:
     run_alembic(url, "upgrade", "head")
     with sqlite3.connect(database) as connection:
         version = connection.execute("SELECT version_num FROM alembic_version").fetchone()
-    assert version == (PROFILE_AUDIT_REVISION,)
+    assert version == (PUBLICATION_IMPORT_REVISION,)
     run_alembic(url, "check")
 
 
@@ -361,7 +370,7 @@ def test_legacy_sqlite_can_stamp_and_upgrade_without_data_loss(tmp_path: Path) -
             "SELECT client_attempt_id FROM review_attempts ORDER BY id"
         ).fetchall()
     assert counts == {"books": 2, "cards": 15, "review_states": 15, "review_logs": 4}
-    assert version == (PROFILE_AUDIT_REVISION,)
+    assert version == (PUBLICATION_IMPORT_REVISION,)
     assert card_defaults == (1, 1, "[]", "[]", "[]", "[]")
     assert migrated_counts == {
         "users": 1,
@@ -425,8 +434,11 @@ def test_empty_postgres_upgrade_when_configured() -> None:
     assert postgres_state(url) == ({"alembic_version"}, None)
 
     run_alembic(url, "upgrade", "head")
-    assert postgres_state(url) == (HEAD_TABLES | {"alembic_version"}, PROFILE_AUDIT_REVISION)
+    assert postgres_state(url) == (HEAD_TABLES | {"alembic_version"}, PUBLICATION_IMPORT_REVISION)
     assert_postgres_single_active_owner_constraint(url)
+
+    run_alembic(url, "downgrade", "-1")
+    assert postgres_state(url) == (PRE_PUBLICATION_TABLES | {"alembic_version"}, PROFILE_AUDIT_REVISION)
 
     run_alembic(url, "downgrade", "-1")
     assert postgres_state(url) == (DATA_TABLES | {"alembic_version"}, DATA_REVISION)
@@ -453,5 +465,5 @@ def test_empty_postgres_upgrade_when_configured() -> None:
     assert postgres_state(url) == ({"alembic_version"}, None)
 
     run_alembic(url, "upgrade", "head")
-    assert postgres_state(url) == (HEAD_TABLES | {"alembic_version"}, PROFILE_AUDIT_REVISION)
+    assert postgres_state(url) == (HEAD_TABLES | {"alembic_version"}, PUBLICATION_IMPORT_REVISION)
     run_alembic(url, "check")

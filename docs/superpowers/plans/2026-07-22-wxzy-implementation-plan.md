@@ -984,13 +984,18 @@ issue 时删除迁移生成的 profile/session/Owner；一旦存在个人学习�
 
 ## P5-T09 Publication Import API
 
-状态：`[ ]`
+状态：`[x]`
 
 需求：PUB-004–005。
 
 工作：validate/import/status；事务、publication idempotency、revision/conflict；不创建 ReviewState。
 
 验收：重复导入结果一致；冲突报告；导入后目录增加但 due 不增加。
+
+完成证据：
+- 实现：`server/app/publishing/{models,schemas,services}.py` + `server/app/routers/admin.py` + migration `20260725_0008`
+- 测试：`server/tests/test_publication_import.py`（8 passed）；migration head 含 `publication_imports`
+- 报告：`docs/superpowers/reports/2026-07-25-p5t09-publication-import.{json,md}`
 
 ## P5-T10 首批正式发布
 

@@ -1,5 +1,8 @@
 from __future__ import annotations
 
+from datetime import datetime
+from typing import Any, Literal
+
 from pydantic import BaseModel, Field, field_validator
 
 
@@ -88,3 +91,92 @@ class CompatibilityCardImport(BaseModel):
             if isinstance(item, int) or (isinstance(item, str) and item.isdigit()):
                 pages.append(int(item))
         return pages
+
+
+PublicationStatus = Literal["validated", "imported", "failed", "conflict"]
+
+
+class PublicationValidateRequest(BaseModel):
+    package_dir: str = Field(min_length=1, max_length=4_096)
+
+
+class PublicationImportRequest(BaseModel):
+    package_dir: str = Field(min_length=1, max_length=4_096)
+
+
+class PublicationCounts(BaseModel):
+    documents: int = 0
+    chapters: int = 0
+    chunks: int = 0
+    cards: int = 0
+    card_sources: int = 0
+
+
+class PublicationStats(BaseModel):
+    documents_created: int = 0
+    document_versions_created: int = 0
+    document_versions_reused: int = 0
+    chapters_created: int = 0
+    chapters_reused: int = 0
+    chunks_created: int = 0
+    chunks_reused: int = 0
+    books_created: int = 0
+    books_reused: int = 0
+    cards_created: int = 0
+    cards_updated: int = 0
+    cards_skipped: int = 0
+    card_sources_created: int = 0
+    review_states_created: int = 0
+    card_review_states_created: int = 0
+
+
+class PublicationConflict(BaseModel):
+    entity: str
+    identity: str
+    reason: str
+    details: dict[str, Any] = Field(default_factory=dict)
+
+
+class PublicationValidateResult(BaseModel):
+    ok: bool
+    publication_id: str | None = None
+    manifest_hash: str | None = None
+    package_hash: str | None = None
+    schema_version: int | None = None
+    counts: PublicationCounts = Field(default_factory=PublicationCounts)
+    errors: list[str] = Field(default_factory=list)
+    warnings: list[str] = Field(default_factory=list)
+
+
+class PublicationImportResult(BaseModel):
+    publication_id: str
+    manifest_hash: str
+    package_hash: str
+    schema_version: int
+    status: PublicationStatus
+    idempotent_replay: bool = False
+    counts: PublicationCounts = Field(default_factory=PublicationCounts)
+    stats: PublicationStats = Field(default_factory=PublicationStats)
+    conflicts: list[PublicationConflict] = Field(default_factory=list)
+    error_message: str | None = None
+    imported_at: datetime | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None
+
+
+class PublicationStatusOut(BaseModel):
+    publication_id: str
+    manifest_hash: str
+    package_hash: str
+    schema_version: int
+    status: PublicationStatus
+    pipeline_version: str | None = None
+    generation_version: str | None = None
+    review_version: str | None = None
+    counts: PublicationCounts = Field(default_factory=PublicationCounts)
+    stats: PublicationStats = Field(default_factory=PublicationStats)
+    conflicts: list[PublicationConflict] = Field(default_factory=list)
+    error_message: str | None = None
+    imported_at: datetime | None = None
+    created_at: datetime | None = None
+    updated_at: datetime | None = None

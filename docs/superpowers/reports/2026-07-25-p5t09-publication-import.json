@@ -1,0 +1,31 @@
+{
+  "task": "P5-T09",
+  "title": "Publication Import API",
+  "status": "complete",
+  "generated_at": "2026-07-25T05:59:25+00:00",
+  "stage": "publication_import",
+  "stage_version": "p5t09-v1",
+  "acceptance": {
+    "validate_import_status_endpoints": true,
+    "transactional_import": true,
+    "publication_idempotency": true,
+    "publication_hash_conflict": true,
+    "card_content_hash_conflict": true,
+    "no_review_state_created": true,
+    "catalog_grows_due_unchanged": true
+  },
+  "artifacts": [
+    "server/app/publishing/models.py",
+    "server/app/publishing/schemas.py",
+    "server/app/publishing/services.py",
+    "server/app/routers/admin.py",
+    "server/migrations/versions/20260725_0008_publication_imports.py",
+    "server/tests/test_publication_import.py",
+    "server/tests/test_migrations.py"
+  ],
+  "verification": {
+    "pytest_import": "8 passed",
+    "pytest_migrations_focused": "passed",
+    "alembic_head": "20260725_0008"
+  }
+}

@@ -57,3 +57,4 @@ class ReviewLog(Base):
 # here keeps one SQLAlchemy metadata registry while modules are migrated incrementally.
 from .identity import models as _identity_models  # noqa: E402,F401
 from .learning import models as _learning_models  # noqa: E402,F401
+from .publishing import models as _publishing_models  # noqa: E402,F401
