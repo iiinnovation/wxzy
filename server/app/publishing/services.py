@@ -13,10 +13,18 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from ..catalog.models import Book, Card, CardSource, Chapter, Document, DocumentChunk, DocumentVersion
+from ..catalog.models import (
+    Book,
+    Card,
+    CardSource,
+    Chapter,
+    Document,
+    DocumentChunk,
+    DocumentVersion,
+)
 from ..config import get_settings
 from ..core.errors import InvalidRequestError, ResourceNotFoundError
-from ..fsrs_simple import utcnow
+from ..learning.fsrs_adapter import utcnow
 from ..models import ReviewState
 from ..schemas import ImportResult
 from .models import PublicationImport

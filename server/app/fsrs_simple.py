@@ -1,8 +1,10 @@
-"""Lightweight FSRS-like scheduler for MVP.
+"""Legacy lightweight FSRS-like scheduler (pre-P6).
 
-Not a full FSRS-4.5 port. Provides stable, algorithm_versioned scheduling so we can
-upgrade later without discarding review logs.
+Kept only for historical tests and dry-run baselines against the original
+`fsrs-v1` approximation. New business code must use
+`app.learning.fsrs_adapter` (standard py-fsrs wrapper) instead of this module.
 """
+
 
 from __future__ import annotations
 

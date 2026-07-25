@@ -1022,11 +1022,17 @@ issue 时删除迁移生成的 profile/session/Owner；一旦存在个人学习�
 
 ## P6-T01 标准 FSRS Adapter
 
-状态：`[ ]`
+状态：`[x]`
 
 工作：选择维护中的 Python FSRS 库；封装 scheduler；保存版本；用公开/固定用例验证；保留 legacy 状态迁移。
 
 验收：四档产生有效不同 due；UTC；升级 dry-run；不再新增依赖 `fsrs_simple` 的业务代码。
+
+完成证据：
+- 实现：`server/app/learning/fsrs_adapter.py`（py-fsrs 6.3.1 wrapper + dry-run upgrade）
+- 业务切换：`learning/services.py` / `publishing/services.py` 不再依赖 `fsrs_simple`
+- 测试：`server/tests/test_fsrs_adapter.py`（focused suite 48 passed, 2 skipped）
+- 报告：`docs/superpowers/reports/2026-07-25-p6t01-fsrs-adapter.{json,md}`
 
 ## P6-T02 Enrollment Service
 

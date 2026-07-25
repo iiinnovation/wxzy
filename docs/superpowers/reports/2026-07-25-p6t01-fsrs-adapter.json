@@ -1,0 +1,34 @@
+{
+  "task": "P6-T01",
+  "title": "标准 FSRS Adapter",
+  "status": "complete",
+  "generated_at": "2026-07-25T06:52:35.163723+00:00",
+  "stage": "fsrs_adapter",
+  "stage_version": "p6t01-v1",
+  "algorithm_version": "fsrs-6.3.1",
+  "library": {
+    "name": "fsrs",
+    "version": "6.3.1",
+    "desired_retention": 0.9,
+    "enable_fuzzing_default": false
+  },
+  "acceptance": {
+    "four_ratings_distinct_due": true,
+    "utc_datetimes": true,
+    "upgrade_dry_run": true,
+    "no_new_business_dependency_on_fsrs_simple": true
+  },
+  "artifacts": [
+    "server/app/learning/fsrs_adapter.py",
+    "server/tests/test_fsrs_adapter.py",
+    "server/app/learning/services.py",
+    "server/app/publishing/services.py",
+    "server/app/config.py",
+    "server/app/fsrs_simple.py",
+    "server/requirements.txt"
+  ],
+  "verification": {
+    "pytest_focused": "48 passed, 2 skipped",
+    "ruff": "passed"
+  }
+}

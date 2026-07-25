@@ -12,10 +12,10 @@ from ..catalog.models import Book, Card
 from ..catalog.services import card_to_out
 from ..config import get_settings
 from ..core.errors import ResourceNotFoundError
-from ..fsrs_simple import schedule, utcnow
 from ..identity.models import User
 from ..models import ReviewLog, ReviewState
 from ..schemas import ReviewAnswerOut, ReviewDueItem, StatsOut
+from .fsrs_adapter import ALGORITHM_VERSION, schedule, utcnow
 from .models import CardEnrollment, CardIssue, CardReviewState, ReviewAttempt, StudySession
 from .schemas import (
     CardIssueCreate,
@@ -292,7 +292,7 @@ def introduce_enrollment(
     db: Session,
     *,
     enrollment_id: int,
-    algorithm_version: str = "fsrs-v1",
+    algorithm_version: str = ALGORITHM_VERSION,
     now: datetime | None = None,
 ) -> IntroductionResult:
     enrollment = db.get(CardEnrollment, enrollment_id)

@@ -61,7 +61,7 @@ class Settings(BaseSettings):
         validation_alias=AliasChoices("WECHAT_TIMEOUT_SECONDS", "WECHAT_TIMEOUT"),
     )
     cors_origins: str = "*"
-    algorithm_version: str = "fsrs-v1"
+    algorithm_version: str = "fsrs-6.3.1"
 
     @field_validator("environment", "auth_mode", mode="before")
     @classmethod
