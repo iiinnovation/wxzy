@@ -958,11 +958,16 @@ issue 时删除迁移生成的 profile/session/Owner；一旦存在个人学习�
 
 ## P5-T07 人工审核工作流
 
-状态：`[ ]`
+状态：`[x]`
 
 初期产物：CLI/静态 review bundle；后续可增加独立管理 UI。支持逐张和章节批量，critical 不允许批量。
 
 验收：Approve/Edit/Reject/Second review 审计完整；编辑后重新校验。
+
+完成证据：
+- 实现：`tools/document_pipeline/candidate_review.py`（ReviewBundle、审计、批处理策略、编辑后重校验）
+- 测试：`tools/tests/test_candidate_review.py`
+- 报告：`docs/superpowers/reports/2026-07-25-p5t07-candidate-review.{json,md}`
 
 ## P5-T08 Publication Exporter
 

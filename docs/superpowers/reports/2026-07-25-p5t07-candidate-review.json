@@ -1,0 +1,28 @@
+{
+  "task": "P5-T07",
+  "title": "人工审核工作流",
+  "status": "complete",
+  "generated_at": "2026-07-25T03:42:33.192263+00:00",
+  "stage": "candidate_review",
+  "stage_version": "p5t07-v1",
+  "acceptance": {
+    "approve_audit": true,
+    "edit_audit": true,
+    "reject_audit": true,
+    "second_review_audit": true,
+    "edit_revalidation": true,
+    "critical_no_batch_approve": true,
+    "static_bundle": true,
+    "non_learning_output": true
+  },
+  "artifacts": [
+    "tools/document_pipeline/candidate_review.py",
+    "tools/tests/test_candidate_review.py"
+  ],
+  "verification": {
+    "pytest_review": "4 passed",
+    "pytest_related": "26 passed",
+    "ruff": "clean",
+    "mypy": "clean"
+  }
+}
