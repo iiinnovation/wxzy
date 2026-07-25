@@ -1,0 +1,175 @@
+{
+  "task": "P5-T04",
+  "title": "内科/针灸/人文模板",
+  "status": "complete",
+  "generated_at": "2026-07-25T03:25:30.228061+00:00",
+  "schema_version": 2,
+  "acceptance": {
+    "neike_templates": [
+      "disease_concept",
+      "disease_pathogenesis",
+      "syndrome_formula",
+      "treatment_principle",
+      "versioned_classification"
+    ],
+    "zhenjiu_templates": [
+      "acupoint_caution",
+      "acupoint_indication",
+      "acupoint_location",
+      "acupoint_operation",
+      "meridian_overview"
+    ],
+    "renwen_templates": [
+      "ethics_principle",
+      "ethics_scenario",
+      "regulation_fact"
+    ],
+    "neike_card_count": 10,
+    "zhenjiu_card_count": 10,
+    "renwen_card_count": 10,
+    "all_pass_v2_gate": true,
+    "required_neike": [
+      "disease_concept",
+      "disease_pathogenesis",
+      "treatment_principle",
+      "syndrome_formula",
+      "versioned_classification"
+    ],
+    "required_zhenjiu": [
+      "meridian_overview",
+      "acupoint_location",
+      "acupoint_indication",
+      "acupoint_operation",
+      "acupoint_caution"
+    ],
+    "required_renwen": [
+      "ethics_principle",
+      "regulation_fact",
+      "ethics_scenario"
+    ],
+    "required_neike_covered": true,
+    "required_zhenjiu_covered": true,
+    "required_renwen_covered": true,
+    "version_and_risk_rules": true
+  },
+  "artifacts": [
+    "tools/document_pipeline/templates_neike_zhenjiu_renwen.py",
+    "tools/document_pipeline/candidate_schema.py",
+    "tools/document_pipeline/fixtures/templates_neike_golden.md",
+    "tools/document_pipeline/fixtures/templates_zhenjiu_golden.md",
+    "tools/document_pipeline/fixtures/templates_renwen_golden.md",
+    "tools/tests/test_templates_neike_zhenjiu_renwen.py"
+  ],
+  "card_type_risk": {
+    "disease_concept": [
+      "low",
+      []
+    ],
+    "disease_pathogenesis": [
+      "medium",
+      [
+        "pathogenesis_summary"
+      ]
+    ],
+    "treatment_principle": [
+      "medium",
+      [
+        "treatment_principle"
+      ]
+    ],
+    "syndrome_formula": [
+      "high",
+      [
+        "syndrome_formula"
+      ]
+    ],
+    "versioned_classification": [
+      "critical",
+      [
+        "multi_version"
+      ]
+    ],
+    "meridian_overview": [
+      "low",
+      []
+    ],
+    "acupoint_location": [
+      "high",
+      [
+        "acupoint_location"
+      ]
+    ],
+    "acupoint_indication": [
+      "medium",
+      [
+        "acupoint_indication"
+      ]
+    ],
+    "acupoint_operation": [
+      "high",
+      [
+        "needling_depth_or_direction"
+      ]
+    ],
+    "acupoint_caution": [
+      "critical",
+      [
+        "needling_contraindication"
+      ]
+    ],
+    "ethics_principle": [
+      "medium",
+      [
+        "ethics_principle"
+      ]
+    ],
+    "regulation_fact": [
+      "high",
+      [
+        "regulation_or_statute"
+      ]
+    ],
+    "ethics_scenario": [
+      "high",
+      [
+        "ethics_scenario"
+      ]
+    ],
+    "history_fact": [
+      "low",
+      []
+    ]
+  },
+  "counts_by_type": {
+    "neike": {
+      "syndrome_formula": 3,
+      "disease_concept": 2,
+      "versioned_classification": 3,
+      "disease_pathogenesis": 1,
+      "treatment_principle": 1
+    },
+    "zhenjiu": {
+      "meridian_overview": 2,
+      "acupoint_location": 2,
+      "acupoint_indication": 2,
+      "acupoint_operation": 2,
+      "acupoint_caution": 2
+    },
+    "renwen": {
+      "ethics_principle": 7,
+      "ethics_scenario": 2,
+      "regulation_fact": 1
+    }
+  },
+  "verification": {
+    "pytest": "tools/tests/test_templates_neike_zhenjiu_renwen.py + zhongyao/fangji + jichu/zhenduan + schema/generate => 47 passed",
+    "ruff": "clean",
+    "mypy": "clean"
+  },
+  "notes": [
+    "Deterministic section/table parsing; no LLM for golden path.",
+    "Multi-version neike classification => critical + multi_version flags.",
+    "Acupoint location/operation high; caution critical; regulation high with date/statute tags.",
+    "Emitted cards are Candidate Card v2 and remain candidates only."
+  ]
+}
