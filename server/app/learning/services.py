@@ -4,11 +4,11 @@ from dataclasses import dataclass
 from datetime import UTC, datetime
 from time import monotonic, sleep
 
-from sqlalchemy import and_, func, select
+from sqlalchemy import and_, case, func, select
 from sqlalchemy.exc import IntegrityError, OperationalError
 from sqlalchemy.orm import Session
 
-from ..catalog.models import Book, Card
+from ..catalog.models import Book, Card, CardSource, Chapter, DocumentChunk
 from ..catalog.services import card_to_out
 from ..config import get_settings
 from ..core.errors import ResourceNotFoundError
@@ -21,6 +21,9 @@ from .schemas import (
     CardIssueCreate,
     CardIssueResolution,
     EnrollmentCreate,
+    EnrollmentScope,
+    EnrollmentScopeCreate,
+    EnrollmentSource,
     EnrollmentStatus,
     ReviewAttemptCreate,
     ReviewStateValues,
@@ -66,6 +69,15 @@ class CardIssueStateError(RuntimeError):
 class EnrollmentResult:
     enrollment: CardEnrollment
     created: bool
+
+
+@dataclass(frozen=True)
+class BulkEnrollmentResult:
+    scope: EnrollmentScope
+    enrollments: list[CardEnrollment]
+    created_count: int
+    existing_count: int
+    card_ids: list[int]
 
 
 @dataclass(frozen=True)
@@ -286,6 +298,320 @@ def enroll_card(
         raise EnrollmentStateError("enrollment conflicts with existing data") from exc
     db.refresh(enrollment)
     return EnrollmentResult(enrollment=enrollment, created=True)
+
+
+def _require_active_user(db: Session, *, user_id: int) -> User:
+    user = db.get(User, user_id)
+    if user is None or user.status != "active":
+        raise EnrollmentReferenceError("an active Owner is required")
+    return user
+
+
+def _eligible_card_statuses() -> tuple[str, ...]:
+    return ("approved", "published")
+
+
+def _chapter_subtree_ids(db: Session, *, root_chapter_id: int) -> list[int]:
+    root = db.get(Chapter, root_chapter_id)
+    if root is None:
+        raise EnrollmentReferenceError("chapter does not exist")
+
+    children_by_parent: dict[int | None, list[Chapter]] = {}
+    for chapter in db.scalars(
+        select(Chapter)
+        .where(Chapter.document_version_id == root.document_version_id)
+        .order_by(Chapter.sort_order, Chapter.id)
+    ):
+        children_by_parent.setdefault(chapter.parent_id, []).append(chapter)
+
+    ordered_ids: list[int] = []
+    stack = [root]
+    while stack:
+        current = stack.pop()
+        ordered_ids.append(current.id)
+        children = children_by_parent.get(current.id, [])
+        # reverse so lower sort_order is processed first with stack
+        for child in reversed(children):
+            stack.append(child)
+    return ordered_ids
+
+
+def list_enrollable_card_ids_for_chapter(db: Session, *, chapter_id: int) -> list[int]:
+    chapter_ids = _chapter_subtree_ids(db, root_chapter_id=chapter_id)
+    rows = db.execute(
+        select(
+            Card.id,
+            func.min(Chapter.sort_order).label("chapter_sort"),
+            func.min(DocumentChunk.pdf_page_index_start).label("page_start"),
+            func.min(CardSource.citation_order).label("citation_order"),
+        )
+        .select_from(Card)
+        .join(CardSource, CardSource.card_id == Card.id)
+        .join(DocumentChunk, DocumentChunk.id == CardSource.document_chunk_id)
+        .join(Chapter, Chapter.id == DocumentChunk.chapter_id)
+        .where(
+            DocumentChunk.chapter_id.in_(chapter_ids),
+            Card.status.in_(_eligible_card_statuses()),
+        )
+        .group_by(Card.id)
+        .order_by(
+            func.min(Chapter.sort_order),
+            func.min(DocumentChunk.pdf_page_index_start),
+            func.min(CardSource.citation_order),
+            Card.id,
+        )
+    ).all()
+    return [int(row.id) for row in rows]
+
+
+def list_enrollable_card_ids_for_book(db: Session, *, book_id: int) -> list[int]:
+    book = db.get(Book, book_id)
+    if book is None:
+        raise EnrollmentReferenceError("book does not exist")
+
+    chapter_sort = func.min(Chapter.sort_order)
+    page_start = func.min(DocumentChunk.pdf_page_index_start)
+    citation_order = func.min(CardSource.citation_order)
+    rows = db.execute(
+        select(
+            Card.id,
+            chapter_sort.label("chapter_sort"),
+            page_start.label("page_start"),
+            citation_order.label("citation_order"),
+        )
+        .select_from(Card)
+        .outerjoin(CardSource, CardSource.card_id == Card.id)
+        .outerjoin(DocumentChunk, DocumentChunk.id == CardSource.document_chunk_id)
+        .outerjoin(Chapter, Chapter.id == DocumentChunk.chapter_id)
+        .where(
+            Card.book_id == book_id,
+            Card.status.in_(_eligible_card_statuses()),
+        )
+        .group_by(Card.id)
+        .order_by(
+            case((chapter_sort.is_(None), 1), else_=0),
+            chapter_sort,
+            case((page_start.is_(None), 1), else_=0),
+            page_start,
+            case((citation_order.is_(None), 1), else_=0),
+            citation_order,
+            Card.id,
+        )
+    ).all()
+    return [int(row.id) for row in rows]
+
+
+def _enroll_card_ids(
+    db: Session,
+    *,
+    user_id: int,
+    card_ids: list[int],
+    priority: int,
+    source: EnrollmentSource,
+    scope: EnrollmentScope,
+    now: datetime | None = None,
+) -> BulkEnrollmentResult:
+    _require_active_user(db, user_id=user_id)
+    timestamp = _require_aware_utc(now or _utc_now())
+    ordered_ids = list(dict.fromkeys(card_ids))
+    if not ordered_ids:
+        return BulkEnrollmentResult(
+            scope=scope,
+            enrollments=[],
+            created_count=0,
+            existing_count=0,
+            card_ids=[],
+        )
+
+    cards = list(
+        db.scalars(
+            select(Card).where(
+                Card.id.in_(ordered_ids),
+                Card.status.in_(_eligible_card_statuses()),
+            )
+        )
+    )
+    cards_by_id = {card.id: card for card in cards}
+    missing = [card_id for card_id in ordered_ids if card_id not in cards_by_id]
+    if missing:
+        raise EnrollmentReferenceError("only approved or published cards can be enrolled")
+
+    existing_rows = list(
+        db.scalars(
+            select(CardEnrollment).where(
+                CardEnrollment.user_id == user_id,
+                CardEnrollment.card_id.in_(ordered_ids),
+            )
+        )
+    )
+    existing_by_card = {row.card_id: row for row in existing_rows}
+    created_count = 0
+    for card_id in ordered_ids:
+        if card_id in existing_by_card:
+            continue
+        enrollment = CardEnrollment(
+            user_id=user_id,
+            card_id=card_id,
+            status=EnrollmentStatus.QUEUED.value,
+            priority=priority,
+            source=source.value,
+            created_at=timestamp,
+            updated_at=timestamp,
+        )
+        db.add(enrollment)
+        existing_by_card[card_id] = enrollment
+        created_count += 1
+
+    try:
+        db.commit()
+    except IntegrityError as exc:
+        db.rollback()
+        existing_rows = list(
+            db.scalars(
+                select(CardEnrollment).where(
+                    CardEnrollment.user_id == user_id,
+                    CardEnrollment.card_id.in_(ordered_ids),
+                )
+            )
+        )
+        existing_by_card = {row.card_id: row for row in existing_rows}
+        missing_after = [card_id for card_id in ordered_ids if card_id not in existing_by_card]
+        if missing_after:
+            raise EnrollmentStateError("enrollment conflicts with existing data") from exc
+        created_count = 0
+
+    enrollments: list[CardEnrollment] = []
+    for card_id in ordered_ids:
+        enrollment = existing_by_card[card_id]
+        db.refresh(enrollment)
+        enrollments.append(enrollment)
+
+    existing_count = len(ordered_ids) - created_count
+    return BulkEnrollmentResult(
+        scope=scope,
+        enrollments=enrollments,
+        created_count=created_count,
+        existing_count=existing_count,
+        card_ids=ordered_ids,
+    )
+
+
+def enroll_chapter(
+    db: Session,
+    *,
+    user_id: int,
+    chapter_id: int,
+    priority: int = 50,
+    now: datetime | None = None,
+) -> BulkEnrollmentResult:
+    card_ids = list_enrollable_card_ids_for_chapter(db, chapter_id=chapter_id)
+    return _enroll_card_ids(
+        db,
+        user_id=user_id,
+        card_ids=card_ids,
+        priority=priority,
+        source=EnrollmentSource.CHAPTER,
+        scope=EnrollmentScope.CHAPTER,
+        now=now,
+    )
+
+
+def enroll_book(
+    db: Session,
+    *,
+    user_id: int,
+    book_id: int,
+    priority: int = 50,
+    now: datetime | None = None,
+) -> BulkEnrollmentResult:
+    card_ids = list_enrollable_card_ids_for_book(db, book_id=book_id)
+    return _enroll_card_ids(
+        db,
+        user_id=user_id,
+        card_ids=card_ids,
+        priority=priority,
+        source=EnrollmentSource.CHAPTER,
+        scope=EnrollmentScope.BOOK,
+        now=now,
+    )
+
+
+def enroll_scope(
+    db: Session, values: EnrollmentScopeCreate, *, now: datetime | None = None
+) -> BulkEnrollmentResult:
+    if values.scope == EnrollmentScope.CARD:
+        assert values.card_id is not None
+        result = enroll_card(
+            db,
+            EnrollmentCreate(
+                user_id=values.user_id,
+                card_id=values.card_id,
+                priority=values.priority,
+                source=EnrollmentSource.MANUAL,
+            ),
+            now=now,
+        )
+        return BulkEnrollmentResult(
+            scope=EnrollmentScope.CARD,
+            enrollments=[result.enrollment],
+            created_count=1 if result.created else 0,
+            existing_count=0 if result.created else 1,
+            card_ids=[result.enrollment.card_id],
+        )
+    if values.scope == EnrollmentScope.CHAPTER:
+        assert values.chapter_id is not None
+        return enroll_chapter(
+            db,
+            user_id=values.user_id,
+            chapter_id=values.chapter_id,
+            priority=values.priority,
+            now=now,
+        )
+    assert values.book_id is not None
+    return enroll_book(
+        db,
+        user_id=values.user_id,
+        book_id=values.book_id,
+        priority=values.priority,
+        now=now,
+    )
+
+
+def list_queued_enrollments(
+    db: Session,
+    *,
+    user_id: int,
+    limit: int = 100,
+) -> list[CardEnrollment]:
+    """Return queued enrollments in introduction order: priority, chapter, card."""
+    _require_active_user(db, user_id=user_id)
+    chapter_sort = func.min(Chapter.sort_order)
+    page_start = func.min(DocumentChunk.pdf_page_index_start)
+    return list(
+        db.scalars(
+            select(CardEnrollment)
+            .join(Card, Card.id == CardEnrollment.card_id)
+            .outerjoin(CardSource, CardSource.card_id == Card.id)
+            .outerjoin(DocumentChunk, DocumentChunk.id == CardSource.document_chunk_id)
+            .outerjoin(Chapter, Chapter.id == DocumentChunk.chapter_id)
+            .where(
+                CardEnrollment.user_id == user_id,
+                CardEnrollment.status == EnrollmentStatus.QUEUED.value,
+                Card.status.in_(_eligible_card_statuses()),
+            )
+            .group_by(CardEnrollment.id)
+            .order_by(
+                CardEnrollment.priority.desc(),
+                case((chapter_sort.is_(None), 1), else_=0),
+                chapter_sort,
+                case((page_start.is_(None), 1), else_=0),
+                page_start,
+                CardEnrollment.card_id,
+                CardEnrollment.id,
+            )
+            .limit(min(max(limit, 1), 500))
+        )
+    )
 
 
 def introduce_enrollment(

@@ -18,6 +18,8 @@ def test_openapi_contains_versioned_and_compatibility_routes(client: TestClient)
     versioned = {
         "/api/v1/books",
         "/api/v1/cards",
+        "/api/v1/enrollments",
+        "/api/v1/enrollments/{enrollment_id}",
         "/api/v1/review/due",
         "/api/v1/review/answer",
         "/api/v1/stats/summary",

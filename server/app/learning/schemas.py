@@ -23,11 +23,119 @@ class EnrollmentSource(StrEnum):
     PLAN = "plan"
 
 
+class EnrollmentScope(StrEnum):
+    CARD = "card"
+    CHAPTER = "chapter"
+    BOOK = "book"
+
+
 class EnrollmentCreate(BaseModel):
     user_id: int = Field(gt=0)
     card_id: int = Field(gt=0)
     priority: int = Field(default=50, ge=0, le=100)
     source: EnrollmentSource = EnrollmentSource.MANUAL
+
+
+def _validate_enrollment_scope_target(
+    *,
+    scope: EnrollmentScope,
+    card_id: int | None,
+    chapter_id: int | None,
+    book_id: int | None,
+) -> None:
+    targets = {
+        EnrollmentScope.CARD: card_id,
+        EnrollmentScope.CHAPTER: chapter_id,
+        EnrollmentScope.BOOK: book_id,
+    }
+    provided = {
+        EnrollmentScope.CARD: card_id is not None,
+        EnrollmentScope.CHAPTER: chapter_id is not None,
+        EnrollmentScope.BOOK: book_id is not None,
+    }
+    if sum(provided.values()) != 1:
+        raise ValueError("provide exactly one of card_id, chapter_id, or book_id")
+    if targets[scope] is None:
+        raise ValueError(f"{scope.value}_id is required for scope={scope.value}")
+
+
+class EnrollmentScopeCreate(BaseModel):
+    user_id: int = Field(gt=0)
+    scope: EnrollmentScope
+    card_id: int | None = Field(default=None, gt=0)
+    chapter_id: int | None = Field(default=None, gt=0)
+    book_id: int | None = Field(default=None, gt=0)
+    priority: int = Field(default=50, ge=0, le=100)
+
+    @model_validator(mode="after")
+    def require_matching_scope_target(self) -> EnrollmentScopeCreate:
+        _validate_enrollment_scope_target(
+            scope=self.scope,
+            card_id=self.card_id,
+            chapter_id=self.chapter_id,
+            book_id=self.book_id,
+        )
+        return self
+
+
+class EnrollmentRequest(BaseModel):
+    scope: EnrollmentScope
+    card_id: int | None = Field(default=None, gt=0)
+    chapter_id: int | None = Field(default=None, gt=0)
+    book_id: int | None = Field(default=None, gt=0)
+    priority: int = Field(default=50, ge=0, le=100)
+
+    @model_validator(mode="after")
+    def require_matching_scope_target(self) -> EnrollmentRequest:
+        _validate_enrollment_scope_target(
+            scope=self.scope,
+            card_id=self.card_id,
+            chapter_id=self.chapter_id,
+            book_id=self.book_id,
+        )
+        return self
+
+    def to_scope_create(self, *, user_id: int) -> EnrollmentScopeCreate:
+        return EnrollmentScopeCreate(
+            user_id=user_id,
+            scope=self.scope,
+            card_id=self.card_id,
+            chapter_id=self.chapter_id,
+            book_id=self.book_id,
+            priority=self.priority,
+        )
+
+
+class EnrollmentOut(BaseModel):
+    id: int
+    user_id: int
+    card_id: int
+    status: EnrollmentStatus
+    priority: int
+    source: EnrollmentSource
+    introduced_at: datetime | None
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
+
+
+class EnrollmentStatusUpdate(BaseModel):
+    status: EnrollmentStatus
+
+    @model_validator(mode="after")
+    def require_mutable_status(self) -> EnrollmentStatusUpdate:
+        if self.status == EnrollmentStatus.QUEUED:
+            raise ValueError("queued is only entered through enrollment create")
+        return self
+
+
+class EnrollmentBatchOut(BaseModel):
+    scope: EnrollmentScope
+    created_count: int = Field(ge=0)
+    existing_count: int = Field(ge=0)
+    card_ids: list[int]
+    enrollments: list[EnrollmentOut]
 
 
 class StudySessionType(StrEnum):

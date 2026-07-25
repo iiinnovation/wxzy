@@ -1036,11 +1036,18 @@ issue 时删除迁移生成的 profile/session/Owner；一旦存在个人学习�
 
 ## P6-T02 Enrollment Service
 
-状态：`[ ]`
+状态：`[x]`
 
 工作：按书/章/卡加入；queued/active/suspended/retired；章节顺序；重复加入幂等。
 
 验收：加入整章不立即生成全量 due；暂停后不进入计划，历史保留。
+
+完成报告（2026-07-25）：
+
+- 服务：`enroll_card` / `enroll_chapter` / `enroll_book` / `enroll_scope` 只创建 `queued` enrollment，不创建 `CardReviewState`；章节子树与书本按 `chapter.sort_order`、页序、citation、card id 排序；重复加入幂等返回现有行。
+- 生命周期：`change_enrollment_status` 支持 active↔suspended 与 retired；`list_due_review_states` 仅 active；`list_queued_enrollments` 按优先级与章节顺序输出引入候选。
+- API：`POST /api/v1/enrollments`、`PATCH /api/v1/enrollments/{id}`，Owner 作用域。
+- 验证：learning + enrollments API 聚焦测试通过；加入整章/全书不产生 due，暂停保留 review state。
 
 ## P6-T03 幂等 ReviewAttempt
 

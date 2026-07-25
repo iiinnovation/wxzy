@@ -1,0 +1,28 @@
+{
+  "task": "P6-T02",
+  "title": "Enrollment Service",
+  "status": "complete",
+  "generated_at": "2026-07-25T07:25:57.164735+00:00",
+  "stage": "enrollment_service",
+  "stage_version": "p6t02-v1",
+  "acceptance": {
+    "enroll_book_chapter_card": true,
+    "lifecycle_states": true,
+    "chapter_order": true,
+    "idempotent_reenroll": true,
+    "no_bulk_due_on_chapter_join": true,
+    "suspend_keeps_history": true
+  },
+  "artifacts": [
+    "server/app/learning/schemas.py",
+    "server/app/learning/services.py",
+    "server/app/api/v1/enrollments.py",
+    "server/app/api/v1/router.py",
+    "server/tests/test_learning.py",
+    "server/tests/test_enrollments_api.py"
+  ],
+  "verification": {
+    "pytest_focused": "39 passed, 2 skipped",
+    "ruff": "passed"
+  }
+}
