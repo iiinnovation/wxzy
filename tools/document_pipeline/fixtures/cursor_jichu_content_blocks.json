@@ -1,0 +1,488 @@
+[
+  {
+    "id": "heading-470cf4fb6bb6",
+    "document_version_id": "jichu.v1.1fcfabb4b4b3",
+    "chapter_path": [],
+    "chapter_method": "none",
+    "chapter_confidence": 1.0,
+    "chapter_assignment": "unassigned",
+    "source_pdf_pages": [],
+    "printed_page_labels": [
+      "2"
+    ],
+    "split_page_index": 0,
+    "block_type": "heading",
+    "raw_text_ref": {
+      "start_line": 1,
+      "end_line": 1,
+      "split_page_index": 0,
+      "source_pdf_pages": []
+    },
+    "cleaned_text": "## 第二节 阴阳学说\n",
+    "quality_status": "ready",
+    "quality_flags": [],
+    "pipeline_version": "structure.v1",
+    "page_mapping_method": "page_map",
+    "page_mapping_confidence": 0.9,
+    "ordinal": 1,
+    "book_template": "jichu",
+    "heading": {
+      "title": "第二节 阴阳学说",
+      "role": "section",
+      "level": 2,
+      "path_hint": [
+        "第二节 阴阳学说"
+      ],
+      "confidence": 0.88,
+      "method": "section_pattern"
+    }
+  },
+  {
+    "id": "heading-d2361c400b60",
+    "document_version_id": "jichu.v1.1fcfabb4b4b3",
+    "chapter_path": [],
+    "chapter_method": "none",
+    "chapter_confidence": 1.0,
+    "chapter_assignment": "unassigned",
+    "source_pdf_pages": [],
+    "printed_page_labels": [
+      "2"
+    ],
+    "split_page_index": 0,
+    "block_type": "heading",
+    "raw_text_ref": {
+      "start_line": 3,
+      "end_line": 3,
+      "split_page_index": 0,
+      "source_pdf_pages": []
+    },
+    "cleaned_text": "### 1. 阴阳的基本概念\n",
+    "quality_status": "ready",
+    "quality_flags": [],
+    "pipeline_version": "structure.v1",
+    "page_mapping_method": "page_map",
+    "page_mapping_confidence": 0.9,
+    "ordinal": 2,
+    "book_template": "jichu",
+    "heading": {
+      "title": "1. 阴阳的基本概念",
+      "role": "subsection",
+      "level": 3,
+      "path_hint": [
+        "1. 阴阳的基本概念"
+      ],
+      "confidence": 0.75,
+      "method": "numbered_heading"
+    }
+  },
+  {
+    "id": "paragraph-757a0be72e60",
+    "document_version_id": "jichu.v1.1fcfabb4b4b3",
+    "chapter_path": [],
+    "chapter_method": "none",
+    "chapter_confidence": 1.0,
+    "chapter_assignment": "unassigned",
+    "source_pdf_pages": [],
+    "printed_page_labels": [
+      "2"
+    ],
+    "split_page_index": 0,
+    "block_type": "paragraph",
+    "raw_text_ref": {
+      "start_line": 4,
+      "end_line": 6,
+      "split_page_index": 0,
+      "source_pdf_pages": []
+    },
+    "cleaned_text": "阴阳是对自然界相互关联的事物或现象对立双方属性的概括。\n",
+    "quality_status": "ready",
+    "quality_flags": [],
+    "pipeline_version": "structure.v1",
+    "page_mapping_method": "page_map",
+    "page_mapping_confidence": 0.9,
+    "ordinal": 3,
+    "book_template": "jichu"
+  },
+  {
+    "id": "heading-16ddf3db1cdb",
+    "document_version_id": "jichu.v1.1fcfabb4b4b3",
+    "chapter_path": [],
+    "chapter_method": "none",
+    "chapter_confidence": 1.0,
+    "chapter_assignment": "unassigned",
+    "source_pdf_pages": [],
+    "printed_page_labels": [
+      "2"
+    ],
+    "split_page_index": 0,
+    "block_type": "heading",
+    "raw_text_ref": {
+      "start_line": 7,
+      "end_line": 7,
+      "split_page_index": 0,
+      "source_pdf_pages": []
+    },
+    "cleaned_text": "### 2. 阴阳的基本内容\n",
+    "quality_status": "ready",
+    "quality_flags": [],
+    "pipeline_version": "structure.v1",
+    "page_mapping_method": "page_map",
+    "page_mapping_confidence": 0.9,
+    "ordinal": 4,
+    "book_template": "jichu",
+    "heading": {
+      "title": "2. 阴阳的基本内容",
+      "role": "subsection",
+      "level": 3,
+      "path_hint": [
+        "2. 阴阳的基本内容"
+      ],
+      "confidence": 0.75,
+      "method": "numbered_heading"
+    }
+  },
+  {
+    "id": "table-06d76939be91",
+    "document_version_id": "jichu.v1.1fcfabb4b4b3",
+    "chapter_path": [],
+    "chapter_method": "none",
+    "chapter_confidence": 1.0,
+    "chapter_assignment": "unassigned",
+    "source_pdf_pages": [],
+    "printed_page_labels": [
+      "2"
+    ],
+    "split_page_index": 0,
+    "block_type": "table",
+    "raw_text_ref": {
+      "start_line": 9,
+      "end_line": 9,
+      "split_page_index": 0,
+      "source_pdf_pages": []
+    },
+    "cleaned_text": "<table><tr><td>对立制约</td><td>阴阳双方相互抑制</td></tr><tr><td>互根互用</td><td>阴阳相互依存</td></tr></table>",
+    "quality_status": "ready",
+    "quality_flags": [],
+    "pipeline_version": "structure.v1",
+    "page_mapping_method": "page_map",
+    "page_mapping_confidence": 0.9,
+    "ordinal": 5,
+    "book_template": "jichu",
+    "table_rows": [
+      [
+        "对立制约",
+        "阴阳双方相互抑制"
+      ],
+      [
+        "互根互用",
+        "阴阳相互依存"
+      ]
+    ],
+    "table_row_count": 2,
+    "table_col_count": 2
+  },
+  {
+    "id": "heading-c64a71ee1c13",
+    "document_version_id": "jichu.v1.1fcfabb4b4b3",
+    "chapter_path": [],
+    "chapter_method": "none",
+    "chapter_confidence": 1.0,
+    "chapter_assignment": "unassigned",
+    "source_pdf_pages": [],
+    "printed_page_labels": [
+      "2"
+    ],
+    "split_page_index": 0,
+    "block_type": "heading",
+    "raw_text_ref": {
+      "start_line": 11,
+      "end_line": 11,
+      "split_page_index": 0,
+      "source_pdf_pages": []
+    },
+    "cleaned_text": "### 3. 生理与病理机制\n",
+    "quality_status": "ready",
+    "quality_flags": [],
+    "pipeline_version": "structure.v1",
+    "page_mapping_method": "page_map",
+    "page_mapping_confidence": 0.9,
+    "ordinal": 6,
+    "book_template": "jichu",
+    "heading": {
+      "title": "3. 生理与病理机制",
+      "role": "subsection",
+      "level": 3,
+      "path_hint": [
+        "3. 生理与病理机制"
+      ],
+      "confidence": 0.75,
+      "method": "numbered_heading"
+    }
+  },
+  {
+    "id": "table-f39dc77c7baa",
+    "document_version_id": "jichu.v1.1fcfabb4b4b3",
+    "chapter_path": [],
+    "chapter_method": "none",
+    "chapter_confidence": 1.0,
+    "chapter_assignment": "unassigned",
+    "source_pdf_pages": [],
+    "printed_page_labels": [
+      "2"
+    ],
+    "split_page_index": 0,
+    "block_type": "table",
+    "raw_text_ref": {
+      "start_line": 13,
+      "end_line": 13,
+      "split_page_index": 0,
+      "source_pdf_pages": []
+    },
+    "cleaned_text": "<table><tr><td>生理</td><td>阴阳消长平衡维持正常机能</td></tr><tr><td>病理</td><td>阴阳偏盛偏衰导致疾病</td></tr></table>",
+    "quality_status": "ready",
+    "quality_flags": [],
+    "pipeline_version": "structure.v1",
+    "page_mapping_method": "page_map",
+    "page_mapping_confidence": 0.9,
+    "ordinal": 7,
+    "book_template": "jichu",
+    "table_rows": [
+      [
+        "生理",
+        "阴阳消长平衡维持正常机能"
+      ],
+      [
+        "病理",
+        "阴阳偏盛偏衰导致疾病"
+      ]
+    ],
+    "table_row_count": 2,
+    "table_col_count": 2
+  },
+  {
+    "id": "heading-cc360e9b9f08",
+    "document_version_id": "jichu.v1.1fcfabb4b4b3",
+    "chapter_path": [],
+    "chapter_method": "none",
+    "chapter_confidence": 1.0,
+    "chapter_assignment": "unassigned",
+    "source_pdf_pages": [],
+    "printed_page_labels": [
+      "2"
+    ],
+    "split_page_index": 0,
+    "block_type": "heading",
+    "raw_text_ref": {
+      "start_line": 15,
+      "end_line": 15,
+      "split_page_index": 0,
+      "source_pdf_pages": []
+    },
+    "cleaned_text": "### 4. 精与气的关系\n",
+    "quality_status": "ready",
+    "quality_flags": [],
+    "pipeline_version": "structure.v1",
+    "page_mapping_method": "page_map",
+    "page_mapping_confidence": 0.9,
+    "ordinal": 8,
+    "book_template": "jichu",
+    "heading": {
+      "title": "4. 精与气的关系",
+      "role": "subsection",
+      "level": 3,
+      "path_hint": [
+        "4. 精与气的关系"
+      ],
+      "confidence": 0.75,
+      "method": "numbered_heading"
+    }
+  },
+  {
+    "id": "table-ab2af987137d",
+    "document_version_id": "jichu.v1.1fcfabb4b4b3",
+    "chapter_path": [],
+    "chapter_method": "none",
+    "chapter_confidence": 1.0,
+    "chapter_assignment": "unassigned",
+    "source_pdf_pages": [],
+    "printed_page_labels": [
+      "2"
+    ],
+    "split_page_index": 0,
+    "block_type": "table",
+    "raw_text_ref": {
+      "start_line": 17,
+      "end_line": 17,
+      "split_page_index": 0,
+      "source_pdf_pages": []
+    },
+    "cleaned_text": "<table><tr><td>精与气</td><td>气能生精</td><td>气充则精盈</td></tr><tr><td>精与气</td><td>精能化气</td><td>精足则气旺</td></tr></table>",
+    "quality_status": "ready",
+    "quality_flags": [],
+    "pipeline_version": "structure.v1",
+    "page_mapping_method": "page_map",
+    "page_mapping_confidence": 0.9,
+    "ordinal": 9,
+    "book_template": "jichu",
+    "table_rows": [
+      [
+        "精与气",
+        "气能生精",
+        "气充则精盈"
+      ],
+      [
+        "精与气",
+        "精能化气",
+        "精足则气旺"
+      ]
+    ],
+    "table_row_count": 2,
+    "table_col_count": 3
+  },
+  {
+    "id": "heading-afe765943b73",
+    "document_version_id": "jichu.v1.1fcfabb4b4b3",
+    "chapter_path": [],
+    "chapter_method": "none",
+    "chapter_confidence": 1.0,
+    "chapter_assignment": "unassigned",
+    "source_pdf_pages": [],
+    "printed_page_labels": [
+      "2"
+    ],
+    "split_page_index": 0,
+    "block_type": "heading",
+    "raw_text_ref": {
+      "start_line": 19,
+      "end_line": 19,
+      "split_page_index": 0,
+      "source_pdf_pages": []
+    },
+    "cleaned_text": "### 5. 阴阳属性对比\n",
+    "quality_status": "ready",
+    "quality_flags": [],
+    "pipeline_version": "structure.v1",
+    "page_mapping_method": "page_map",
+    "page_mapping_confidence": 0.9,
+    "ordinal": 10,
+    "book_template": "jichu",
+    "heading": {
+      "title": "5. 阴阳属性对比",
+      "role": "subsection",
+      "level": 3,
+      "path_hint": [
+        "5. 阴阳属性对比"
+      ],
+      "confidence": 0.75,
+      "method": "numbered_heading"
+    }
+  },
+  {
+    "id": "table-c37a5a2da4d2",
+    "document_version_id": "jichu.v1.1fcfabb4b4b3",
+    "chapter_path": [],
+    "chapter_method": "none",
+    "chapter_confidence": 1.0,
+    "chapter_assignment": "unassigned",
+    "source_pdf_pages": [],
+    "printed_page_labels": [
+      "2"
+    ],
+    "split_page_index": 0,
+    "block_type": "table",
+    "raw_text_ref": {
+      "start_line": 21,
+      "end_line": 21,
+      "split_page_index": 0,
+      "source_pdf_pages": []
+    },
+    "cleaned_text": "<table><tr><td>对比项</td><td>阴</td><td>阳</td></tr><tr><td>属性</td><td>静止、内守、寒凉</td><td>运动、外向、温热</td></tr></table>",
+    "quality_status": "ready",
+    "quality_flags": [],
+    "pipeline_version": "structure.v1",
+    "page_mapping_method": "page_map",
+    "page_mapping_confidence": 0.9,
+    "ordinal": 11,
+    "book_template": "jichu",
+    "table_rows": [
+      [
+        "对比项",
+        "阴",
+        "阳"
+      ],
+      [
+        "属性",
+        "静止、内守、寒凉",
+        "运动、外向、温热"
+      ]
+    ],
+    "table_row_count": 2,
+    "table_col_count": 3
+  },
+  {
+    "id": "heading-62c7f4cccea8",
+    "document_version_id": "jichu.v1.1fcfabb4b4b3",
+    "chapter_path": [],
+    "chapter_method": "none",
+    "chapter_confidence": 1.0,
+    "chapter_assignment": "unassigned",
+    "source_pdf_pages": [],
+    "printed_page_labels": [
+      "2"
+    ],
+    "split_page_index": 0,
+    "block_type": "heading",
+    "raw_text_ref": {
+      "start_line": 24,
+      "end_line": 24,
+      "split_page_index": 0,
+      "source_pdf_pages": []
+    },
+    "cleaned_text": "## 附加\n",
+    "quality_status": "ready",
+    "quality_flags": [],
+    "pipeline_version": "structure.v1",
+    "page_mapping_method": "page_map",
+    "page_mapping_confidence": 0.9,
+    "ordinal": 12,
+    "book_template": "jichu",
+    "heading": {
+      "title": "附加",
+      "role": "unknown",
+      "level": 3,
+      "path_hint": [
+        "附加"
+      ],
+      "confidence": 0.45,
+      "method": "unclassified_heading"
+    }
+  },
+  {
+    "id": "paragraph-b2a222455cdd",
+    "document_version_id": "jichu.v1.1fcfabb4b4b3",
+    "chapter_path": [],
+    "chapter_method": "none",
+    "chapter_confidence": 1.0,
+    "chapter_assignment": "unassigned",
+    "source_pdf_pages": [],
+    "printed_page_labels": [
+      "2"
+    ],
+    "split_page_index": 0,
+    "block_type": "paragraph",
+    "raw_text_ref": {
+      "start_line": 25,
+      "end_line": 26,
+      "split_page_index": 0,
+      "source_pdf_pages": []
+    },
+    "cleaned_text": "阴阳对立制约补充说明。阴阳对立制约补充说明。阴阳对立制约补充说明。阴阳对立制约补充说明。阴阳对立制约补充说明。阴阳对立制约补充说明。阴阳对立制约补充说明。阴阳对立制约补充说明。阴阳对立制约补充说明。阴阳对立制约补充说明。阴阳对立制约补充说明。阴阳对立制约补充说明。阴阳对立制约补充说明。阴阳对立制约补充说明。阴阳对立制约补充说明。阴阳对立制约补充说明。阴阳对立制约补充说明。阴阳对立制约补充说明。阴阳对立制约补充说明。阴阳对立制约补充说明。阴阳对立制约补充说明。阴阳对立制约补充说明。阴阳对立制约补充说明。阴阳对立制约补充说明。阴阳对立制约补充说明。阴阳对立制约补充说明。阴阳对立制约补充说明。阴阳对立制约补充说明。阴阳对立制约补充说明。阴阳对立制约补充说明。阴阳对立制约补充说明。阴阳对立制约补充说明。阴阳对立制约补充说明。阴阳对立制约补充说明。阴阳对立制约补充说明。阴阳对立制约补充说明。阴阳对立制约补充说明。阴阳对立制约补充说明。阴阳对立制约补充说明。阴阳对立制约补充说明。\n",
+    "quality_status": "ready",
+    "quality_flags": [],
+    "pipeline_version": "structure.v1",
+    "page_mapping_method": "page_map",
+    "page_mapping_confidence": 0.9,
+    "ordinal": 13,
+    "book_template": "jichu"
+  }
+]

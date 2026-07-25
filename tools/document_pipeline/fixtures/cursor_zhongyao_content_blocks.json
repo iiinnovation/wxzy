@@ -1,0 +1,800 @@
+[
+  {
+    "id": "heading-06767a1a4ac6",
+    "document_version_id": "zhongyao.v1.e9037a725021",
+    "chapter_path": [],
+    "chapter_method": "none",
+    "chapter_confidence": 1.0,
+    "chapter_assignment": "unassigned",
+    "source_pdf_pages": [],
+    "printed_page_labels": [
+      "1"
+    ],
+    "split_page_index": 0,
+    "block_type": "heading",
+    "raw_text_ref": {
+      "start_line": 1,
+      "end_line": 1,
+      "split_page_index": 0,
+      "source_pdf_pages": []
+    },
+    "cleaned_text": "## 第三章 解表药\n",
+    "quality_status": "ready",
+    "quality_flags": [],
+    "pipeline_version": "structure.v1",
+    "page_mapping_method": "page_map",
+    "page_mapping_confidence": 0.9,
+    "ordinal": 1,
+    "book_template": "zhongyao",
+    "heading": {
+      "title": "第三章 解表药",
+      "role": "chapter",
+      "level": 1,
+      "path_hint": [
+        "第三章 解表药"
+      ],
+      "confidence": 0.9,
+      "method": "chapter_pattern"
+    }
+  },
+  {
+    "id": "heading-d9b2296ce2e0",
+    "document_version_id": "zhongyao.v1.e9037a725021",
+    "chapter_path": [],
+    "chapter_method": "none",
+    "chapter_confidence": 1.0,
+    "chapter_assignment": "unassigned",
+    "source_pdf_pages": [],
+    "printed_page_labels": [
+      "1"
+    ],
+    "split_page_index": 0,
+    "block_type": "heading",
+    "raw_text_ref": {
+      "start_line": 3,
+      "end_line": 3,
+      "split_page_index": 0,
+      "source_pdf_pages": []
+    },
+    "cleaned_text": "## 第一节 辛温解表药\n",
+    "quality_status": "ready",
+    "quality_flags": [],
+    "pipeline_version": "structure.v1",
+    "page_mapping_method": "page_map",
+    "page_mapping_confidence": 0.9,
+    "ordinal": 2,
+    "book_template": "zhongyao",
+    "heading": {
+      "title": "第一节 辛温解表药",
+      "role": "section",
+      "level": 2,
+      "path_hint": [
+        "第一节 辛温解表药"
+      ],
+      "confidence": 0.88,
+      "method": "section_pattern"
+    }
+  },
+  {
+    "id": "heading-57f3057c6727",
+    "document_version_id": "zhongyao.v1.e9037a725021",
+    "chapter_path": [],
+    "chapter_method": "none",
+    "chapter_confidence": 1.0,
+    "chapter_assignment": "unassigned",
+    "source_pdf_pages": [],
+    "printed_page_labels": [
+      "1"
+    ],
+    "split_page_index": 0,
+    "block_type": "heading",
+    "raw_text_ref": {
+      "start_line": 5,
+      "end_line": 5,
+      "split_page_index": 0,
+      "source_pdf_pages": []
+    },
+    "cleaned_text": "### 麻黄\n",
+    "quality_status": "ready",
+    "quality_flags": [],
+    "pipeline_version": "structure.v1",
+    "page_mapping_method": "page_map",
+    "page_mapping_confidence": 0.9,
+    "ordinal": 3,
+    "book_template": "zhongyao",
+    "heading": {
+      "title": "麻黄",
+      "role": "unknown",
+      "level": 3,
+      "path_hint": [
+        "麻黄"
+      ],
+      "confidence": 0.45,
+      "method": "unclassified_heading"
+    }
+  },
+  {
+    "id": "table-9ccc4ea07b47",
+    "document_version_id": "zhongyao.v1.e9037a725021",
+    "chapter_path": [],
+    "chapter_method": "none",
+    "chapter_confidence": 1.0,
+    "chapter_assignment": "unassigned",
+    "source_pdf_pages": [],
+    "printed_page_labels": [
+      "1"
+    ],
+    "split_page_index": 0,
+    "block_type": "table",
+    "raw_text_ref": {
+      "start_line": 7,
+      "end_line": 7,
+      "split_page_index": 0,
+      "source_pdf_pages": []
+    },
+    "cleaned_text": "<table><tr><td>性味归经</td><td>辛、微苦，温。归肺、膀胱经</td></tr><tr><td>功效</td><td>发汗解表，宣肺平喘，利水消肿</td></tr><tr><td>主治</td><td>风寒感冒，胸闷喘咳，风水水肿</td></tr><tr><td>用法用量</td><td>煎服，2～10g；生用发汗解表，不宜久煎</td></tr><tr><td>注意事项</td><td>表虚自汗、阴虚盗汗者慎用；运动员禁用</td></tr><tr><td>配伍</td><td>配桂枝增强发汗解表之力</td></tr></table>",
+    "quality_status": "ready",
+    "quality_flags": [],
+    "pipeline_version": "structure.v1",
+    "page_mapping_method": "page_map",
+    "page_mapping_confidence": 0.9,
+    "ordinal": 4,
+    "book_template": "zhongyao",
+    "table_rows": [
+      [
+        "性味归经",
+        "辛、微苦，温。归肺、膀胱经"
+      ],
+      [
+        "功效",
+        "发汗解表，宣肺平喘，利水消肿"
+      ],
+      [
+        "主治",
+        "风寒感冒，胸闷喘咳，风水水肿"
+      ],
+      [
+        "用法用量",
+        "煎服，2～10g；生用发汗解表，不宜久煎"
+      ],
+      [
+        "注意事项",
+        "表虚自汗、阴虚盗汗者慎用；运动员禁用"
+      ],
+      [
+        "配伍",
+        "配桂枝增强发汗解表之力"
+      ]
+    ],
+    "table_row_count": 6,
+    "table_col_count": 2
+  },
+  {
+    "id": "heading-e1f6e363f621",
+    "document_version_id": "zhongyao.v1.e9037a725021",
+    "chapter_path": [],
+    "chapter_method": "none",
+    "chapter_confidence": 1.0,
+    "chapter_assignment": "unassigned",
+    "source_pdf_pages": [],
+    "printed_page_labels": [
+      "1"
+    ],
+    "split_page_index": 0,
+    "block_type": "heading",
+    "raw_text_ref": {
+      "start_line": 9,
+      "end_line": 9,
+      "split_page_index": 0,
+      "source_pdf_pages": []
+    },
+    "cleaned_text": "## 相似药物对比\n",
+    "quality_status": "ready",
+    "quality_flags": [],
+    "pipeline_version": "structure.v1",
+    "page_mapping_method": "page_map",
+    "page_mapping_confidence": 0.9,
+    "ordinal": 5,
+    "book_template": "zhongyao",
+    "heading": {
+      "title": "相似药物对比",
+      "role": "unknown",
+      "level": 3,
+      "path_hint": [
+        "相似药物对比"
+      ],
+      "confidence": 0.45,
+      "method": "unclassified_heading"
+    }
+  },
+  {
+    "id": "table-b4f0a1d81d21",
+    "document_version_id": "zhongyao.v1.e9037a725021",
+    "chapter_path": [],
+    "chapter_method": "none",
+    "chapter_confidence": 1.0,
+    "chapter_assignment": "unassigned",
+    "source_pdf_pages": [],
+    "printed_page_labels": [
+      "1"
+    ],
+    "split_page_index": 0,
+    "block_type": "table",
+    "raw_text_ref": {
+      "start_line": 11,
+      "end_line": 11,
+      "split_page_index": 0,
+      "source_pdf_pages": []
+    },
+    "cleaned_text": "<table><tr><td>对比项</td><td>麻黄</td><td>桂枝</td></tr><tr><td>发汗</td><td>发汗力强</td><td>发汗力缓，兼解肌</td></tr></table>",
+    "quality_status": "ready",
+    "quality_flags": [],
+    "pipeline_version": "structure.v1",
+    "page_mapping_method": "page_map",
+    "page_mapping_confidence": 0.9,
+    "ordinal": 6,
+    "book_template": "zhongyao",
+    "table_rows": [
+      [
+        "对比项",
+        "麻黄",
+        "桂枝"
+      ],
+      [
+        "发汗",
+        "发汗力强",
+        "发汗力缓，兼解肌"
+      ]
+    ],
+    "table_row_count": 2,
+    "table_col_count": 3
+  },
+  {
+    "id": "heading-04ef597e613a",
+    "document_version_id": "zhongyao.v1.e9037a725021",
+    "chapter_path": [],
+    "chapter_method": "none",
+    "chapter_confidence": 1.0,
+    "chapter_assignment": "unassigned",
+    "source_pdf_pages": [],
+    "printed_page_labels": [
+      "1"
+    ],
+    "split_page_index": 0,
+    "block_type": "heading",
+    "raw_text_ref": {
+      "start_line": 13,
+      "end_line": 13,
+      "split_page_index": 0,
+      "source_pdf_pages": []
+    },
+    "cleaned_text": "## 常用中药表\n",
+    "quality_status": "ready",
+    "quality_flags": [],
+    "pipeline_version": "structure.v1",
+    "page_mapping_method": "page_map",
+    "page_mapping_confidence": 0.9,
+    "ordinal": 7,
+    "book_template": "zhongyao",
+    "heading": {
+      "title": "常用中药表",
+      "role": "unknown",
+      "level": 3,
+      "path_hint": [
+        "常用中药表"
+      ],
+      "confidence": 0.45,
+      "method": "unclassified_heading"
+    }
+  },
+  {
+    "id": "table-2167723cf06c",
+    "document_version_id": "zhongyao.v1.e9037a725021",
+    "chapter_path": [],
+    "chapter_method": "none",
+    "chapter_confidence": 1.0,
+    "chapter_assignment": "unassigned",
+    "source_pdf_pages": [],
+    "printed_page_labels": [
+      "1"
+    ],
+    "split_page_index": 0,
+    "block_type": "table",
+    "raw_text_ref": {
+      "start_line": 15,
+      "end_line": 15,
+      "split_page_index": 0,
+      "source_pdf_pages": []
+    },
+    "cleaned_text": "<table><tr><td>中药名</td><td>性味归经</td><td>功效</td><td>主治</td><td>用法用量</td><td>注意事项</td></tr><tr><td>细辛*</td><td>辛温有小毒心肺肾</td><td>散寒解表，祛风止痛</td><td>风寒感冒，头痛牙痛</td><td>煎服，1～3g</td><td>有小毒；忌与藜芦同用</td></tr></table>",
+    "quality_status": "ready",
+    "quality_flags": [],
+    "pipeline_version": "structure.v1",
+    "page_mapping_method": "page_map",
+    "page_mapping_confidence": 0.9,
+    "ordinal": 8,
+    "book_template": "zhongyao",
+    "table_rows": [
+      [
+        "中药名",
+        "性味归经",
+        "功效",
+        "主治",
+        "用法用量",
+        "注意事项"
+      ],
+      [
+        "细辛*",
+        "辛温有小毒心肺肾",
+        "散寒解表，祛风止痛",
+        "风寒感冒，头痛牙痛",
+        "煎服，1～3g",
+        "有小毒；忌与藜芦同用"
+      ]
+    ],
+    "table_row_count": 2,
+    "table_col_count": 6
+  },
+  {
+    "id": "heading-1840571f7c29",
+    "document_version_id": "zhongyao.v1.e9037a725021",
+    "chapter_path": [],
+    "chapter_method": "none",
+    "chapter_confidence": 1.0,
+    "chapter_assignment": "unassigned",
+    "source_pdf_pages": [],
+    "printed_page_labels": [
+      "1"
+    ],
+    "split_page_index": 0,
+    "block_type": "heading",
+    "raw_text_ref": {
+      "start_line": 18,
+      "end_line": 18,
+      "split_page_index": 0,
+      "source_pdf_pages": []
+    },
+    "cleaned_text": "## 附加节 1\n",
+    "quality_status": "ready",
+    "quality_flags": [],
+    "pipeline_version": "structure.v1",
+    "page_mapping_method": "page_map",
+    "page_mapping_confidence": 0.9,
+    "ordinal": 9,
+    "book_template": "zhongyao",
+    "heading": {
+      "title": "附加节 1",
+      "role": "unknown",
+      "level": 3,
+      "path_hint": [
+        "附加节 1"
+      ],
+      "confidence": 0.45,
+      "method": "unclassified_heading"
+    }
+  },
+  {
+    "id": "paragraph-84a9c51bf170",
+    "document_version_id": "zhongyao.v1.e9037a725021",
+    "chapter_path": [],
+    "chapter_method": "none",
+    "chapter_confidence": 1.0,
+    "chapter_assignment": "unassigned",
+    "source_pdf_pages": [],
+    "printed_page_labels": [
+      "1"
+    ],
+    "split_page_index": 0,
+    "block_type": "paragraph",
+    "raw_text_ref": {
+      "start_line": 19,
+      "end_line": 21,
+      "split_page_index": 0,
+      "source_pdf_pages": []
+    },
+    "cleaned_text": "细辛补充说明段落1：功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。\n",
+    "quality_status": "ready",
+    "quality_flags": [],
+    "pipeline_version": "structure.v1",
+    "page_mapping_method": "page_map",
+    "page_mapping_confidence": 0.9,
+    "ordinal": 10,
+    "book_template": "zhongyao"
+  },
+  {
+    "id": "heading-f31cb581255d",
+    "document_version_id": "zhongyao.v1.e9037a725021",
+    "chapter_path": [],
+    "chapter_method": "none",
+    "chapter_confidence": 1.0,
+    "chapter_assignment": "unassigned",
+    "source_pdf_pages": [],
+    "printed_page_labels": [
+      "1"
+    ],
+    "split_page_index": 0,
+    "block_type": "heading",
+    "raw_text_ref": {
+      "start_line": 22,
+      "end_line": 22,
+      "split_page_index": 0,
+      "source_pdf_pages": []
+    },
+    "cleaned_text": "## 附加节 2\n",
+    "quality_status": "ready",
+    "quality_flags": [],
+    "pipeline_version": "structure.v1",
+    "page_mapping_method": "page_map",
+    "page_mapping_confidence": 0.9,
+    "ordinal": 11,
+    "book_template": "zhongyao",
+    "heading": {
+      "title": "附加节 2",
+      "role": "unknown",
+      "level": 3,
+      "path_hint": [
+        "附加节 2"
+      ],
+      "confidence": 0.45,
+      "method": "unclassified_heading"
+    }
+  },
+  {
+    "id": "paragraph-0f495dd3bfbc",
+    "document_version_id": "zhongyao.v1.e9037a725021",
+    "chapter_path": [],
+    "chapter_method": "none",
+    "chapter_confidence": 1.0,
+    "chapter_assignment": "unassigned",
+    "source_pdf_pages": [],
+    "printed_page_labels": [
+      "1"
+    ],
+    "split_page_index": 0,
+    "block_type": "paragraph",
+    "raw_text_ref": {
+      "start_line": 23,
+      "end_line": 25,
+      "split_page_index": 0,
+      "source_pdf_pages": []
+    },
+    "cleaned_text": "细辛补充说明段落2：功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。\n",
+    "quality_status": "ready",
+    "quality_flags": [],
+    "pipeline_version": "structure.v1",
+    "page_mapping_method": "page_map",
+    "page_mapping_confidence": 0.9,
+    "ordinal": 12,
+    "book_template": "zhongyao"
+  },
+  {
+    "id": "heading-d7085cb0f906",
+    "document_version_id": "zhongyao.v1.e9037a725021",
+    "chapter_path": [],
+    "chapter_method": "none",
+    "chapter_confidence": 1.0,
+    "chapter_assignment": "unassigned",
+    "source_pdf_pages": [],
+    "printed_page_labels": [
+      "1"
+    ],
+    "split_page_index": 0,
+    "block_type": "heading",
+    "raw_text_ref": {
+      "start_line": 26,
+      "end_line": 26,
+      "split_page_index": 0,
+      "source_pdf_pages": []
+    },
+    "cleaned_text": "## 附加节 3\n",
+    "quality_status": "ready",
+    "quality_flags": [],
+    "pipeline_version": "structure.v1",
+    "page_mapping_method": "page_map",
+    "page_mapping_confidence": 0.9,
+    "ordinal": 13,
+    "book_template": "zhongyao",
+    "heading": {
+      "title": "附加节 3",
+      "role": "unknown",
+      "level": 3,
+      "path_hint": [
+        "附加节 3"
+      ],
+      "confidence": 0.45,
+      "method": "unclassified_heading"
+    }
+  },
+  {
+    "id": "paragraph-0c1c76d7b12f",
+    "document_version_id": "zhongyao.v1.e9037a725021",
+    "chapter_path": [],
+    "chapter_method": "none",
+    "chapter_confidence": 1.0,
+    "chapter_assignment": "unassigned",
+    "source_pdf_pages": [],
+    "printed_page_labels": [
+      "1"
+    ],
+    "split_page_index": 0,
+    "block_type": "paragraph",
+    "raw_text_ref": {
+      "start_line": 27,
+      "end_line": 29,
+      "split_page_index": 0,
+      "source_pdf_pages": []
+    },
+    "cleaned_text": "细辛补充说明段落3：功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。\n",
+    "quality_status": "ready",
+    "quality_flags": [],
+    "pipeline_version": "structure.v1",
+    "page_mapping_method": "page_map",
+    "page_mapping_confidence": 0.9,
+    "ordinal": 14,
+    "book_template": "zhongyao"
+  },
+  {
+    "id": "heading-0e9cf3f874c4",
+    "document_version_id": "zhongyao.v1.e9037a725021",
+    "chapter_path": [],
+    "chapter_method": "none",
+    "chapter_confidence": 1.0,
+    "chapter_assignment": "unassigned",
+    "source_pdf_pages": [],
+    "printed_page_labels": [
+      "1"
+    ],
+    "split_page_index": 0,
+    "block_type": "heading",
+    "raw_text_ref": {
+      "start_line": 30,
+      "end_line": 30,
+      "split_page_index": 0,
+      "source_pdf_pages": []
+    },
+    "cleaned_text": "## 附加节 4\n",
+    "quality_status": "ready",
+    "quality_flags": [],
+    "pipeline_version": "structure.v1",
+    "page_mapping_method": "page_map",
+    "page_mapping_confidence": 0.9,
+    "ordinal": 15,
+    "book_template": "zhongyao",
+    "heading": {
+      "title": "附加节 4",
+      "role": "unknown",
+      "level": 3,
+      "path_hint": [
+        "附加节 4"
+      ],
+      "confidence": 0.45,
+      "method": "unclassified_heading"
+    }
+  },
+  {
+    "id": "paragraph-5fec893a7bbe",
+    "document_version_id": "zhongyao.v1.e9037a725021",
+    "chapter_path": [],
+    "chapter_method": "none",
+    "chapter_confidence": 1.0,
+    "chapter_assignment": "unassigned",
+    "source_pdf_pages": [],
+    "printed_page_labels": [
+      "1"
+    ],
+    "split_page_index": 0,
+    "block_type": "paragraph",
+    "raw_text_ref": {
+      "start_line": 31,
+      "end_line": 33,
+      "split_page_index": 0,
+      "source_pdf_pages": []
+    },
+    "cleaned_text": "细辛补充说明段落4：功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。\n",
+    "quality_status": "ready",
+    "quality_flags": [],
+    "pipeline_version": "structure.v1",
+    "page_mapping_method": "page_map",
+    "page_mapping_confidence": 0.9,
+    "ordinal": 16,
+    "book_template": "zhongyao"
+  },
+  {
+    "id": "heading-b29dfef41e3b",
+    "document_version_id": "zhongyao.v1.e9037a725021",
+    "chapter_path": [],
+    "chapter_method": "none",
+    "chapter_confidence": 1.0,
+    "chapter_assignment": "unassigned",
+    "source_pdf_pages": [],
+    "printed_page_labels": [
+      "1"
+    ],
+    "split_page_index": 0,
+    "block_type": "heading",
+    "raw_text_ref": {
+      "start_line": 34,
+      "end_line": 34,
+      "split_page_index": 0,
+      "source_pdf_pages": []
+    },
+    "cleaned_text": "## 附加节 5\n",
+    "quality_status": "ready",
+    "quality_flags": [],
+    "pipeline_version": "structure.v1",
+    "page_mapping_method": "page_map",
+    "page_mapping_confidence": 0.9,
+    "ordinal": 17,
+    "book_template": "zhongyao",
+    "heading": {
+      "title": "附加节 5",
+      "role": "unknown",
+      "level": 3,
+      "path_hint": [
+        "附加节 5"
+      ],
+      "confidence": 0.45,
+      "method": "unclassified_heading"
+    }
+  },
+  {
+    "id": "paragraph-3aa8a66578e2",
+    "document_version_id": "zhongyao.v1.e9037a725021",
+    "chapter_path": [],
+    "chapter_method": "none",
+    "chapter_confidence": 1.0,
+    "chapter_assignment": "unassigned",
+    "source_pdf_pages": [],
+    "printed_page_labels": [
+      "1"
+    ],
+    "split_page_index": 0,
+    "block_type": "paragraph",
+    "raw_text_ref": {
+      "start_line": 35,
+      "end_line": 37,
+      "split_page_index": 0,
+      "source_pdf_pages": []
+    },
+    "cleaned_text": "细辛补充说明段落5：功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。\n",
+    "quality_status": "ready",
+    "quality_flags": [],
+    "pipeline_version": "structure.v1",
+    "page_mapping_method": "page_map",
+    "page_mapping_confidence": 0.9,
+    "ordinal": 18,
+    "book_template": "zhongyao"
+  },
+  {
+    "id": "heading-3ae32f2dc3cf",
+    "document_version_id": "zhongyao.v1.e9037a725021",
+    "chapter_path": [],
+    "chapter_method": "none",
+    "chapter_confidence": 1.0,
+    "chapter_assignment": "unassigned",
+    "source_pdf_pages": [],
+    "printed_page_labels": [
+      "1"
+    ],
+    "split_page_index": 0,
+    "block_type": "heading",
+    "raw_text_ref": {
+      "start_line": 38,
+      "end_line": 38,
+      "split_page_index": 0,
+      "source_pdf_pages": []
+    },
+    "cleaned_text": "## 附加节 6\n",
+    "quality_status": "ready",
+    "quality_flags": [],
+    "pipeline_version": "structure.v1",
+    "page_mapping_method": "page_map",
+    "page_mapping_confidence": 0.9,
+    "ordinal": 19,
+    "book_template": "zhongyao",
+    "heading": {
+      "title": "附加节 6",
+      "role": "unknown",
+      "level": 3,
+      "path_hint": [
+        "附加节 6"
+      ],
+      "confidence": 0.45,
+      "method": "unclassified_heading"
+    }
+  },
+  {
+    "id": "paragraph-54d2c410f93d",
+    "document_version_id": "zhongyao.v1.e9037a725021",
+    "chapter_path": [],
+    "chapter_method": "none",
+    "chapter_confidence": 1.0,
+    "chapter_assignment": "unassigned",
+    "source_pdf_pages": [],
+    "printed_page_labels": [
+      "1"
+    ],
+    "split_page_index": 0,
+    "block_type": "paragraph",
+    "raw_text_ref": {
+      "start_line": 39,
+      "end_line": 41,
+      "split_page_index": 0,
+      "source_pdf_pages": []
+    },
+    "cleaned_text": "细辛补充说明段落6：功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。\n",
+    "quality_status": "ready",
+    "quality_flags": [],
+    "pipeline_version": "structure.v1",
+    "page_mapping_method": "page_map",
+    "page_mapping_confidence": 0.9,
+    "ordinal": 20,
+    "book_template": "zhongyao"
+  },
+  {
+    "id": "heading-58c623df727d",
+    "document_version_id": "zhongyao.v1.e9037a725021",
+    "chapter_path": [],
+    "chapter_method": "none",
+    "chapter_confidence": 1.0,
+    "chapter_assignment": "unassigned",
+    "source_pdf_pages": [],
+    "printed_page_labels": [
+      "1"
+    ],
+    "split_page_index": 0,
+    "block_type": "heading",
+    "raw_text_ref": {
+      "start_line": 42,
+      "end_line": 42,
+      "split_page_index": 0,
+      "source_pdf_pages": []
+    },
+    "cleaned_text": "## 附加节 7\n",
+    "quality_status": "ready",
+    "quality_flags": [],
+    "pipeline_version": "structure.v1",
+    "page_mapping_method": "page_map",
+    "page_mapping_confidence": 0.9,
+    "ordinal": 21,
+    "book_template": "zhongyao",
+    "heading": {
+      "title": "附加节 7",
+      "role": "unknown",
+      "level": 3,
+      "path_hint": [
+        "附加节 7"
+      ],
+      "confidence": 0.45,
+      "method": "unclassified_heading"
+    }
+  },
+  {
+    "id": "paragraph-c22c6957c4dd",
+    "document_version_id": "zhongyao.v1.e9037a725021",
+    "chapter_path": [],
+    "chapter_method": "none",
+    "chapter_confidence": 1.0,
+    "chapter_assignment": "unassigned",
+    "source_pdf_pages": [],
+    "printed_page_labels": [
+      "1"
+    ],
+    "split_page_index": 0,
+    "block_type": "paragraph",
+    "raw_text_ref": {
+      "start_line": 43,
+      "end_line": 44,
+      "split_page_index": 0,
+      "source_pdf_pages": []
+    },
+    "cleaned_text": "细辛补充说明段落7：功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。功效与配伍注意事项。\n",
+    "quality_status": "ready",
+    "quality_flags": [],
+    "pipeline_version": "structure.v1",
+    "page_mapping_method": "page_map",
+    "page_mapping_confidence": 0.9,
+    "ordinal": 22,
+    "book_template": "zhongyao"
+  }
+]

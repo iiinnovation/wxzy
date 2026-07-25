@@ -1,0 +1,67 @@
+{
+  "task": "P5-T05",
+  "title": "Qwen 全量游标生成器",
+  "status": "complete",
+  "generated_at": "2026-07-25T03:33:30.597287+00:00",
+  "generator": "contentblock-cursor-generator",
+  "prompt_version": "p5t05-v1",
+  "acceptance": {
+    "contentblock_cursor_not_prefix_slice": true,
+    "full_chunk_coverage_when_exceeds_max_chars": true,
+    "repeat_run_no_duplicate_candidates": true,
+    "resume_from_partial_cursor": true,
+    "request_records_provenance_and_usage": true,
+    "candidate_only_output": true,
+    "offline_deterministic_path": true,
+    "api_mode_injectable_caller": true
+  },
+  "fixtures": {
+    "zhongyao": {
+      "path": "tools/document_pipeline/fixtures/cursor_zhongyao_content_blocks.json",
+      "blocks": 22,
+      "chars": 2189,
+      "max_chars": 180,
+      "windows": 18,
+      "cards": 13,
+      "card_types": [
+        "herb_compatibility",
+        "herb_contrast",
+        "herb_function",
+        "herb_indication",
+        "herb_nature_flavor",
+        "herb_toxicity_caution",
+        "herb_usage"
+      ]
+    },
+    "jichu": {
+      "path": "tools/document_pipeline/fixtures/cursor_jichu_content_blocks.json",
+      "blocks": 13,
+      "chars": 967,
+      "max_chars": 120,
+      "windows": 7,
+      "cards": 8,
+      "card_types": [
+        "concept_definition",
+        "contrast",
+        "mechanism",
+        "relation"
+      ]
+    }
+  },
+  "artifacts": [
+    "tools/document_pipeline/cursor_generator.py",
+    "tools/document_pipeline/fixtures/cursor_zhongyao_content_blocks.json",
+    "tools/document_pipeline/fixtures/cursor_jichu_content_blocks.json",
+    "tools/tests/test_cursor_generator.py"
+  ],
+  "verification": {
+    "pytest_cursor": "6 passed",
+    "pytest_related": "53 passed",
+    "ruff": "clean",
+    "mypy": "clean"
+  },
+  "notes": [
+    "Resume reload always restores previous candidates into memory before rewriting candidates.jsonl.",
+    "Legacy cli_cards.py md[:max_chars] remains optional cutover work after T05."
+  ]
+}

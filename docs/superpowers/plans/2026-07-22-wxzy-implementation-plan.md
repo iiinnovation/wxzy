@@ -930,11 +930,17 @@ issue 时删除迁移生成的 profile/session/Owner；一旦存在个人学习�
 
 ## P5-T05 Qwen 全量游标生成器
 
-状态：`[ ]`
+状态：`[x]`
 
 工作：按 ContentBlock 游标，不再 `md[:max_chars]`；记录 input hash、chunk IDs、model/prompt、token/cost；失败可恢复；输出只进 candidate。
 
 验收：输入超过 max_chars 的 fixture 每个 chunk 都被覆盖；重复运行不重复候选。
+
+完成证据：
+- 实现：`tools/document_pipeline/cursor_generator.py`（pack_blocks 游标、input_hash、resume state、offline/api 双模式）
+- fixtures：`tools/document_pipeline/fixtures/cursor_{zhongyao,jichu}_content_blocks.json`
+- 测试：`tools/tests/test_cursor_generator.py`（全量覆盖、重复不重复、partial resume、API 非 prefix-only）
+- 报告：`docs/superpowers/reports/2026-07-25-p5t05-cursor-generator.{json,md}`
 
 ## P5-T06 自动卡片校验与去重
 
