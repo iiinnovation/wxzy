@@ -1,0 +1,951 @@
+{
+  "schema_version": 1,
+  "task": "P4-T09",
+  "generated_at": "2026-07-25T01:45:49Z",
+  "corpus": {
+    "document_count": 7,
+    "page_total_design": 704,
+    "page_total_observed": 704,
+    "document_keys": [
+      "jichu",
+      "zhenduan",
+      "zhongyao",
+      "fangji",
+      "neike",
+      "zhenjiu",
+      "renwen"
+    ]
+  },
+  "github_policy": {
+    "source_pdfs": "local only (docs/*.pdf gitignored)",
+    "split_pdfs": "local only (data/ gitignored)",
+    "raw_ocr": "local only",
+    "cleaned_fulltext": "local only",
+    "structured_fulltext": "local only",
+    "tracked": "schema/rules/fixtures + no-fulltext coverage summaries under docs/superpowers/reports/"
+  },
+  "acceptance": {
+    "criterion": "total=704, every page terminal (pass or explicit needs_review); all non-pass have owner/reason/disposition; no silent fail; no page missing",
+    "met": true,
+    "total_pages": 704,
+    "terminal_pages": 704,
+    "pass_pages": 136,
+    "needs_review_pages": 568,
+    "fail_pages": 0,
+    "missing_pages": 0,
+    "books_complete": 7,
+    "all_book_acceptance_met": true,
+    "all_page_ranges_contiguous": true,
+    "all_page_maps_complete": true,
+    "all_local_artifacts_recoverable": true,
+    "non_pass_splits_with_disposition": 25,
+    "non_pass_pages_with_disposition": 568
+  },
+  "p4_exit_gate": {
+    "pages_with_status_and_source_map": "704/704",
+    "books_with_chapter_tree_and_quality_report": "7/7",
+    "raw_cleaned_structured_recoverable": true,
+    "met": true
+  },
+  "aggregates": {
+    "total_chapters": 577,
+    "total_low_confidence_chapters": 107,
+    "total_content_blocks": 2292,
+    "table_blocks_total": 793,
+    "split_count_full_runs": 31,
+    "pass_pages": 136,
+    "needs_review_pages": 568,
+    "fail_pages": 0,
+    "issue_family_split_hits": {
+      "suspicious_ocr_source": 5,
+      "empty_pages": 24
+    },
+    "budget_ledger_after_final_full_run": {
+      "file_budget": 5000,
+      "page_budget": 1000,
+      "files_used": 38,
+      "pages_used": 774,
+      "files_remaining": 4962,
+      "pages_remaining": 226
+    }
+  },
+  "books": [
+    {
+      "document_key": "jichu",
+      "task": "P4-T02",
+      "document_version": "jichu.v1.1fcfabb4b4b3",
+      "job_id": "jichu_p4t02_v1",
+      "batch_id": "b7783253-a4c1-4fae-9a9d-3f4007469496",
+      "page_total": 102,
+      "pass_pages": 0,
+      "needs_review_pages": 102,
+      "fail_pages": 0,
+      "acceptance_met": true,
+      "page_map_complete_splits": "5/5",
+      "page_ranges_contiguous": true,
+      "split_status_counts": {
+        "pass": 0,
+        "needs_review": 5,
+        "fail": 0
+      },
+      "total_chapters": 76,
+      "total_low_confidence_chapters": 15,
+      "total_content_blocks": 309,
+      "table_blocks_total": null,
+      "bad_tables_issue_present": null,
+      "risk_keyword_split_hits": null,
+      "issue_codes_union": [
+        "empty_pages",
+        "suspicious_ocr_source"
+      ],
+      "recoverability": {
+        "job_dir": true,
+        "raw": true,
+        "cleaned": true,
+        "structured": true,
+        "quality": true,
+        "splits": true,
+        "manifest": true,
+        "coverage_summary": true,
+        "cleaned_dirs": 5,
+        "structured_dirs": 5,
+        "quality_json": 5,
+        "raw_splits": 5
+      },
+      "tracked_report": "docs/superpowers/reports/2026-07-24-jichu-p4t02.json",
+      "local_artifacts": {
+        "job_dir": "data/document-pipeline/jobs/jichu_p4t02_v1",
+        "raw": "data/document-pipeline/jobs/jichu_p4t02_v1/raw/",
+        "cleaned": "data/document-pipeline/jobs/jichu_p4t02_v1/cleaned/",
+        "structured": "data/document-pipeline/jobs/jichu_p4t02_v1/structured/",
+        "quality": "data/document-pipeline/jobs/jichu_p4t02_v1/quality/",
+        "splits": "data/document-pipeline/splits/jichu.v1.1fcfabb4b4b3/"
+      }
+    },
+    {
+      "document_key": "zhenduan",
+      "task": "P4-T03",
+      "document_version": "zhenduan.v1.cd4e4aaee343",
+      "job_id": "zhenduan_p4t03_v1",
+      "batch_id": "d49c509e-7cf4-4f46-8f26-3d4950985bce",
+      "page_total": 92,
+      "pass_pages": 46,
+      "needs_review_pages": 46,
+      "fail_pages": 0,
+      "acceptance_met": true,
+      "page_map_complete_splits": "4/4",
+      "page_ranges_contiguous": true,
+      "split_status_counts": {
+        "pass": 2,
+        "needs_review": 2
+      },
+      "total_chapters": 85,
+      "total_low_confidence_chapters": 26,
+      "total_content_blocks": 451,
+      "table_blocks_total": 171,
+      "bad_tables_issue_present": false,
+      "risk_keyword_split_hits": null,
+      "issue_codes_union": [
+        "empty_pages"
+      ],
+      "recoverability": {
+        "job_dir": true,
+        "raw": true,
+        "cleaned": true,
+        "structured": true,
+        "quality": true,
+        "splits": true,
+        "manifest": true,
+        "coverage_summary": true,
+        "cleaned_dirs": 4,
+        "structured_dirs": 4,
+        "quality_json": 4,
+        "raw_splits": 4
+      },
+      "tracked_report": "docs/superpowers/reports/2026-07-24-zhenduan-p4t03.json",
+      "local_artifacts": {
+        "job_dir": "data/document-pipeline/jobs/zhenduan_p4t03_v1",
+        "raw": "data/document-pipeline/jobs/zhenduan_p4t03_v1/raw/",
+        "cleaned": "data/document-pipeline/jobs/zhenduan_p4t03_v1/cleaned/",
+        "structured": "data/document-pipeline/jobs/zhenduan_p4t03_v1/structured/",
+        "quality": "data/document-pipeline/jobs/zhenduan_p4t03_v1/quality/",
+        "splits": "data/document-pipeline/splits/zhenduan.v1.cd4e4aaee343/"
+      }
+    },
+    {
+      "document_key": "zhongyao",
+      "task": "P4-T04",
+      "document_version": "zhongyao.v1.e9037a725021",
+      "job_id": "zhongyao_p4t04_v1",
+      "batch_id": "0cde6505-4608-4a95-b30f-a05c6b210e73",
+      "page_total": 88,
+      "pass_pages": 66,
+      "needs_review_pages": 22,
+      "fail_pages": 0,
+      "acceptance_met": true,
+      "page_map_complete_splits": "4/4",
+      "page_ranges_contiguous": true,
+      "split_status_counts": {
+        "pass": 3,
+        "needs_review": 1
+      },
+      "total_chapters": 115,
+      "total_low_confidence_chapters": 7,
+      "total_content_blocks": 288,
+      "table_blocks_total": 136,
+      "bad_tables_issue_present": false,
+      "risk_keyword_split_hits": {
+        "药名": 4,
+        "剂量": 4,
+        "毒性": 4,
+        "禁忌": 4
+      },
+      "issue_codes_union": [
+        "empty or near-empty pages: [2, 6]",
+        "empty_pages"
+      ],
+      "recoverability": {
+        "job_dir": true,
+        "raw": true,
+        "cleaned": true,
+        "structured": true,
+        "quality": true,
+        "splits": true,
+        "manifest": true,
+        "coverage_summary": true,
+        "cleaned_dirs": 4,
+        "structured_dirs": 4,
+        "quality_json": 4,
+        "raw_splits": 4
+      },
+      "tracked_report": "docs/superpowers/reports/2026-07-24-zhongyao-p4t04.json",
+      "local_artifacts": {
+        "job_dir": "data/document-pipeline/jobs/zhongyao_p4t04_v1",
+        "raw": "data/document-pipeline/jobs/zhongyao_p4t04_v1/raw/",
+        "cleaned": "data/document-pipeline/jobs/zhongyao_p4t04_v1/cleaned/",
+        "structured": "data/document-pipeline/jobs/zhongyao_p4t04_v1/structured/",
+        "quality": "data/document-pipeline/jobs/zhongyao_p4t04_v1/quality/",
+        "splits": "data/document-pipeline/splits/zhongyao.v1.e9037a725021/"
+      }
+    },
+    {
+      "document_key": "fangji",
+      "task": "P4-T05",
+      "document_version": "fangji.v1.0755d148d00a",
+      "job_id": "fangji_p4t05_v1",
+      "batch_id": "a03a9258-c839-4466-a425-6b7033d001ec",
+      "page_total": 140,
+      "pass_pages": 0,
+      "needs_review_pages": 140,
+      "fail_pages": 0,
+      "acceptance_met": true,
+      "page_map_complete_splits": "6/6",
+      "page_ranges_contiguous": true,
+      "split_status_counts": {
+        "needs_review": 6
+      },
+      "total_chapters": 110,
+      "total_low_confidence_chapters": 8,
+      "total_content_blocks": 341,
+      "table_blocks_total": 149,
+      "bad_tables_issue_present": false,
+      "risk_keyword_split_hits": {
+        "ocr_dict": 6,
+        "剂量": 6,
+        "方歌": 6,
+        "方剂表": 6
+      },
+      "issue_codes_union": [
+        "empty or near-empty pages: [1, 7, 16, 19, 21]",
+        "empty or near-empty pages: [13]",
+        "empty or near-empty pages: [14, 16]",
+        "empty or near-empty pages: [3, 4, 5, 9, 10, 12, 14, 16, 22]",
+        "empty or near-empty pages: [3, 6, 11, 17]",
+        "empty or near-empty pages: [8, 16, 20]",
+        "empty_pages"
+      ],
+      "recoverability": {
+        "job_dir": true,
+        "raw": true,
+        "cleaned": true,
+        "structured": true,
+        "quality": true,
+        "splits": true,
+        "manifest": true,
+        "coverage_summary": true,
+        "cleaned_dirs": 6,
+        "structured_dirs": 6,
+        "quality_json": 6,
+        "raw_splits": 6
+      },
+      "tracked_report": "docs/superpowers/reports/2026-07-24-fangji-p4t05.json",
+      "local_artifacts": {
+        "job_dir": "data/document-pipeline/jobs/fangji_p4t05_v1",
+        "raw": "data/document-pipeline/jobs/fangji_p4t05_v1/raw/",
+        "cleaned": "data/document-pipeline/jobs/fangji_p4t05_v1/cleaned/",
+        "structured": "data/document-pipeline/jobs/fangji_p4t05_v1/structured/",
+        "quality": "data/document-pipeline/jobs/fangji_p4t05_v1/quality/",
+        "splits": "data/document-pipeline/splits/fangji.v1.0755d148d00a/"
+      }
+    },
+    {
+      "document_key": "neike",
+      "task": "P4-T06",
+      "document_version": "neike.v1.8ea7bc991418",
+      "job_id": "neike_p4t06_v1",
+      "batch_id": "81d45cfa-f41e-408a-bb73-1672a2babf8e",
+      "page_total": 149,
+      "pass_pages": 24,
+      "needs_review_pages": 125,
+      "fail_pages": 0,
+      "acceptance_met": true,
+      "page_map_complete_splits": "6/6",
+      "page_ranges_contiguous": true,
+      "split_status_counts": {
+        "needs_review": 5,
+        "pass": 1
+      },
+      "total_chapters": 100,
+      "total_low_confidence_chapters": 44,
+      "total_content_blocks": 539,
+      "table_blocks_total": 206,
+      "bad_tables_issue_present": false,
+      "risk_keyword_split_hits": {
+        "证型": 6,
+        "治法": 6,
+        "代表方": 6,
+        "版本标记": 6
+      },
+      "issue_codes_union": [
+        "empty or near-empty pages: [10]",
+        "empty or near-empty pages: [19]",
+        "empty or near-empty pages: [2, 3, 4, 6, 8, 22]",
+        "empty or near-empty pages: [23]",
+        "empty or near-empty pages: [6, 11, 17]",
+        "empty_pages"
+      ],
+      "recoverability": {
+        "job_dir": true,
+        "raw": true,
+        "cleaned": true,
+        "structured": true,
+        "quality": true,
+        "splits": true,
+        "manifest": true,
+        "coverage_summary": true,
+        "cleaned_dirs": 6,
+        "structured_dirs": 6,
+        "quality_json": 6,
+        "raw_splits": 6
+      },
+      "tracked_report": "docs/superpowers/reports/2026-07-24-neike-p4t06.json",
+      "local_artifacts": {
+        "job_dir": "data/document-pipeline/jobs/neike_p4t06_v1",
+        "raw": "data/document-pipeline/jobs/neike_p4t06_v1/raw/",
+        "cleaned": "data/document-pipeline/jobs/neike_p4t06_v1/cleaned/",
+        "structured": "data/document-pipeline/jobs/neike_p4t06_v1/structured/",
+        "quality": "data/document-pipeline/jobs/neike_p4t06_v1/quality/",
+        "splits": "data/document-pipeline/splits/neike.v1.8ea7bc991418/"
+      }
+    },
+    {
+      "document_key": "zhenjiu",
+      "task": "P4-T07",
+      "document_version": "zhenjiu.v1.e267e196ca45",
+      "job_id": "zhenjiu_p4t07_v1",
+      "batch_id": "17a72b8e-382e-46f3-b921-003ef6b355fe",
+      "page_total": 94,
+      "pass_pages": 0,
+      "needs_review_pages": 94,
+      "fail_pages": 0,
+      "acceptance_met": true,
+      "page_map_complete_splits": "4/4",
+      "page_ranges_contiguous": true,
+      "split_status_counts": {
+        "needs_review": 4
+      },
+      "total_chapters": 43,
+      "total_low_confidence_chapters": 4,
+      "total_content_blocks": 235,
+      "table_blocks_total": 113,
+      "bad_tables_issue_present": false,
+      "risk_keyword_split_hits": {
+        "穴位": 4,
+        "定位": 4,
+        "操作": 4,
+        "手法": 4
+      },
+      "issue_codes_union": [
+        "empty or near-empty pages: [12]",
+        "empty or near-empty pages: [7, 10]",
+        "empty or near-empty pages: [8, 9, 12, 14, 18]",
+        "empty or near-empty pages: [9]",
+        "empty_pages"
+      ],
+      "recoverability": {
+        "job_dir": true,
+        "raw": true,
+        "cleaned": true,
+        "structured": true,
+        "quality": true,
+        "splits": true,
+        "manifest": true,
+        "coverage_summary": true,
+        "cleaned_dirs": 4,
+        "structured_dirs": 4,
+        "quality_json": 4,
+        "raw_splits": 4
+      },
+      "tracked_report": "docs/superpowers/reports/2026-07-24-zhenjiu-p4t07.json",
+      "local_artifacts": {
+        "job_dir": "data/document-pipeline/jobs/zhenjiu_p4t07_v1",
+        "raw": "data/document-pipeline/jobs/zhenjiu_p4t07_v1/raw/",
+        "cleaned": "data/document-pipeline/jobs/zhenjiu_p4t07_v1/cleaned/",
+        "structured": "data/document-pipeline/jobs/zhenjiu_p4t07_v1/structured/",
+        "quality": "data/document-pipeline/jobs/zhenjiu_p4t07_v1/quality/",
+        "splits": "data/document-pipeline/splits/zhenjiu.v1.e267e196ca45/"
+      }
+    },
+    {
+      "document_key": "renwen",
+      "task": "P4-T08",
+      "document_version": "renwen.v1.20340ad679a8",
+      "job_id": "renwen_p4t08_v1",
+      "batch_id": "f3d85008-c4b5-409d-bda2-34091a05eac7",
+      "page_total": 39,
+      "pass_pages": 0,
+      "needs_review_pages": 39,
+      "fail_pages": 0,
+      "acceptance_met": true,
+      "page_map_complete_splits": "2/2",
+      "page_ranges_contiguous": true,
+      "split_status_counts": {
+        "needs_review": 2
+      },
+      "total_chapters": 48,
+      "total_low_confidence_chapters": 3,
+      "total_content_blocks": 129,
+      "table_blocks_total": 18,
+      "bad_tables_issue_present": false,
+      "risk_keyword_split_hits": {
+        "法规": 2,
+        "伦理": 2,
+        "版本": 2,
+        "日期": 2
+      },
+      "issue_codes_union": [
+        "empty or near-empty pages: [18]",
+        "empty or near-empty pages: [6, 9, 10, 13]",
+        "empty_pages"
+      ],
+      "recoverability": {
+        "job_dir": true,
+        "raw": true,
+        "cleaned": true,
+        "structured": true,
+        "quality": true,
+        "splits": true,
+        "manifest": true,
+        "coverage_summary": true,
+        "cleaned_dirs": 2,
+        "structured_dirs": 2,
+        "quality_json": 2,
+        "raw_splits": 2
+      },
+      "tracked_report": "docs/superpowers/reports/2026-07-24-renwen-p4t08.json",
+      "local_artifacts": {
+        "job_dir": "data/document-pipeline/jobs/renwen_p4t08_v1",
+        "raw": "data/document-pipeline/jobs/renwen_p4t08_v1/raw/",
+        "cleaned": "data/document-pipeline/jobs/renwen_p4t08_v1/cleaned/",
+        "structured": "data/document-pipeline/jobs/renwen_p4t08_v1/structured/",
+        "quality": "data/document-pipeline/jobs/renwen_p4t08_v1/quality/",
+        "splits": "data/document-pipeline/splits/renwen.v1.20340ad679a8/"
+      }
+    }
+  ],
+  "needs_review_dispositions": [
+    {
+      "document_key": "jichu",
+      "task": "P4-T02",
+      "split_id": "jichu.v1.1fcfabb4b4b3.p0001-0021",
+      "page_range": "None-None",
+      "page_count": 21,
+      "terminal_status": "needs_review",
+      "reason_codes": [
+        "empty_pages",
+        "suspicious_ocr_source"
+      ],
+      "issue_codes_raw": [
+        "empty_pages",
+        "suspicious_ocr_source"
+      ],
+      "page_map_complete": null,
+      "owner": "pipeline-ops",
+      "disposition": "human_review_image_or_watermark_pages; residual_clean_pass; block_publication_until_reviewed",
+      "publication": "blocked"
+    },
+    {
+      "document_key": "jichu",
+      "task": "P4-T02",
+      "split_id": "jichu.v1.1fcfabb4b4b3.p0022-0042",
+      "page_range": "None-None",
+      "page_count": 21,
+      "terminal_status": "needs_review",
+      "reason_codes": [
+        "empty_pages",
+        "suspicious_ocr_source"
+      ],
+      "issue_codes_raw": [
+        "empty_pages",
+        "suspicious_ocr_source"
+      ],
+      "page_map_complete": null,
+      "owner": "pipeline-ops",
+      "disposition": "human_review_image_or_watermark_pages; residual_clean_pass; block_publication_until_reviewed",
+      "publication": "blocked"
+    },
+    {
+      "document_key": "jichu",
+      "task": "P4-T02",
+      "split_id": "jichu.v1.1fcfabb4b4b3.p0043-0062",
+      "page_range": "None-None",
+      "page_count": 20,
+      "terminal_status": "needs_review",
+      "reason_codes": [
+        "empty_pages",
+        "suspicious_ocr_source"
+      ],
+      "issue_codes_raw": [
+        "empty_pages",
+        "suspicious_ocr_source"
+      ],
+      "page_map_complete": null,
+      "owner": "pipeline-ops",
+      "disposition": "human_review_image_or_watermark_pages; residual_clean_pass; block_publication_until_reviewed",
+      "publication": "blocked"
+    },
+    {
+      "document_key": "jichu",
+      "task": "P4-T02",
+      "split_id": "jichu.v1.1fcfabb4b4b3.p0063-0082",
+      "page_range": "None-None",
+      "page_count": 20,
+      "terminal_status": "needs_review",
+      "reason_codes": [
+        "suspicious_ocr_source"
+      ],
+      "issue_codes_raw": [
+        "suspicious_ocr_source"
+      ],
+      "page_map_complete": null,
+      "owner": "pipeline-ops",
+      "disposition": "human_review_ocr_source; residual_clean_pass; block_publication_until_reviewed",
+      "publication": "blocked"
+    },
+    {
+      "document_key": "jichu",
+      "task": "P4-T02",
+      "split_id": "jichu.v1.1fcfabb4b4b3.p0083-0102",
+      "page_range": "None-None",
+      "page_count": 20,
+      "terminal_status": "needs_review",
+      "reason_codes": [
+        "empty_pages",
+        "suspicious_ocr_source"
+      ],
+      "issue_codes_raw": [
+        "empty_pages",
+        "suspicious_ocr_source"
+      ],
+      "page_map_complete": null,
+      "owner": "pipeline-ops",
+      "disposition": "human_review_image_or_watermark_pages; residual_clean_pass; block_publication_until_reviewed",
+      "publication": "blocked"
+    },
+    {
+      "document_key": "zhenduan",
+      "task": "P4-T03",
+      "split_id": "zhenduan.v1.cd4e4aaee343.p0024-0046",
+      "page_range": "24-46",
+      "page_count": 23,
+      "terminal_status": "needs_review",
+      "reason_codes": [
+        "empty_pages"
+      ],
+      "issue_codes_raw": [
+        "empty_pages"
+      ],
+      "page_map_complete": true,
+      "owner": "pipeline-ops",
+      "disposition": "human_review_near_empty_pages; residual_clean_pass; block_publication_until_reviewed",
+      "publication": "blocked"
+    },
+    {
+      "document_key": "zhenduan",
+      "task": "P4-T03",
+      "split_id": "zhenduan.v1.cd4e4aaee343.p0047-0069",
+      "page_range": "47-69",
+      "page_count": 23,
+      "terminal_status": "needs_review",
+      "reason_codes": [
+        "empty_pages"
+      ],
+      "issue_codes_raw": [
+        "empty_pages"
+      ],
+      "page_map_complete": true,
+      "owner": "pipeline-ops",
+      "disposition": "human_review_near_empty_pages; residual_clean_pass; block_publication_until_reviewed",
+      "publication": "blocked"
+    },
+    {
+      "document_key": "zhongyao",
+      "task": "P4-T04",
+      "split_id": "zhongyao.v1.e9037a725021.p0023-0044",
+      "page_range": "23-44",
+      "page_count": 22,
+      "terminal_status": "needs_review",
+      "reason_codes": [
+        "empty_pages"
+      ],
+      "issue_codes_raw": [
+        "empty or near-empty pages: [2, 6]",
+        "empty_pages"
+      ],
+      "page_map_complete": true,
+      "owner": "pipeline-ops",
+      "disposition": "human_review_near_empty_pages; residual_clean_pass; block_publication_until_reviewed",
+      "publication": "blocked"
+    },
+    {
+      "document_key": "fangji",
+      "task": "P4-T05",
+      "split_id": "fangji.v1.0755d148d00a.p0001-0024",
+      "page_range": "1-24",
+      "page_count": 24,
+      "terminal_status": "needs_review",
+      "reason_codes": [
+        "empty_pages"
+      ],
+      "issue_codes_raw": [
+        "empty or near-empty pages: [14, 16]",
+        "empty_pages"
+      ],
+      "page_map_complete": true,
+      "owner": "pipeline-ops",
+      "disposition": "human_review_near_empty_pages; residual_clean_pass; block_publication_until_reviewed",
+      "publication": "blocked"
+    },
+    {
+      "document_key": "fangji",
+      "task": "P4-T05",
+      "split_id": "fangji.v1.0755d148d00a.p0025-0048",
+      "page_range": "25-48",
+      "page_count": 24,
+      "terminal_status": "needs_review",
+      "reason_codes": [
+        "empty_pages"
+      ],
+      "issue_codes_raw": [
+        "empty or near-empty pages: [13]",
+        "empty_pages"
+      ],
+      "page_map_complete": true,
+      "owner": "pipeline-ops",
+      "disposition": "human_review_near_empty_pages; residual_clean_pass; block_publication_until_reviewed",
+      "publication": "blocked"
+    },
+    {
+      "document_key": "fangji",
+      "task": "P4-T05",
+      "split_id": "fangji.v1.0755d148d00a.p0049-0071",
+      "page_range": "49-71",
+      "page_count": 23,
+      "terminal_status": "needs_review",
+      "reason_codes": [
+        "empty_pages"
+      ],
+      "issue_codes_raw": [
+        "empty or near-empty pages: [8, 16, 20]",
+        "empty_pages"
+      ],
+      "page_map_complete": true,
+      "owner": "pipeline-ops",
+      "disposition": "human_review_near_empty_pages; residual_clean_pass; block_publication_until_reviewed",
+      "publication": "blocked"
+    },
+    {
+      "document_key": "fangji",
+      "task": "P4-T05",
+      "split_id": "fangji.v1.0755d148d00a.p0072-0094",
+      "page_range": "72-94",
+      "page_count": 23,
+      "terminal_status": "needs_review",
+      "reason_codes": [
+        "empty_pages"
+      ],
+      "issue_codes_raw": [
+        "empty or near-empty pages: [1, 7, 16, 19, 21]",
+        "empty_pages"
+      ],
+      "page_map_complete": true,
+      "owner": "pipeline-ops",
+      "disposition": "human_review_near_empty_pages; residual_clean_pass; block_publication_until_reviewed",
+      "publication": "blocked"
+    },
+    {
+      "document_key": "fangji",
+      "task": "P4-T05",
+      "split_id": "fangji.v1.0755d148d00a.p0095-0117",
+      "page_range": "95-117",
+      "page_count": 23,
+      "terminal_status": "needs_review",
+      "reason_codes": [
+        "empty_pages"
+      ],
+      "issue_codes_raw": [
+        "empty or near-empty pages: [3, 4, 5, 9, 10, 12, 14, 16, 22]",
+        "empty_pages"
+      ],
+      "page_map_complete": true,
+      "owner": "pipeline-ops",
+      "disposition": "human_review_near_empty_pages; residual_clean_pass; block_publication_until_reviewed",
+      "publication": "blocked"
+    },
+    {
+      "document_key": "fangji",
+      "task": "P4-T05",
+      "split_id": "fangji.v1.0755d148d00a.p0118-0140",
+      "page_range": "118-140",
+      "page_count": 23,
+      "terminal_status": "needs_review",
+      "reason_codes": [
+        "empty_pages"
+      ],
+      "issue_codes_raw": [
+        "empty or near-empty pages: [3, 6, 11, 17]",
+        "empty_pages"
+      ],
+      "page_map_complete": true,
+      "owner": "pipeline-ops",
+      "disposition": "human_review_near_empty_pages; residual_clean_pass; block_publication_until_reviewed",
+      "publication": "blocked"
+    },
+    {
+      "document_key": "neike",
+      "task": "P4-T06",
+      "split_id": "neike.v1.8ea7bc991418.p0001-0025",
+      "page_range": "1-25",
+      "page_count": 25,
+      "terminal_status": "needs_review",
+      "reason_codes": [
+        "empty_pages"
+      ],
+      "issue_codes_raw": [
+        "empty or near-empty pages: [2, 3, 4, 6, 8, 22]",
+        "empty_pages"
+      ],
+      "page_map_complete": true,
+      "owner": "pipeline-ops",
+      "disposition": "human_review_near_empty_pages; residual_clean_pass; block_publication_until_reviewed",
+      "publication": "blocked"
+    },
+    {
+      "document_key": "neike",
+      "task": "P4-T06",
+      "split_id": "neike.v1.8ea7bc991418.p0026-0050",
+      "page_range": "26-50",
+      "page_count": 25,
+      "terminal_status": "needs_review",
+      "reason_codes": [
+        "empty_pages"
+      ],
+      "issue_codes_raw": [
+        "empty or near-empty pages: [10]",
+        "empty_pages"
+      ],
+      "page_map_complete": true,
+      "owner": "pipeline-ops",
+      "disposition": "human_review_near_empty_pages; residual_clean_pass; block_publication_until_reviewed",
+      "publication": "blocked"
+    },
+    {
+      "document_key": "neike",
+      "task": "P4-T06",
+      "split_id": "neike.v1.8ea7bc991418.p0051-0075",
+      "page_range": "51-75",
+      "page_count": 25,
+      "terminal_status": "needs_review",
+      "reason_codes": [
+        "empty_pages"
+      ],
+      "issue_codes_raw": [
+        "empty or near-empty pages: [23]",
+        "empty_pages"
+      ],
+      "page_map_complete": true,
+      "owner": "pipeline-ops",
+      "disposition": "human_review_near_empty_pages; residual_clean_pass; block_publication_until_reviewed",
+      "publication": "blocked"
+    },
+    {
+      "document_key": "neike",
+      "task": "P4-T06",
+      "split_id": "neike.v1.8ea7bc991418.p0076-0100",
+      "page_range": "76-100",
+      "page_count": 25,
+      "terminal_status": "needs_review",
+      "reason_codes": [
+        "empty_pages"
+      ],
+      "issue_codes_raw": [
+        "empty or near-empty pages: [6, 11, 17]",
+        "empty_pages"
+      ],
+      "page_map_complete": true,
+      "owner": "pipeline-ops",
+      "disposition": "human_review_near_empty_pages; residual_clean_pass; block_publication_until_reviewed",
+      "publication": "blocked"
+    },
+    {
+      "document_key": "neike",
+      "task": "P4-T06",
+      "split_id": "neike.v1.8ea7bc991418.p0101-0125",
+      "page_range": "101-125",
+      "page_count": 25,
+      "terminal_status": "needs_review",
+      "reason_codes": [
+        "empty_pages"
+      ],
+      "issue_codes_raw": [
+        "empty or near-empty pages: [19]",
+        "empty_pages"
+      ],
+      "page_map_complete": true,
+      "owner": "pipeline-ops",
+      "disposition": "human_review_near_empty_pages; residual_clean_pass; block_publication_until_reviewed",
+      "publication": "blocked"
+    },
+    {
+      "document_key": "zhenjiu",
+      "task": "P4-T07",
+      "split_id": "zhenjiu.v1.e267e196ca45.p0001-0024",
+      "page_range": "1-24",
+      "page_count": 24,
+      "terminal_status": "needs_review",
+      "reason_codes": [
+        "empty_pages"
+      ],
+      "issue_codes_raw": [
+        "empty or near-empty pages: [9]",
+        "empty_pages"
+      ],
+      "page_map_complete": true,
+      "owner": "pipeline-ops",
+      "disposition": "human_review_near_empty_pages; residual_clean_pass; block_publication_until_reviewed",
+      "publication": "blocked"
+    },
+    {
+      "document_key": "zhenjiu",
+      "task": "P4-T07",
+      "split_id": "zhenjiu.v1.e267e196ca45.p0025-0048",
+      "page_range": "25-48",
+      "page_count": 24,
+      "terminal_status": "needs_review",
+      "reason_codes": [
+        "empty_pages"
+      ],
+      "issue_codes_raw": [
+        "empty or near-empty pages: [12]",
+        "empty_pages"
+      ],
+      "page_map_complete": true,
+      "owner": "pipeline-ops",
+      "disposition": "human_review_near_empty_pages; residual_clean_pass; block_publication_until_reviewed",
+      "publication": "blocked"
+    },
+    {
+      "document_key": "zhenjiu",
+      "task": "P4-T07",
+      "split_id": "zhenjiu.v1.e267e196ca45.p0049-0071",
+      "page_range": "49-71",
+      "page_count": 23,
+      "terminal_status": "needs_review",
+      "reason_codes": [
+        "empty_pages"
+      ],
+      "issue_codes_raw": [
+        "empty or near-empty pages: [7, 10]",
+        "empty_pages"
+      ],
+      "page_map_complete": true,
+      "owner": "pipeline-ops",
+      "disposition": "human_review_near_empty_pages; residual_clean_pass; block_publication_until_reviewed",
+      "publication": "blocked"
+    },
+    {
+      "document_key": "zhenjiu",
+      "task": "P4-T07",
+      "split_id": "zhenjiu.v1.e267e196ca45.p0072-0094",
+      "page_range": "72-94",
+      "page_count": 23,
+      "terminal_status": "needs_review",
+      "reason_codes": [
+        "empty_pages"
+      ],
+      "issue_codes_raw": [
+        "empty or near-empty pages: [8, 9, 12, 14, 18]",
+        "empty_pages"
+      ],
+      "page_map_complete": true,
+      "owner": "pipeline-ops",
+      "disposition": "human_review_near_empty_pages; residual_clean_pass; block_publication_until_reviewed",
+      "publication": "blocked"
+    },
+    {
+      "document_key": "renwen",
+      "task": "P4-T08",
+      "split_id": "renwen.v1.20340ad679a8.p0001-0020",
+      "page_range": "1-20",
+      "page_count": 20,
+      "terminal_status": "needs_review",
+      "reason_codes": [
+        "empty_pages"
+      ],
+      "issue_codes_raw": [
+        "empty or near-empty pages: [6, 9, 10, 13]",
+        "empty_pages"
+      ],
+      "page_map_complete": true,
+      "owner": "pipeline-ops",
+      "disposition": "human_review_near_empty_pages; residual_clean_pass; block_publication_until_reviewed",
+      "publication": "blocked"
+    },
+    {
+      "document_key": "renwen",
+      "task": "P4-T08",
+      "split_id": "renwen.v1.20340ad679a8.p0021-0039",
+      "page_range": "21-39",
+      "page_count": 19,
+      "terminal_status": "needs_review",
+      "reason_codes": [
+        "empty_pages"
+      ],
+      "issue_codes_raw": [
+        "empty or near-empty pages: [18]",
+        "empty_pages"
+      ],
+      "page_map_complete": true,
+      "owner": "pipeline-ops",
+      "disposition": "human_review_near_empty_pages; residual_clean_pass; block_publication_until_reviewed",
+      "publication": "blocked"
+    }
+  ],
+  "disposition_policy": {
+    "pass": "eligible for residual publication gate after P5",
+    "needs_review": "explicit terminal; publication blocked; owner=pipeline-ops; residual clean + human review required",
+    "fail": "must have owner/reason/action; none observed in P4 full runs",
+    "note": "Do not hide needs_review under overall complete; page-level terminal status retained"
+  },
+  "disposition_summary": "704/704 pages terminal: pass=136, needs_review=568, fail=0. 25 non-pass splits (568 pages) each have owner=pipeline-ops, reason codes, and blocked publication disposition. No silent fails. All 7 books have complete page maps, contiguous page ranges, chapter trees, quality reports, and recoverable local raw/cleaned/structured artifacts."
+}

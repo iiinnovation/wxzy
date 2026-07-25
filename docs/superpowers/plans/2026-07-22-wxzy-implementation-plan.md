@@ -861,13 +861,25 @@ issue 时删除迁移生成的 profile/session/Owner；一旦存在个人学习�
 
 ## P4-T09 全局覆盖闭环
 
-状态：`[ ]`
+状态：`[x]`
 
 工作：合并 7 本 coverage；处理 failed/needs_review；确认 704 页无遗漏；输出 tracked 的无原文摘要。
 
 验收：`total=704`，每页 terminal；所有失败有 owner、原因和处置，不用“总体完成”隐藏失败页。
 
+完成报告（2026-07-25）：
+- Tracked 全局无原文摘要：`docs/superpowers/reports/2026-07-25-p4-global-coverage.{json,md}`。
+- 704/704 terminal：pass 136 / needs_review 568 / fail 0；missing 0。
+- 7/7 书 acceptance met；page map complete；pages contiguous。
+- 25 个 non-pass split（568 页）均有 owner=`pipeline-ops`、reason、disposition；publication blocked。
+- 无 silent fail；不把 needs_review 折叠成“总体完成”。
+- 本地 raw/cleaned/structured/quality 7/7 可恢复。
+- 预算后（人文全量后）：files 38/5000，pages 774/1000（remaining 4962 / 226）。
+- 恢复点：下一阶段 **P5 候选卡、审核与发布**。
+
 ### P4 退出门禁
+
+状态：`[x]`
 
 - 704/704 页有状态和源页映射。
 - 7 本书有章节树和质量报告。
