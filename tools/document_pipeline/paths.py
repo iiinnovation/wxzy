@@ -16,7 +16,15 @@ DEFAULT_RESULTS = ROOT / "data" / "mineru" / "results"
 DEFAULT_RUNS = ROOT / "data" / "mineru" / "runs"
 DEFAULT_CARDS = ROOT / "data" / "mineru" / "cards"
 DEFAULT_CARD_BATCH = ROOT / "data" / "mineru" / "results" / "a67c429e-956c-4f28-bec6-69c3b71e17fa"
-SCHEMA_PATH = DEFAULT_CARDS / "candidate_card.schema.json"
+# Tracked Candidate Card schema (P5-T01). Legacy local copy under data/ is gitignored.
+CANDIDATE_CARD_V2_SCHEMA_PATH = (
+    ROOT / "tools" / "document_pipeline" / "schemas" / "candidate_card.v2.schema.json"
+)
+CANDIDATE_CARD_V1_SCHEMA_PATH = (
+    ROOT / "tools" / "document_pipeline" / "schemas" / "candidate_card.v1.schema.json"
+)
+SCHEMA_PATH = CANDIDATE_CARD_V2_SCHEMA_PATH
+LEGACY_SCHEMA_PATH = DEFAULT_CARDS / "candidate_card.schema.json"
 
 # Canonical document keys for the 7-book corpus (DOC-001).
 DOCUMENT_KEYS: dict[str, str] = {

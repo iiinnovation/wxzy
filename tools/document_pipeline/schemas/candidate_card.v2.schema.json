@@ -1,0 +1,191 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://wxzy.local/schemas/candidate_card.v2.schema.json",
+  "title": "wxzy CandidateCard v2",
+  "description": "Versioned candidate study card with provenance, risk, generation, and review fields.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "id",
+    "document_key",
+    "document_version",
+    "book",
+    "card_type",
+    "question",
+    "answer",
+    "answer_points",
+    "tags",
+    "source_excerpt",
+    "chunk_ids",
+    "sources",
+    "pdf_page_indexes",
+    "printed_page_labels",
+    "risk_level",
+    "risk_flags",
+    "content_hash",
+    "status",
+    "generator",
+    "prompt_version",
+    "created_at"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": { "type": "integer", "const": 2 },
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Stable candidate id (deterministic across reruns for same inputs)"
+    },
+    "document_key": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Canonical book key, e.g. fangji / neike"
+    },
+    "document_version": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Immutable document version id, e.g. fangji.v1.<hash12>"
+    },
+    "book": { "type": "string", "minLength": 1 },
+    "chapter": { "type": ["string", "null"] },
+    "section": { "type": ["string", "null"] },
+    "card_type": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Template/type key; keep v1 types and allow future template expansion"
+    },
+    "question": { "type": "string", "minLength": 1 },
+    "answer": { "type": "string", "minLength": 1 },
+    "answer_points": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "maxItems": 128
+    },
+    "tags": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "maxItems": 128
+    },
+    "source_excerpt": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Primary evidence excerpt; non-empty for gate pass"
+    },
+    "chunk_ids": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true,
+      "description": "Stable DocumentChunk keys used as generation input / evidence"
+    },
+    "sources": {
+      "type": "array",
+      "description": "Ordered provenance rows (may be empty only for legacy conversion placeholders)",
+      "items": {
+        "type": "object",
+        "required": [
+          "citation_order",
+          "chunk_id",
+          "excerpt",
+          "pdf_page_index_start",
+          "pdf_page_index_end"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "citation_order": { "type": "integer", "minimum": 0 },
+          "chunk_id": { "type": "string", "minLength": 1 },
+          "excerpt": { "type": "string", "minLength": 1 },
+          "pdf_page_index_start": { "type": "integer", "minimum": 0 },
+          "pdf_page_index_end": { "type": "integer", "minimum": 0 },
+          "printed_page_start_label": { "type": ["string", "null"] },
+          "printed_page_end_label": { "type": ["string", "null"] }
+        }
+      }
+    },
+    "pdf_page_indexes": {
+      "type": "array",
+      "items": { "type": "integer", "minimum": 0 },
+      "uniqueItems": true,
+      "description": "0-based source PDF page indexes"
+    },
+    "printed_page_labels": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "description": "Printed page labels when known; never coerce to PDF indexes"
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": ["low", "medium", "high", "critical"]
+    },
+    "risk_flags": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "uniqueItems": true,
+      "description": "Machine-readable risk reasons; required non-empty when risk_level is high/critical"
+    },
+    "content_hash": {
+      "type": "string",
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "sha256 of canonical card content fields"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "generated",
+        "needs_review",
+        "approved",
+        "rejected",
+        "published",
+        "superseded"
+      ]
+    },
+    "confidence": {
+      "type": ["number", "null"],
+      "minimum": 0,
+      "maximum": 1
+    },
+    "generator": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Generator name, e.g. offline-extractor / qwen-cursor"
+    },
+    "model": { "type": ["string", "null"] },
+    "prompt_version": { "type": "string", "minLength": 1 },
+    "generation_batch_id": { "type": ["string", "null"] },
+    "input_hash": {
+      "type": ["string", "null"],
+      "pattern": "^[0-9a-f]{64}$",
+      "description": "sha256 of generation input chunks when available"
+    },
+    "created_at": {
+      "type": "string",
+      "minLength": 1,
+      "description": "ISO-8601 UTC creation timestamp"
+    },
+    "reviewer": { "type": ["string", "null"] },
+    "reviewed_at": { "type": ["string", "null"] },
+    "review_notes": { "type": ["string", "null"] },
+    "review_decision": {
+      "type": ["string", "null"],
+      "enum": [null, "approve", "edit", "reject", "second_review"]
+    },
+    "legacy": {
+      "type": "object",
+      "description": "Optional v1 compatibility payload retained after conversion",
+      "additionalProperties": true,
+      "properties": {
+        "schema_version": { "type": "integer", "const": 1 },
+        "source_file": { "type": ["string", "null"] },
+        "source_pages": {
+          "type": "array",
+          "items": { "type": "integer" }
+        },
+        "sample_page_idxs": {
+          "type": "array",
+          "items": { "type": "integer" }
+        },
+        "type": { "type": "string" },
+        "status": { "type": "string" }
+      }
+    }
+  }
+}

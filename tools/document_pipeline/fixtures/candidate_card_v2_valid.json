@@ -1,0 +1,73 @@
+{
+  "schema_version": 2,
+  "description": "P5-T01 valid candidate card fixture (no full source text beyond excerpt)",
+  "card": {
+    "schema_version": 2,
+    "id": "桂枝汤的组成是什么-7ca473a32a",
+    "document_key": "fangji",
+    "document_version": "fangji.v1.0755d148d00a",
+    "book": "方剂学",
+    "chapter": "解表剂",
+    "section": "桂枝汤",
+    "card_type": "formula_compose",
+    "question": "桂枝汤的组成是什么？",
+    "answer": "桂枝三两 芍药三两 生姜三两 大枣十二枚 炙甘草二两。",
+    "answer_points": [
+      "桂枝三两",
+      "芍药三两",
+      "生姜三两",
+      "大枣十二枚",
+      "炙甘草二两"
+    ],
+    "tags": [
+      "桂枝汤",
+      "组成"
+    ],
+    "source_excerpt": "桂枝汤 组成：桂枝三两 芍药三两 生姜三两 大枣十二枚 炙甘草二两",
+    "chunk_ids": [
+      "fangji.v1.chunk.guizhi.compose"
+    ],
+    "sources": [
+      {
+        "citation_order": 0,
+        "chunk_id": "fangji.v1.chunk.guizhi.compose",
+        "excerpt": "桂枝汤 组成：桂枝三两 芍药三两 生姜三两 大枣十二枚 炙甘草二两",
+        "pdf_page_index_start": 20,
+        "pdf_page_index_end": 20,
+        "printed_page_start_label": "21",
+        "printed_page_end_label": "21"
+      }
+    ],
+    "pdf_page_indexes": [
+      20
+    ],
+    "printed_page_labels": [
+      "21"
+    ],
+    "risk_level": "high",
+    "risk_flags": [
+      "dosage_or_compose"
+    ],
+    "content_hash": "e9c0650275735e927c2dc3972a1a635e9c259944e326be51207e22d5bb55441d",
+    "status": "approved",
+    "confidence": 0.92,
+    "generator": "offline-extractor",
+    "model": null,
+    "prompt_version": "v1",
+    "generation_batch_id": "a67c429e-956c-4f28-bec6-69c3b71e17fa",
+    "input_hash": null,
+    "created_at": "2026-07-22T01:17:20.245169+00:00",
+    "reviewer": null,
+    "reviewed_at": null,
+    "review_notes": null,
+    "review_decision": null,
+    "legacy": {
+      "schema_version": 1,
+      "source_file": "data/mineru/results/a67c429e-956c-4f28-bec6-69c3b71e17fa/fangji_10p/unzipped/full.cleaned.md",
+      "source_pages": [],
+      "sample_page_idxs": [],
+      "type": "formula_compose",
+      "status": "approved"
+    }
+  }
+}

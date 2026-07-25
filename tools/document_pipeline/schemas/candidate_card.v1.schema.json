@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "candidate-card.v1",
+  "title": "CandidateStudyCard",
+  "type": "object",
+  "required": [
+    "id", "book", "type", "question", "answer",
+    "source_excerpt", "status", "trace"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "id": {"type": "string", "description": "stable local id"},
+    "book": {"type": "string", "examples": ["方剂学", "中医内科学"]},
+    "chapter": {"type": ["string", "null"]},
+    "section": {"type": ["string", "null"]},
+    "type": {
+      "type": "string",
+      "enum": [
+        "formula_compose",
+        "formula_function",
+        "formula_indication",
+        "formula_song",
+        "formula_usage_note",
+        "disease_concept",
+        "disease_pathogenesis",
+        "syndrome_formula",
+        "treatment_principle",
+        "versioned_classification",
+        "other"
+      ]
+    },
+    "question": {"type": "string"},
+    "answer": {"type": "string"},
+    "answer_points": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "optional structured bullets for review UI"
+    },
+    "source_excerpt": {
+      "type": "string",
+      "description": "verbatim or near-verbatim excerpt used as evidence"
+    },
+    "source_pages": {
+      "type": "array",
+      "items": {"type": "integer"},
+      "description": "original book page numbers when known"
+    },
+    "sample_page_idxs": {
+      "type": "array",
+      "items": {"type": "integer"},
+      "description": "0-based page indexes inside the sample PDF"
+    },
+    "tags": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "status": {
+      "type": "string",
+      "enum": ["candidate", "needs_review", "rejected", "approved"]
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "review_notes": {"type": ["string", "null"]},
+    "trace": {
+      "type": "object",
+      "required": ["source_file", "generator", "created_at"],
+      "additionalProperties": false,
+      "properties": {
+        "source_file": {"type": "string"},
+        "batch_id": {"type": ["string", "null"]},
+        "generator": {"type": "string"},
+        "model": {"type": ["string", "null"]},
+        "prompt_version": {"type": "string"},
+        "created_at": {"type": "string"}
+      }
+    }
+  }
+}

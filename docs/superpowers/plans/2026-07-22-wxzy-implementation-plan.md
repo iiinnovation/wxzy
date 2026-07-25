@@ -891,11 +891,17 @@ issue 时删除迁移生成的 profile/session/Owner；一旦存在个人学习�
 
 ## P5-T01 Candidate Card v2 Schema
 
-状态：`[ ]`
+状态：`[x]`
 
 工作：加入 document_version、chunk IDs、PDF/印刷页、risk_level/flags、content hash、generator/prompt 版本和审核字段；提供 v1 -> v2 converter。
 
 验收：现有 18 张样例可转换；无来源或高风险缺 flags 时 schema/gate 失败。
+
+完成证据：
+- schema：`tools/document_pipeline/schemas/candidate_card.v2.schema.json`（v1 副本同步 tracked）
+- 实现：`tools/document_pipeline/candidate_schema.py`（Pydantic 契约、content hash、gate、v1→v2 converter）
+- 测试：`tools/tests/test_candidate_schema_v2.py`（18 张样例转换；缺 provenance / high-critical 无 flags 失败）
+- 报告：`docs/superpowers/reports/2026-07-25-p5t01-candidate-card-v2.{json,md}`
 
 ## P5-T02 基础理论/诊断模板
 

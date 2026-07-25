@@ -1,0 +1,53 @@
+{
+  "schema_version": 1,
+  "task": "P5-T01",
+  "title": "Candidate Card v2 Schema",
+  "generated_at": "2026-07-25T02:08:05.041050+00:00",
+  "status": "complete",
+  "acceptance": {
+    "v1_sample_count": 18,
+    "v2_converted_count": 18,
+    "convert_all_samples": true,
+    "bare_conversion_gate_failures": 18,
+    "gate_fails_without_provenance": true,
+    "gate_fails_high_risk_without_flags": true,
+    "enriched_sample_passes_gate": true
+  },
+  "artifacts": {
+    "schema_v2": "tools/document_pipeline/schemas/candidate_card.v2.schema.json",
+    "schema_v1_tracked": "tools/document_pipeline/schemas/candidate_card.v1.schema.json",
+    "module": "tools/document_pipeline/candidate_schema.py",
+    "tests": "tools/tests/test_candidate_schema_v2.py",
+    "seed_v1": "server/seed_data/candidates_offline_v1.json"
+  },
+  "fields_added": [
+    "schema_version=2",
+    "document_key",
+    "document_version",
+    "chunk_ids",
+    "sources",
+    "pdf_page_indexes",
+    "printed_page_labels",
+    "risk_level",
+    "risk_flags",
+    "content_hash",
+    "generator",
+    "model",
+    "prompt_version",
+    "generation_batch_id",
+    "input_hash",
+    "reviewer",
+    "reviewed_at",
+    "review_notes",
+    "review_decision"
+  ],
+  "notes": [
+    "Legacy offline samples convert without page/chunk provenance; gate requires provenance before review/publish.",
+    "High/critical risk requires non-empty risk_flags.",
+    "Tracked schema lives under tools/document_pipeline/schemas; data/ remains gitignored."
+  ],
+  "verification": {
+    "pytest": "tools/tests/test_candidate_schema_v2.py + tools/tests/test_generate_candidate_cards.py => 9 passed",
+    "ruff": "candidate_schema.py / test_candidate_schema_v2.py clean"
+  }
+}
