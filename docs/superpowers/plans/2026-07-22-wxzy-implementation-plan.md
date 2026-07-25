@@ -867,7 +867,7 @@ issue 时删除迁移生成的 profile/session/Owner；一旦存在个人学习�
 
 验收：`total=704`，每页 terminal；所有失败有 owner、原因和处置，不用“总体完成”隐藏失败页。
 
-完成报告（2026-07-25）：
+完成报告（2026-07-25，commit `f6d48ea`）：
 - Tracked 全局无原文摘要：`docs/superpowers/reports/2026-07-25-p4-global-coverage.{json,md}`。
 - 704/704 terminal：pass 136 / needs_review 568 / fail 0；missing 0。
 - 7/7 书 acceptance met；page map complete；pages contiguous。
