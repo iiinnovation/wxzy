@@ -28,6 +28,10 @@ class CatalogReferenceError(RuntimeError):
     pass
 
 
+# Mini-program catalog surfaces both legacy approved cards and formally published cards.
+CATALOG_VISIBLE_STATUSES: tuple[str, ...] = ("approved", "published")
+
+
 @dataclass(frozen=True)
 class DocumentVersionRegistration:
     document: Document
@@ -89,7 +93,7 @@ def list_books(db: Session) -> list[BookOut]:
         select(Book, func.count(Card.id))
         .outerjoin(
             Card,
-            (Card.book_id == Book.id) & (Card.status == "approved"),
+            (Card.book_id == Book.id) & (Card.status.in_(CATALOG_VISIBLE_STATUSES)),
         )
         .group_by(Book.id)
         .order_by(Book.id)
@@ -104,7 +108,7 @@ def list_cards(
     db: Session,
     *,
     book_id: int | None = None,
-    status: str = "approved",
+    status: str | None = None,
     q: str | None = None,
     limit: int = 50,
     offset: int = 0,
@@ -113,8 +117,11 @@ def list_cards(
         select(Card)
         .options(joinedload(Card.book), selectinload(Card.sources))
         .join(Book)
-        .where(Card.status == status)
     )
+    if status is None or status in {"", "catalog", "visible"}:
+        statement = statement.where(Card.status.in_(CATALOG_VISIBLE_STATUSES))
+    else:
+        statement = statement.where(Card.status == status)
     if book_id is not None:
         statement = statement.where(Card.book_id == book_id)
     if q:

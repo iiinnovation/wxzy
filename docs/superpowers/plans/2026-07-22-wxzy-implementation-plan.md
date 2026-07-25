@@ -999,11 +999,16 @@ issue 时删除迁移生成的 profile/session/Owner；一旦存在个人学习�
 
 ## P5-T10 首批正式发布
 
-状态：`[ ]`
+状态：`[x]`
 
 工作：每本至少一个审核章节；导入目标库；核对小程序目录来源。
 
 验收：7 本可见；所有发布卡来源 100%；高风险审核记录 100%。
+
+完成证据：
+- 实现：`tools/document_pipeline/first_publication.py`（extract/review/export/verify）+ catalog 默认可见 `approved|published`
+- 测试：`tools/tests/test_first_publication.py` + `server/tests/test_first_publication_import.py`（focused suite 26 passed）
+- 报告：`docs/superpowers/reports/2026-07-25-p5t10-first-publication.{json,md}`
 
 ### P5 退出门禁
 

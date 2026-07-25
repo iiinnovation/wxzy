@@ -12,7 +12,10 @@ router = APIRouter(prefix="/cards", tags=["cards"])
 @router.get("", response_model=list[CardOut])
 def get_cards(
     book_id: int | None = None,
-    status: str = "approved",
+    status: str | None = Query(
+        default=None,
+        description="Card status filter. Omit/catalog/visible => approved+published.",
+    ),
     q: str | None = None,
     limit: int = Query(50, ge=1, le=200),
     offset: int = Query(0, ge=0),
