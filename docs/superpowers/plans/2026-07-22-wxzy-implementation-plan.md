@@ -848,7 +848,7 @@ issue 时删除迁移生成的 profile/session/Owner；一旦存在个人学习�
 
 目标：39/39 页 terminal；法规/伦理内容的版本或日期可记录。
 
-完成报告（2026-07-25）：
+完成报告（2026-07-25，commit `e49ba58`）：
 - Job：`renwen_p4t08_v1` batch `f3d85008-c4b5-409d-bda2-34091a05eac7`。
 - 39/39 terminal：pass 0 / needs_review 39 / fail 0；split 状态 2 needs_review。
 - page map 2/2 complete；pages 1..39 contiguous。
