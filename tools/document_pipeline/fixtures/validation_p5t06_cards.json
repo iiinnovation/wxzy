@@ -1,0 +1,508 @@
+{
+  "description": "P5-T06 validation fixtures (bad + control cards)",
+  "cards": {
+    "valid_control": {
+      "schema_version": 2,
+      "id": "baihu-function-control",
+      "document_key": "fangji",
+      "document_version": "fangji.v1.0755d148d00a",
+      "book": "方剂学",
+      "chapter": "清热剂",
+      "section": "白虎汤",
+      "card_type": "formula_function",
+      "question": "白虎汤的功用是什么？",
+      "answer": "清热生津。",
+      "answer_points": [
+        "清热生津"
+      ],
+      "tags": [
+        "白虎汤",
+        "功用"
+      ],
+      "source_excerpt": "白虎汤 功用：清热生津。",
+      "chunk_ids": [
+        "fangji.v1.chunk.baihu.function"
+      ],
+      "sources": [
+        {
+          "citation_order": 0,
+          "chunk_id": "fangji.v1.chunk.baihu.function",
+          "excerpt": "白虎汤 功用：清热生津。",
+          "pdf_page_index_start": 40,
+          "pdf_page_index_end": 40,
+          "printed_page_start_label": "41",
+          "printed_page_end_label": "41"
+        }
+      ],
+      "pdf_page_indexes": [
+        40
+      ],
+      "printed_page_labels": [
+        "41"
+      ],
+      "risk_level": "medium",
+      "risk_flags": [
+        "formula_function"
+      ],
+      "status": "generated",
+      "confidence": 0.91,
+      "generator": "offline-extractor",
+      "model": null,
+      "prompt_version": "v1",
+      "generation_batch_id": "p5t06-control",
+      "input_hash": null,
+      "created_at": "2026-07-25T03:00:00+00:00",
+      "reviewer": null,
+      "reviewed_at": null,
+      "review_notes": null,
+      "review_decision": null,
+      "legacy": null,
+      "content_hash": "3dfdcf94b2c355debd8d2ebfbf2cd2071a797f7c5368d9c83484e80dc0c80090"
+    },
+    "fabricated_dosage": {
+      "schema_version": 2,
+      "id": "fake-dose-guizhi-compose",
+      "document_key": "fangji",
+      "document_version": "fangji.v1.0755d148d00a",
+      "book": "方剂学",
+      "chapter": "解表剂",
+      "section": "桂枝汤",
+      "card_type": "formula_compose",
+      "question": "桂枝汤的组成是什么？",
+      "answer": "桂枝九两 芍药三两 生姜三两 大枣十二枚 炙甘草二两。",
+      "answer_points": [
+        "桂枝九两",
+        "芍药三两",
+        "生姜三两",
+        "大枣十二枚",
+        "炙甘草二两"
+      ],
+      "tags": [
+        "桂枝汤",
+        "组成"
+      ],
+      "source_excerpt": "桂枝汤 组成：桂枝三两 芍药三两 生姜三两 大枣十二枚 炙甘草二两",
+      "chunk_ids": [
+        "fangji.v1.chunk.guizhi.compose"
+      ],
+      "sources": [
+        {
+          "citation_order": 0,
+          "chunk_id": "fangji.v1.chunk.guizhi.compose",
+          "excerpt": "桂枝汤 组成：桂枝三两 芍药三两 生姜三两 大枣十二枚 炙甘草二两",
+          "pdf_page_index_start": 20,
+          "pdf_page_index_end": 20,
+          "printed_page_start_label": "21",
+          "printed_page_end_label": "21"
+        }
+      ],
+      "pdf_page_indexes": [
+        20
+      ],
+      "printed_page_labels": [
+        "21"
+      ],
+      "risk_level": "high",
+      "risk_flags": [
+        "dosage_or_compose"
+      ],
+      "status": "generated",
+      "confidence": 0.5,
+      "generator": "offline-extractor",
+      "model": null,
+      "prompt_version": "v1",
+      "generation_batch_id": "p5t06-bad",
+      "input_hash": null,
+      "created_at": "2026-07-25T03:00:00+00:00",
+      "reviewer": null,
+      "reviewed_at": null,
+      "review_notes": null,
+      "review_decision": null,
+      "legacy": null,
+      "content_hash": "eb72211c910067d709de298efbbe5605719dfb798939133b4c909109173b2a75"
+    },
+    "no_source_coverage": {
+      "schema_version": 2,
+      "id": "no-source-answer",
+      "document_key": "fangji",
+      "document_version": "fangji.v1.0755d148d00a",
+      "book": "方剂学",
+      "chapter": "解表剂",
+      "section": "桂枝汤",
+      "card_type": "formula_compose",
+      "question": "桂枝汤的组成包括哪些药物？",
+      "answer": "桂枝三两 芍药三两 生姜三两 大枣十二枚 炙甘草二两。",
+      "answer_points": [
+        "桂枝三两",
+        "芍药三两",
+        "生姜三两",
+        "大枣十二枚",
+        "炙甘草二两"
+      ],
+      "tags": [
+        "桂枝汤",
+        "组成"
+      ],
+      "source_excerpt": "无关文本，不含组成。",
+      "chunk_ids": [
+        "fangji.v1.chunk.guizhi.compose"
+      ],
+      "sources": [
+        {
+          "citation_order": 0,
+          "chunk_id": "fangji.v1.chunk.guizhi.compose",
+          "excerpt": "无关文本，不含组成。",
+          "pdf_page_index_start": 20,
+          "pdf_page_index_end": 20,
+          "printed_page_start_label": "21",
+          "printed_page_end_label": "21"
+        }
+      ],
+      "pdf_page_indexes": [
+        20
+      ],
+      "printed_page_labels": [
+        "21"
+      ],
+      "risk_level": "high",
+      "risk_flags": [
+        "dosage_or_compose"
+      ],
+      "status": "generated",
+      "confidence": 0.5,
+      "generator": "offline-extractor",
+      "model": null,
+      "prompt_version": "v1",
+      "generation_batch_id": "p5t06-bad",
+      "input_hash": null,
+      "created_at": "2026-07-25T03:00:00+00:00",
+      "reviewer": null,
+      "reviewed_at": null,
+      "review_notes": null,
+      "review_decision": null,
+      "legacy": null,
+      "content_hash": "66424320c118fd164a5dc93fd9fcc28d29b011f0ec68152dd424487006986e29"
+    },
+    "duplicate_a": {
+      "schema_version": 2,
+      "id": "dup-a-mahuang-compose",
+      "document_key": "fangji",
+      "document_version": "fangji.v1.0755d148d00a",
+      "book": "方剂学",
+      "chapter": "解表剂",
+      "section": "麻黄汤",
+      "card_type": "formula_compose",
+      "question": "麻黄汤的组成是什么？",
+      "answer": "麻黄三两 桂枝二两 杏仁七十个 炙甘草一两。",
+      "answer_points": [
+        "麻黄三两",
+        "桂枝二两",
+        "杏仁七十个",
+        "炙甘草一两"
+      ],
+      "tags": [
+        "麻黄汤",
+        "组成"
+      ],
+      "source_excerpt": "麻黄汤 组成：麻黄三两 桂枝二两 杏仁七十个 炙甘草一两",
+      "chunk_ids": [
+        "fangji.v1.chunk.mahuang.compose"
+      ],
+      "sources": [
+        {
+          "citation_order": 0,
+          "chunk_id": "fangji.v1.chunk.mahuang.compose",
+          "excerpt": "麻黄汤 组成：麻黄三两 桂枝二两 杏仁七十个 炙甘草一两",
+          "pdf_page_index_start": 18,
+          "pdf_page_index_end": 18,
+          "printed_page_start_label": "19",
+          "printed_page_end_label": "19"
+        }
+      ],
+      "pdf_page_indexes": [
+        18
+      ],
+      "printed_page_labels": [
+        "19"
+      ],
+      "risk_level": "high",
+      "risk_flags": [
+        "dosage_or_compose"
+      ],
+      "status": "generated",
+      "confidence": 0.9,
+      "generator": "offline-extractor",
+      "model": null,
+      "prompt_version": "v1",
+      "generation_batch_id": "p5t06-dup",
+      "input_hash": null,
+      "created_at": "2026-07-25T03:00:00+00:00",
+      "reviewer": null,
+      "reviewed_at": null,
+      "review_notes": null,
+      "review_decision": null,
+      "legacy": null,
+      "content_hash": "bee9024974535794fce90bad833bef43144fdf39ab44acbd6d041e2835969c93"
+    },
+    "duplicate_b": {
+      "schema_version": 2,
+      "id": "dup-b-mahuang-compose",
+      "document_key": "fangji",
+      "document_version": "fangji.v1.0755d148d00a",
+      "book": "方剂学",
+      "chapter": "解表剂",
+      "section": "麻黄汤",
+      "card_type": "formula_compose",
+      "question": "麻黄汤的组成是什么",
+      "answer": "麻黄三两，桂枝二两，杏仁七十个，炙甘草一两",
+      "answer_points": [
+        "麻黄三两",
+        "桂枝二两",
+        "杏仁七十个",
+        "炙甘草一两"
+      ],
+      "tags": [
+        "麻黄汤",
+        "组成"
+      ],
+      "source_excerpt": "麻黄汤 组成：麻黄三两 桂枝二两 杏仁七十个 炙甘草一两",
+      "chunk_ids": [
+        "fangji.v1.chunk.mahuang.compose"
+      ],
+      "sources": [
+        {
+          "citation_order": 0,
+          "chunk_id": "fangji.v1.chunk.mahuang.compose",
+          "excerpt": "麻黄汤 组成：麻黄三两 桂枝二两 杏仁七十个 炙甘草一两",
+          "pdf_page_index_start": 18,
+          "pdf_page_index_end": 18,
+          "printed_page_start_label": "19",
+          "printed_page_end_label": "19"
+        }
+      ],
+      "pdf_page_indexes": [
+        18
+      ],
+      "printed_page_labels": [
+        "19"
+      ],
+      "risk_level": "high",
+      "risk_flags": [
+        "dosage_or_compose"
+      ],
+      "status": "generated",
+      "confidence": 0.9,
+      "generator": "offline-extractor",
+      "model": null,
+      "prompt_version": "v1",
+      "generation_batch_id": "p5t06-dup",
+      "input_hash": null,
+      "created_at": "2026-07-25T03:00:00+00:00",
+      "reviewer": null,
+      "reviewed_at": null,
+      "review_notes": null,
+      "review_decision": null,
+      "legacy": null,
+      "content_hash": "d115e2b47c84f45d960891754df74d8053d59e99f4adad00007690cae0b65829"
+    },
+    "multi_version_mix": {
+      "schema_version": 2,
+      "id": "multi-version-zhongfeng",
+      "document_key": "neike",
+      "document_version": "neike.v1.8ea7bc991418",
+      "book": "中医内科学",
+      "chapter": "中风",
+      "section": "分类",
+      "card_type": "versioned_classification",
+      "question": "中风如何分类？",
+      "answer": "十版教材分中经络、中脏腑；五版教材亦分中经络、中脏腑并详列闭证脱证。",
+      "answer_points": [
+        "十版教材分中经络、中脏腑",
+        "五版教材分中经络、中脏腑并详列闭证脱证"
+      ],
+      "tags": [
+        "中风",
+        "十版教材",
+        "五版教材",
+        "multi_version"
+      ],
+      "source_excerpt": "十版教材将中风分为中经络与中脏腑两类。五版教材分中经络、中脏腑，闭证与脱证分治。",
+      "chunk_ids": [
+        "neike.v1.chunk.zhongfeng.version"
+      ],
+      "sources": [
+        {
+          "citation_order": 0,
+          "chunk_id": "neike.v1.chunk.zhongfeng.version",
+          "excerpt": "十版教材将中风分为中经络与中脏腑两类。五版教材分中经络、中脏腑，闭证与脱证分治。",
+          "pdf_page_index_start": 88,
+          "pdf_page_index_end": 88,
+          "printed_page_start_label": "89",
+          "printed_page_end_label": "89"
+        }
+      ],
+      "pdf_page_indexes": [
+        88
+      ],
+      "printed_page_labels": [
+        "89"
+      ],
+      "risk_level": "critical",
+      "risk_flags": [
+        "multi_version"
+      ],
+      "content_hash": "93a4c8ceb49ad26a12ce5fb04e3fae71bf31213ef6dc44d33f3f11e40484c833",
+      "status": "generated",
+      "confidence": 0.92,
+      "generator": "offline-extractor",
+      "model": null,
+      "prompt_version": "v1",
+      "generation_batch_id": "a67c429e-956c-4f28-bec6-69c3b71e17fa",
+      "input_hash": null,
+      "created_at": "2026-07-22T01:17:20.245169+00:00",
+      "reviewer": null,
+      "reviewed_at": null,
+      "review_notes": null,
+      "review_decision": null,
+      "legacy": {
+        "schema_version": 1,
+        "source_file": "data/mineru/results/a67c429e-956c-4f28-bec6-69c3b71e17fa/fangji_10p/unzipped/full.cleaned.md",
+        "source_pages": [],
+        "sample_page_idxs": [],
+        "type": "formula_compose",
+        "status": "approved"
+      }
+    },
+    "single_version_ok": {
+      "schema_version": 2,
+      "id": "single-version-zhongfeng-10",
+      "document_key": "neike",
+      "document_version": "neike.v1.8ea7bc991418",
+      "book": "中医内科学",
+      "chapter": "中风",
+      "section": "分类",
+      "card_type": "versioned_classification",
+      "question": "十版教材如何划分中风？",
+      "answer": "十版教材将中风分为中经络与中脏腑两类进行辨证论治。",
+      "answer_points": [
+        "中经络",
+        "中脏腑"
+      ],
+      "tags": [
+        "中风",
+        "十版教材",
+        "分类",
+        "multi_version"
+      ],
+      "source_excerpt": "十版教材将中风分为中经络与中脏腑两类进行辨证论治。",
+      "chunk_ids": [
+        "neike.v1.chunk.zhongfeng.version10"
+      ],
+      "sources": [
+        {
+          "citation_order": 0,
+          "chunk_id": "neike.v1.chunk.zhongfeng.version10",
+          "excerpt": "十版教材将中风分为中经络与中脏腑两类进行辨证论治。",
+          "pdf_page_index_start": 88,
+          "pdf_page_index_end": 88,
+          "printed_page_start_label": "89",
+          "printed_page_end_label": "89"
+        }
+      ],
+      "pdf_page_indexes": [
+        88
+      ],
+      "printed_page_labels": [
+        "89"
+      ],
+      "risk_level": "critical",
+      "risk_flags": [
+        "multi_version"
+      ],
+      "content_hash": "de973d2334629557bc42e2ace4a3459ede1af0bb318a6e552a9ecaf38cdc3a5b",
+      "status": "generated",
+      "confidence": 0.92,
+      "generator": "offline-extractor",
+      "model": null,
+      "prompt_version": "v1",
+      "generation_batch_id": "a67c429e-956c-4f28-bec6-69c3b71e17fa",
+      "input_hash": null,
+      "created_at": "2026-07-22T01:17:20.245169+00:00",
+      "reviewer": null,
+      "reviewed_at": null,
+      "review_notes": null,
+      "review_decision": null,
+      "legacy": {
+        "schema_version": 1,
+        "source_file": "data/mineru/results/a67c429e-956c-4f28-bec6-69c3b71e17fa/fangji_10p/unzipped/full.cleaned.md",
+        "source_pages": [],
+        "sample_page_idxs": [],
+        "type": "formula_compose",
+        "status": "approved"
+      }
+    },
+    "long_answer_no_points": {
+      "schema_version": 2,
+      "id": "long-answer-no-points",
+      "document_key": "fangji",
+      "document_version": "fangji.v1.0755d148d00a",
+      "book": "方剂学",
+      "chapter": "解表剂",
+      "section": "桂枝汤",
+      "card_type": "formula_function",
+      "question": "桂枝汤的功用是什么？",
+      "answer": "解肌发表，调和营卫。适用于外感风寒表虚证，见恶风发热、汗出、头痛、鼻鸣干呕等。还可用于病后、产后、体弱而致营卫不和者。",
+      "answer_points": [],
+      "tags": [
+        "桂枝汤",
+        "组成"
+      ],
+      "source_excerpt": "功用：解肌发表，调和营卫。主治外感风寒表虚证。",
+      "chunk_ids": [
+        "fangji.v1.chunk.guizhi.function"
+      ],
+      "sources": [
+        {
+          "citation_order": 0,
+          "chunk_id": "fangji.v1.chunk.guizhi.function",
+          "excerpt": "功用：解肌发表，调和营卫。主治外感风寒表虚证。",
+          "pdf_page_index_start": 20,
+          "pdf_page_index_end": 20,
+          "printed_page_start_label": "21",
+          "printed_page_end_label": "21"
+        }
+      ],
+      "pdf_page_indexes": [
+        20
+      ],
+      "printed_page_labels": [
+        "21"
+      ],
+      "risk_level": "medium",
+      "risk_flags": [
+        "formula_function"
+      ],
+      "content_hash": "9a5cc17d715da8beb7c3446d209c664c5025c0099a47fa18161892a2a12a6af8",
+      "status": "approved",
+      "confidence": 0.92,
+      "generator": "offline-extractor",
+      "model": null,
+      "prompt_version": "v1",
+      "generation_batch_id": "a67c429e-956c-4f28-bec6-69c3b71e17fa",
+      "input_hash": null,
+      "created_at": "2026-07-22T01:17:20.245169+00:00",
+      "reviewer": null,
+      "reviewed_at": null,
+      "review_notes": null,
+      "review_decision": null,
+      "legacy": {
+        "schema_version": 1,
+        "source_file": "data/mineru/results/a67c429e-956c-4f28-bec6-69c3b71e17fa/fangji_10p/unzipped/full.cleaned.md",
+        "source_pages": [],
+        "sample_page_idxs": [],
+        "type": "formula_compose",
+        "status": "approved"
+      }
+    }
+  }
+}

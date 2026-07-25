@@ -1,0 +1,58 @@
+{
+  "task": "P5-T06",
+  "title": "自动卡片校验与去重",
+  "status": "complete",
+  "generated_at": "2026-07-25T03:40:00.677116+00:00",
+  "stage": "candidate_validation",
+  "stage_version": "p5t06-v1",
+  "acceptance": {
+    "schema_gate": true,
+    "fabricated_dosage": true,
+    "no_source_answer": true,
+    "near_duplicate": true,
+    "multi_version_mix": true,
+    "min_knowledge_point": true,
+    "clean_controls_accepted": true,
+    "candidate_only": true
+  },
+  "accepted_ids": [
+    "baihu-function-control",
+    "single-version-zhongfeng-10"
+  ],
+  "rejected": {
+    "fake-dose-guizhi-compose": [
+      "fabricated_dosage",
+      "source_coverage_fail"
+    ],
+    "no-source-answer": [
+      "fabricated_dosage",
+      "fabricated_entity",
+      "source_coverage_fail"
+    ],
+    "dup-a-mahuang-compose": [
+      "near_duplicate"
+    ],
+    "dup-b-mahuang-compose": [
+      "near_duplicate"
+    ],
+    "multi-version-zhongfeng": [
+      "fabricated_entity",
+      "multi_version_mix",
+      "source_coverage_fail"
+    ],
+    "long-answer-no-points": [
+      "missing_min_knowledge_point"
+    ]
+  },
+  "artifacts": [
+    "tools/document_pipeline/candidate_validation.py",
+    "tools/document_pipeline/fixtures/validation_p5t06_cards.json",
+    "tools/tests/test_candidate_validation.py"
+  ],
+  "verification": {
+    "pytest_validation": "9 passed",
+    "pytest_related": "62 passed",
+    "ruff": "clean",
+    "mypy": "clean"
+  }
+}

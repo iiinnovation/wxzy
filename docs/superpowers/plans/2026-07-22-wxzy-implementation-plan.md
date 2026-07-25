@@ -944,11 +944,17 @@ issue 时删除迁移生成的 profile/session/Owner；一旦存在个人学习�
 
 ## P5-T06 自动卡片校验与去重
 
-状态：`[ ]`
+状态：`[x]`
 
 工作：schema、来源覆盖、实体新增、长度、最小知识点、近重复、多版本和风险检查。
 
 验收：伪造剂量、无来源答案、重复问题、多版本混合 fixture 被拦截。
+
+完成证据：
+- 实现：`tools/document_pipeline/candidate_validation.py`（单卡 + 批处理、accepted/rejected 产物）
+- fixtures：`tools/document_pipeline/fixtures/validation_p5t06_cards.json`
+- 测试：`tools/tests/test_candidate_validation.py`
+- 报告：`docs/superpowers/reports/2026-07-25-p5t06-candidate-validation.{json,md}`
 
 ## P5-T07 人工审核工作流
 
