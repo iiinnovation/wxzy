@@ -1,0 +1,26 @@
+{
+  "task": "P5-T08",
+  "title": "Publication Exporter",
+  "status": "complete",
+  "generated_at": "2026-07-25T03:45:38.663305+00:00",
+  "stage": "publication_export",
+  "stage_version": "p5t08-v1",
+  "acceptance": {
+    "package_layout": true,
+    "hash_recomputable": true,
+    "unreviewed_blocked": true,
+    "missing_citation_blocked": true,
+    "critical_reviewer_required": true,
+    "no_abs_paths_or_secrets": true
+  },
+  "artifacts": [
+    "tools/document_pipeline/publish.py",
+    "tools/tests/test_publication_export.py"
+  ],
+  "verification": {
+    "pytest_export": "4 passed",
+    "pytest_related": "30 passed",
+    "ruff": "clean",
+    "mypy": "clean"
+  }
+}

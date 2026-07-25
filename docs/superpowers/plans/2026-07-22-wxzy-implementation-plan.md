@@ -971,11 +971,16 @@ issue 时删除迁移生成的 profile/session/Owner；一旦存在个人学习�
 
 ## P5-T08 Publication Exporter
 
-状态：`[ ]`
+状态：`[x]`
 
 工作：manifest、documents、chapters、chunks、cards、sources、checksums、quality summary；不含本地路径和密钥。
 
 验收：hash 可重算；缺引用或未审核卡不能导出。
+
+完成证据：
+- 实现：`tools/document_pipeline/publish.py`（export_publication / checksum verify / export gates）
+- 测试：`tools/tests/test_publication_export.py`
+- 报告：`docs/superpowers/reports/2026-07-25-p5t08-publication-export.{json,md}`
 
 ## P5-T09 Publication Import API
 
