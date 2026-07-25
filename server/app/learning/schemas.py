@@ -198,7 +198,12 @@ class ReviewAttemptCreate(BaseModel):
     hint_used: bool = False
     reveal_count: int = Field(default=0, ge=0, le=100)
     answer_payload: dict[str, AnswerScalar] | None = None
-    next_state: ReviewStateValues
+    # Optional optimistic concurrency checks against the locked CardReviewState.
+    expected_due_at: datetime | None = None
+    expected_state: str | None = Field(
+        default=None, pattern="^(new|learning|review|relearning)$"
+    )
+    expected_reps: int | None = Field(default=None, ge=0)
 
     @field_validator("client_attempt_id")
     @classmethod
@@ -233,6 +238,127 @@ class ReviewAttemptCreate(BaseModel):
         if len(encoded.encode("utf-8")) > 8192:
             raise ValueError("answer_payload must not exceed 8192 UTF-8 bytes")
         return normalized
+
+
+class ReviewAttemptRequest(BaseModel):
+    session_id: int = Field(gt=0)
+    card_id: int = Field(gt=0)
+    card_revision: int = Field(gt=0)
+    client_attempt_id: str = Field(min_length=1, max_length=128)
+    rating: int = Field(ge=1, le=4)
+    response_ms: int = Field(ge=0, le=86_400_000)
+    hint_used: bool = False
+    reveal_count: int = Field(default=0, ge=0, le=100)
+    answer_payload: dict[str, AnswerScalar] | None = None
+    expected_due_at: datetime | None = None
+    expected_state: str | None = Field(
+        default=None, pattern="^(new|learning|review|relearning)$"
+    )
+    expected_reps: int | None = Field(default=None, ge=0)
+
+    @field_validator("client_attempt_id")
+    @classmethod
+    def normalize_client_attempt_id(cls, value: str) -> str:
+        normalized = value.strip()
+        if not normalized:
+            raise ValueError("client_attempt_id must not be blank")
+        return normalized
+
+    @field_validator("answer_payload")
+    @classmethod
+    def validate_answer_payload(
+        cls, value: dict[str, AnswerScalar] | None
+    ) -> dict[str, AnswerScalar] | None:
+        return ReviewAttemptCreate.validate_answer_payload(value)
+
+    def to_create(self, *, user_id: int) -> ReviewAttemptCreate:
+        return ReviewAttemptCreate(
+            user_id=user_id,
+            session_id=self.session_id,
+            card_id=self.card_id,
+            card_revision=self.card_revision,
+            client_attempt_id=self.client_attempt_id,
+            rating=self.rating,
+            response_ms=self.response_ms,
+            hint_used=self.hint_used,
+            reveal_count=self.reveal_count,
+            answer_payload=self.answer_payload,
+            expected_due_at=self.expected_due_at,
+            expected_state=self.expected_state,
+            expected_reps=self.expected_reps,
+        )
+
+
+class ReviewAttemptOut(BaseModel):
+    id: int
+    session_id: int
+    user_id: int
+    card_id: int
+    card_revision: int
+    client_attempt_id: str
+    rating: int
+    response_ms: int
+    hint_used: bool
+    reveal_count: int
+    answer_payload: dict[str, AnswerScalar] | None
+    state_before: dict[str, object]
+    state_after: dict[str, object]
+    due_before: datetime
+    due_after: datetime
+    algorithm_version: str
+    reviewed_at: datetime
+    replayed: bool
+
+    model_config = {"from_attributes": True}
+
+    @classmethod
+    def from_result(cls, result) -> ReviewAttemptOut:
+        attempt = result.attempt
+        return cls(
+            id=attempt.id,
+            session_id=attempt.session_id,
+            user_id=attempt.user_id,
+            card_id=attempt.card_id,
+            card_revision=attempt.card_revision,
+            client_attempt_id=attempt.client_attempt_id,
+            rating=attempt.rating,
+            response_ms=attempt.response_ms,
+            hint_used=attempt.hint_used,
+            reveal_count=attempt.reveal_count,
+            answer_payload=attempt.answer_payload,
+            state_before=dict(attempt.state_before),
+            state_after=dict(attempt.state_after),
+            due_before=attempt.due_before,
+            due_after=attempt.due_after,
+            algorithm_version=attempt.algorithm_version,
+            reviewed_at=attempt.reviewed_at,
+            replayed=result.replayed,
+        )
+
+
+class StudySessionRequest(BaseModel):
+    session_type: StudySessionType = StudySessionType.DAILY
+    estimated_minutes: int = Field(default=20, ge=0, le=1440)
+    planned_task_count: int = Field(default=0, ge=0)
+    auto_start: bool = True
+
+
+class StudySessionOut(BaseModel):
+    id: int
+    user_id: int
+    session_type: StudySessionType
+    status: StudySessionStatus
+    started_at: datetime | None
+    ended_at: datetime | None
+    estimated_minutes: int
+    actual_minutes: int
+    planned_task_count: int
+    completed_task_count: int
+    interruption_reason: str | None
+    created_at: datetime
+    updated_at: datetime
+
+    model_config = {"from_attributes": True}
 
 
 class CardIssueType(StrEnum):

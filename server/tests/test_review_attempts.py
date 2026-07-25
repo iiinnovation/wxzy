@@ -23,6 +23,7 @@ from app.learning.models import (
     ReviewAttempt,
     StudySession,
 )
+from app.learning.fsrs_adapter import ALGORITHM_VERSION, schedule
 from app.learning.schemas import (
     CardIssueCreate,
     CardIssueResolution,
@@ -30,7 +31,6 @@ from app.learning.schemas import (
     CardIssueType,
     EnrollmentCreate,
     ReviewAttemptCreate,
-    ReviewStateValues,
     StudySessionCreate,
     StudySessionFinish,
 )
@@ -138,6 +138,9 @@ def _attempt_values(
     session_id: int,
     client_attempt_id: str = "device-attempt-001",
     rating: int = 3,
+    expected_due_at: datetime | None = None,
+    expected_state: str | None = None,
+    expected_reps: int | None = None,
 ) -> ReviewAttemptCreate:
     return ReviewAttemptCreate(
         user_id=user_id,
@@ -150,34 +153,46 @@ def _attempt_values(
         hint_used=True,
         reveal_count=1,
         answer_payload={"text": "测试作答", "confidence": 4},
-        next_state=ReviewStateValues(
-            due_at=BASE_TIME + timedelta(days=2),
-            stability=2.5,
-            difficulty=4.7,
-            elapsed_days=0,
-            scheduled_days=2,
-            reps=1,
-            lapses=0,
-            state="review",
-            algorithm_version="fsrs-v1",
-        ),
+        expected_due_at=expected_due_at,
+        expected_state=expected_state,
+        expected_reps=expected_reps,
+    )
+
+
+def _expected_schedule(*, rating: int = 3, now: datetime | None = None):
+    reviewed_at = now or (BASE_TIME + timedelta(minutes=2))
+    return schedule(
+        rating=rating,
+        now=reviewed_at,
+        stability=1.0,
+        difficulty=5.0,
+        reps=0,
+        lapses=0,
+        state="new",
+        last_reviewed_at=None,
+        due_at=BASE_TIME,
     )
 
 
 def test_submit_review_attempt_updates_state_and_preserves_audit_snapshot(db: Session) -> None:
     user_id, card_id, session_id = _create_context(db)
     values = _attempt_values(user_id=user_id, card_id=card_id, session_id=session_id)
+    reviewed_at = BASE_TIME + timedelta(minutes=2)
+    expected = _expected_schedule(rating=3, now=reviewed_at)
 
-    result = submit_review_attempt(db, values, now=BASE_TIME + timedelta(minutes=2))
+    result = submit_review_attempt(db, values, now=reviewed_at)
 
     assert result.replayed is False
     assert result.attempt.card_revision == 2
     assert result.attempt.due_before == BASE_TIME
-    assert result.attempt.due_after == BASE_TIME + timedelta(days=2)
+    assert result.attempt.due_after == expected.due_at
+    assert result.attempt.algorithm_version == ALGORITHM_VERSION
     assert result.attempt.state_before["state"] == "new"
     assert result.attempt.state_before["reps"] == 0
-    assert result.attempt.state_after["state"] == "review"
+    assert result.attempt.state_after["state"] == expected.state
     assert result.attempt.state_after["last_rating"] == 3
+    assert result.attempt.state_after["stability"] == expected.stability
+    assert result.attempt.state_after["difficulty"] == expected.difficulty
     assert result.attempt.answer_payload == {"text": "测试作答", "confidence": 4}
 
     state = db.scalar(
@@ -186,8 +201,9 @@ def test_submit_review_attempt_updates_state_and_preserves_audit_snapshot(db: Se
         )
     )
     study_session = db.get(StudySession, session_id)
-    assert state is not None and state.reps == 1 and state.due_at == result.attempt.due_after
-    assert state.last_rating == 3 and state.last_reviewed_at == BASE_TIME + timedelta(minutes=2)
+    assert state is not None and state.reps == expected.reps and state.due_at == result.attempt.due_after
+    assert state.last_rating == 3 and state.last_reviewed_at == reviewed_at
+    assert state.algorithm_version == ALGORITHM_VERSION
     assert study_session is not None and study_session.completed_task_count == 1
 
 
@@ -281,6 +297,34 @@ def test_postgres_concurrent_duplicate_submission_creates_one_attempt() -> None:
             _clean_rows(verify_db)
     finally:
         postgres_engine.dispose()
+
+
+def test_expected_current_state_mismatch_is_conflict(db: Session) -> None:
+    user_id, card_id, session_id = _create_context(db)
+    values = _attempt_values(
+        user_id=user_id,
+        card_id=card_id,
+        session_id=session_id,
+        expected_state="review",
+        expected_reps=3,
+    )
+    with pytest.raises(ReviewAttemptConflictError, match="expected state"):
+        submit_review_attempt(db, values, now=BASE_TIME + timedelta(minutes=2))
+
+
+def test_expected_current_state_match_allows_submit(db: Session) -> None:
+    user_id, card_id, session_id = _create_context(db)
+    values = _attempt_values(
+        user_id=user_id,
+        card_id=card_id,
+        session_id=session_id,
+        expected_due_at=BASE_TIME,
+        expected_state="new",
+        expected_reps=0,
+    )
+    result = submit_review_attempt(db, values, now=BASE_TIME + timedelta(minutes=2))
+    assert result.replayed is False
+    assert result.attempt.algorithm_version == ALGORITHM_VERSION
 
 
 def test_study_session_complete_and_interrupt_lifecycle(db: Session) -> None:

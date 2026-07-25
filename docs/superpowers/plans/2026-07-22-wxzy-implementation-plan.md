@@ -1051,11 +1051,16 @@ issue 时删除迁移生成的 profile/session/Owner；一旦存在个人学习�
 
 ## P6-T03 幂等 ReviewAttempt
 
-状态：`[ ]`
+状态：`[x]`
 
 工作：开始会话、current state 检查、原子调度、attempt 写入；client ID 重放；并发锁/冲突。
 
 验收：重复点击、超时重试、并发请求测试均只有一条记录。
+
+完成记录：
+- `submit_review_attempt` 服务端调用标准 FSRS 生成 `state_after`，可选 `expected_due_at/state/reps` 做 current-state 冲突检查。
+- HTTP：`POST /api/v1/study-sessions`（可 auto_start）、`POST /api/v1/review-attempts`（幂等）。
+- 单测覆盖成功调度、重放、上下文冲突、expected-state 冲突、会话生命周期；HTTP 覆盖会话开始、评分重放与 409。
 
 ## P6-T04 DailyPlan v1
 

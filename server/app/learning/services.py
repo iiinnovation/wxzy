@@ -15,7 +15,7 @@ from ..core.errors import ResourceNotFoundError
 from ..identity.models import User
 from ..models import ReviewLog, ReviewState
 from ..schemas import ReviewAnswerOut, ReviewDueItem, StatsOut
-from .fsrs_adapter import ALGORITHM_VERSION, schedule, utcnow
+from .fsrs_adapter import ALGORITHM_VERSION, schedule, schedule_to_review_values, utcnow
 from .models import CardEnrollment, CardIssue, CardReviewState, ReviewAttempt, StudySession
 from .schemas import (
     CardIssueCreate,
@@ -880,6 +880,27 @@ def _snapshot_review_state(state: CardReviewState) -> ReviewStateValues:
     )
 
 
+
+def _assert_expected_current_state(
+    state: CardReviewState, values: ReviewAttemptCreate
+) -> None:
+    if values.expected_due_at is not None:
+        expected_due = _require_aware_utc(values.expected_due_at)
+        current_due = _require_aware_utc(state.due_at)
+        if current_due != expected_due:
+            raise ReviewAttemptConflictError(
+                "current review state does not match expected due_at"
+            )
+    if values.expected_state is not None and state.state != values.expected_state:
+        raise ReviewAttemptConflictError(
+            "current review state does not match expected state"
+        )
+    if values.expected_reps is not None and state.reps != values.expected_reps:
+        raise ReviewAttemptConflictError(
+            "current review state does not match expected reps"
+        )
+
+
 def _validate_attempt_replay(
     existing: ReviewAttempt, values: ReviewAttemptCreate
 ) -> ReviewAttemptResult:
@@ -968,13 +989,26 @@ def submit_review_attempt(
     if state is None:
         raise ReviewAttemptReferenceError("card review state does not exist")
 
+    _assert_expected_current_state(state, values)
+
     reviewed_at = _require_aware_utc(now or _utc_now())
-    next_values = values.next_state.model_copy(
-        update={
-            "due_at": _require_aware_utc(values.next_state.due_at),
-            "last_rating": values.rating,
-            "last_reviewed_at": reviewed_at,
-        }
+    scheduled = schedule(
+        rating=values.rating,
+        now=reviewed_at,
+        stability=state.stability,
+        difficulty=state.difficulty,
+        reps=state.reps,
+        lapses=state.lapses,
+        state=state.state,
+        last_reviewed_at=state.last_reviewed_at,
+        due_at=state.due_at,
+    )
+    next_values = ReviewStateValues.model_validate(
+        schedule_to_review_values(
+            scheduled,
+            rating=values.rating,
+            reviewed_at=reviewed_at,
+        )
     )
     before_values = _snapshot_review_state(state)
     attempt = ReviewAttempt(
