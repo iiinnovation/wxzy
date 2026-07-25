@@ -844,9 +844,20 @@ issue 时删除迁移生成的 profile/session/Owner；一旦存在个人学习�
 
 ## P4-T08 人文全量
 
-状态：`[ ]`
+状态：`[x]`
 
 目标：39/39 页 terminal；法规/伦理内容的版本或日期可记录。
+
+完成报告（2026-07-25）：
+- Job：`renwen_p4t08_v1` batch `f3d85008-c4b5-409d-bda2-34091a05eac7`。
+- 39/39 terminal：pass 0 / needs_review 39 / fail 0；split 状态 2 needs_review。
+- page map 2/2 complete；pages 1..39 contiguous。
+- clean.v2 → structure.v1 → quality.v1。
+- 表块 18；`bad_tables` 不存在；抽查关键词 split 命中 法规/伦理/版本/日期 = 2/2/2/2。
+- Issue codes：`empty_pages`（2 个 split 近空页，显式 needs_review，无 silent fail）。
+- Tracked 无原文报告：`docs/superpowers/reports/2026-07-24-renwen-p4t08.{json,md}`。
+- 预算后：files 38/5000，pages 774/1000（remaining 4962 / 226）。
+- 恢复点：下一串行任务 **P4-T09 全局覆盖闭环**。
 
 ## P4-T09 全局覆盖闭环
 
