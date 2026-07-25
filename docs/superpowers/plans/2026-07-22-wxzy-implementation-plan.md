@@ -905,9 +905,16 @@ issue 时删除迁移生成的 profile/session/Owner；一旦存在个人学习�
 
 ## P5-T02 基础理论/诊断模板
 
-状态：`[ ]`
+状态：`[x]`
 
 工作：定义、机制、关系、对比、四诊、证候和鉴别模板；针对代表章节 golden tests。
+
+完成证据：
+- 实现：`tools/document_pipeline/templates_jichu_zhenduan.py`（concept_definition / mechanism / relation / contrast / four_exam / symptom_syndrome / syndrome / differential）
+- risk map：`CARD_TYPE_DEFAULT_RISK` 扩展 jichu/zhenduan 卡型
+- golden fixtures：`tools/document_pipeline/fixtures/templates_{jichu,zhenduan}_golden.md`
+- 测试：`tools/tests/test_templates_jichu_zhenduan.py`
+- 报告：`docs/superpowers/reports/2026-07-25-p5t02-jichu-zhenduan-templates.{json,md}`
 
 ## P5-T03 中药/方剂模板
 

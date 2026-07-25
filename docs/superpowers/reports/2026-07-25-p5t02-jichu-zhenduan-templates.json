@@ -1,0 +1,102 @@
+{
+  "task": "P5-T02",
+  "title": "基础理论/诊断模板",
+  "status": "complete",
+  "generated_at": "2026-07-25T02:18:37+00:00",
+  "schema_version": 2,
+  "acceptance": {
+    "jichu_templates": [
+      "concept_definition",
+      "contrast",
+      "mechanism",
+      "relation"
+    ],
+    "zhenduan_templates": [
+      "differential",
+      "four_exam",
+      "symptom_syndrome",
+      "syndrome"
+    ],
+    "jichu_card_count": 8,
+    "zhenduan_card_count": 11,
+    "all_pass_v2_gate": true,
+    "required_jichu": [
+      "concept_definition",
+      "mechanism",
+      "relation",
+      "contrast"
+    ],
+    "required_zhenduan": [
+      "four_exam",
+      "symptom_syndrome",
+      "syndrome",
+      "differential"
+    ],
+    "required_jichu_covered": true,
+    "required_zhenduan_covered": true
+  },
+  "artifacts": [
+    "tools/document_pipeline/templates_jichu_zhenduan.py",
+    "tools/document_pipeline/candidate_schema.py",
+    "tools/document_pipeline/fixtures/templates_jichu_golden.md",
+    "tools/document_pipeline/fixtures/templates_zhenduan_golden.md",
+    "tools/tests/test_templates_jichu_zhenduan.py"
+  ],
+  "card_type_risk": {
+    "concept_definition": [
+      "low",
+      []
+    ],
+    "mechanism": [
+      "medium",
+      [
+        "pathogenesis_summary"
+      ]
+    ],
+    "relation": [
+      "medium",
+      [
+        "relation_summary"
+      ]
+    ],
+    "contrast": [
+      "medium",
+      [
+        "contrast_pair"
+      ]
+    ],
+    "four_exam": [
+      "low",
+      []
+    ],
+    "symptom_syndrome": [
+      "medium",
+      [
+        "symptom_mapping"
+      ]
+    ],
+    "syndrome": [
+      "high",
+      [
+        "syndrome_mapping"
+      ]
+    ],
+    "differential": [
+      "high",
+      [
+        "differential_diagnosis"
+      ]
+    ]
+  },
+  "notes": [
+    "Deterministic markdown/HTML table extractors for representative jichu and zhenduan chapters.",
+    "Golden fixtures are short tracked samples; full OCR remains under gitignored data/.",
+    "Outputs are Candidate Card v2 with document_version, chunk_ids, pdf pages, risk, content_hash.",
+    "Candidates stay off review/learn path until later P5 review/publish tasks."
+  ],
+  "verification": {
+    "pytest": "tools/tests/test_templates_jichu_zhenduan.py + test_candidate_schema_v2.py + test_generate_candidate_cards.py => 22 passed",
+    "ruff": "templates_jichu_zhenduan.py / test_templates_jichu_zhenduan.py / candidate_schema.py clean",
+    "mypy": "templates_jichu_zhenduan.py / candidate_schema.py clean"
+  }
+}
