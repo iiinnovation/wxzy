@@ -3,14 +3,16 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from collections import Counter
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
+from time import monotonic, sleep
 from typing import Any
 
 from pydantic import ValidationError
 from sqlalchemy import func, select
-from sqlalchemy.exc import IntegrityError
+from sqlalchemy.exc import IntegrityError, OperationalError
 from sqlalchemy.orm import Session
 
 from ..catalog.models import (
@@ -74,8 +76,28 @@ def _sha256_text(text: str) -> str:
     return _sha256_bytes(text.encode("utf-8"))
 
 
+def _coerce_int(value: Any, *, default: int = 0) -> int:
+    return int(value) if value is not None else default
+
+
 def _canonical_json(payload: Any) -> str:
     return json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+
+
+def _acquire_sqlite_import_lock(db: Session) -> None:
+    deadline = monotonic() + 5
+    while True:
+        try:
+            if db.in_transaction():
+                db.connection().exec_driver_sql("UPDATE publication_imports SET id = id WHERE 0")
+            else:
+                db.connection().exec_driver_sql("BEGIN IMMEDIATE")
+            return
+        except OperationalError as exc:
+            db.rollback()
+            if "locked" not in str(exc).lower() or monotonic() >= deadline:
+                raise
+            sleep(0.01)
 
 
 def _stable_external_id(card: CompatibilityCardImport) -> str:
@@ -245,9 +267,7 @@ def _read_jsonl(path: Path) -> list[dict[str, Any]]:
 
 
 def _recompute_file_checksums(package_dir: Path) -> dict[str, str]:
-    return {
-        name: _sha256_bytes((package_dir / name).read_bytes()) for name in HASHED_PACKAGE_FILES
-    }
+    return {name: _sha256_bytes((package_dir / name).read_bytes()) for name in HASHED_PACKAGE_FILES}
 
 
 def _as_counts(raw: dict[str, Any] | None) -> PublicationCounts:
@@ -428,19 +448,25 @@ def _validate_loaded_package(package: LoadedPublicationPackage) -> PublicationVa
     publication_id = str(manifest.get("publication_id") or "").strip()
     if not publication_id:
         errors.append("manifest.publication_id is required")
+    sidecar_publication_id = str(package.checksums.get("publication_id") or "").strip()
+    if sidecar_publication_id != publication_id:
+        errors.append("manifest and checksums.json publication_id differ")
 
     schema_version = manifest.get("schema_version")
     if not isinstance(schema_version, int) or schema_version < 1:
         errors.append("manifest.schema_version must be a positive integer")
 
-    recorded_files = (
-        manifest.get("checksums")
-        if isinstance(manifest.get("checksums"), dict)
-        else package.checksums.get("files")
-    )
-    if not isinstance(recorded_files, dict):
-        errors.append("checksum file map missing")
-        recorded_files = {}
+    manifest_files = manifest.get("checksums")
+    sidecar_files = package.checksums.get("files")
+    if not isinstance(manifest_files, dict):
+        errors.append("manifest.checksums file map missing")
+        manifest_files = {}
+    if not isinstance(sidecar_files, dict):
+        errors.append("checksums.json file map missing")
+        sidecar_files = {}
+    if manifest_files != sidecar_files:
+        errors.append("manifest and checksums.json file maps differ")
+    recorded_files = manifest_files
 
     actual = _recompute_file_checksums(package.package_dir)
     mismatches = {
@@ -452,21 +478,44 @@ def _validate_loaded_package(package: LoadedPublicationPackage) -> PublicationVa
         errors.append(f"checksum mismatches: {sorted(mismatches)}")
 
     package_hash_actual = _sha256_text(_canonical_json(actual))
-    package_hash_recorded = str(
-        manifest.get("package_hash") or package.checksums.get("package_hash") or ""
-    )
-    if package_hash_recorded and package_hash_recorded != package_hash_actual:
+    manifest_package_hash = str(manifest.get("package_hash") or "")
+    sidecar_package_hash = str(package.checksums.get("package_hash") or "")
+    if not re.fullmatch(r"[0-9a-f]{64}", manifest_package_hash):
+        errors.append("manifest.package_hash must be sha256 hex")
+    if not re.fullmatch(r"[0-9a-f]{64}", sidecar_package_hash):
+        errors.append("checksums.json package_hash must be sha256 hex")
+    if manifest_package_hash != sidecar_package_hash:
+        errors.append("manifest and checksums.json package_hash differ")
+    package_hash_recorded = manifest_package_hash
+    if package_hash_recorded != package_hash_actual:
         errors.append("package_hash mismatch")
 
-    manifest_for_hash = {
-        key: value for key, value in manifest.items() if key != "manifest_hash"
-    }
+    manifest_for_hash = {key: value for key, value in manifest.items() if key != "manifest_hash"}
     manifest_hash_actual = _sha256_text(_canonical_json(manifest_for_hash))
     manifest_hash_recorded = str(manifest.get("manifest_hash") or "")
-    if manifest_hash_recorded and manifest_hash_recorded != manifest_hash_actual:
+    sidecar_manifest_hash = str(package.checksums.get("manifest_hash") or "")
+    if not re.fullmatch(r"[0-9a-f]{64}", manifest_hash_recorded):
+        errors.append("manifest.manifest_hash must be sha256 hex")
+    if not re.fullmatch(r"[0-9a-f]{64}", sidecar_manifest_hash):
+        errors.append("checksums.json manifest_hash must be sha256 hex")
+    if manifest_hash_recorded != sidecar_manifest_hash:
+        errors.append("manifest and checksums.json manifest_hash differ")
+    if manifest_hash_recorded != manifest_hash_actual:
         errors.append("manifest_hash mismatch")
 
-    counts = _as_counts(manifest.get("counts") if isinstance(manifest.get("counts"), dict) else None)
+    raw_counts = manifest.get("counts")
+    declared_values: dict[str, int] = {}
+    if not isinstance(raw_counts, dict):
+        errors.append("manifest.counts must be an object")
+        raw_counts = {}
+    for field_name in PublicationCounts.model_fields:
+        raw_value = raw_counts.get(field_name)
+        if isinstance(raw_value, bool) or not isinstance(raw_value, int) or raw_value < 0:
+            errors.append(f"manifest.counts.{field_name} must be a non-negative integer")
+            declared_values[field_name] = 0
+        else:
+            declared_values[field_name] = raw_value
+    counts = PublicationCounts(**declared_values)
     observed = PublicationCounts(
         documents=len(package.documents),
         chapters=len(package.chapters),
@@ -475,7 +524,7 @@ def _validate_loaded_package(package: LoadedPublicationPackage) -> PublicationVa
         card_sources=len(package.card_sources),
     )
     for field_name in PublicationCounts.model_fields:
-        if getattr(counts, field_name) and getattr(counts, field_name) != getattr(observed, field_name):
+        if getattr(counts, field_name) != getattr(observed, field_name):
             errors.append(
                 f"manifest.counts.{field_name}={getattr(counts, field_name)} "
                 f"does not match package rows={getattr(observed, field_name)}"
@@ -490,8 +539,16 @@ def _validate_loaded_package(package: LoadedPublicationPackage) -> PublicationVa
         for row in package.chunks
     }
     chunk_ids.discard("")
-    card_ids = {str(row.get("id") or "").strip() for row in package.cards}
-    card_ids.discard("")
+    card_identity_rows = [str(row.get("id") or "").strip() for row in package.cards]
+    card_ids = {identity for identity in card_identity_rows if identity}
+    if any(not identity for identity in card_identity_rows):
+        errors.append("cards.jsonl contains a card without id")
+    card_identity_counts = Counter(card_identity_rows)
+    duplicate_card_ids = sorted(
+        identity for identity in card_ids if card_identity_counts[identity] > 1
+    )
+    if duplicate_card_ids:
+        errors.append(f"cards.jsonl contains duplicate ids: {duplicate_card_ids}")
 
     for index, card in enumerate(package.cards):
         cid = str(card.get("id") or f"card[{index}]")
@@ -523,6 +580,8 @@ def _validate_loaded_package(package: LoadedPublicationPackage) -> PublicationVa
                 warnings.append(f"{cid}: chunk_id {chunk_id!r} not listed in chunks.jsonl")
 
     sources_by_card: dict[str, list[dict[str, Any]]] = {}
+    source_orders: set[tuple[str, int]] = set()
+    source_chunks: set[tuple[str, str]] = set()
     for index, source in enumerate(package.card_sources):
         card_id = str(source.get("card_id") or "").strip()
         if not card_id:
@@ -533,6 +592,23 @@ def _validate_loaded_package(package: LoadedPublicationPackage) -> PublicationVa
         chunk_id = str(source.get("chunk_id") or "").strip()
         if not chunk_id:
             errors.append(f"card_sources[{index}]: missing chunk_id")
+        citation_order = source.get("citation_order")
+        if isinstance(citation_order, bool) or not isinstance(citation_order, int):
+            errors.append(f"card_sources[{index}]: citation_order must be a non-negative integer")
+        elif citation_order < 0:
+            errors.append(f"card_sources[{index}]: citation_order must be a non-negative integer")
+        else:
+            order_identity = (card_id, citation_order)
+            if order_identity in source_orders:
+                errors.append(
+                    f"card_sources[{index}]: duplicate citation_order for card {card_id!r}"
+                )
+            source_orders.add(order_identity)
+        if card_id and chunk_id:
+            chunk_identity = (card_id, chunk_id)
+            if chunk_identity in source_chunks:
+                errors.append(f"card_sources[{index}]: duplicate chunk_id for card {card_id!r}")
+            source_chunks.add(chunk_identity)
         excerpt = str(source.get("excerpt") or "").strip()
         if not excerpt:
             errors.append(f"card_sources[{index}]: empty excerpt")
@@ -805,6 +881,15 @@ def import_publication_package(
     manifest_hash = validation.manifest_hash or ""
     package_hash = validation.package_hash or ""
     schema_version = int(validation.schema_version or 1)
+    if db.get_bind().dialect.name == "sqlite":
+        try:
+            _acquire_sqlite_import_lock(db)
+        except OperationalError as exc:
+            raise InvalidRequestError(
+                code="PUBLICATION_IMPORT_BUSY",
+                message="发布导入正在执行，请稍后重试",
+                status_code=409,
+            ) from exc
 
     existing = db.scalar(
         select(PublicationImport).where(PublicationImport.publication_id == publication_id).limit(1)
@@ -885,21 +970,26 @@ def import_publication_package(
             doc_row = docs_by_key.get(document_key, {})
             title = str(doc_row.get("title") or book_name).strip() or book_name
             subject = doc_row.get("subject")
-            subject_text = str(subject).strip() if isinstance(subject, str) and subject.strip() else None
+            subject_text = (
+                str(subject).strip() if isinstance(subject, str) and subject.strip() else None
+            )
 
             if document_key not in version_by_doc_key:
                 page_count = int(doc_row.get("page_count") or 0)
                 size_bytes = int(doc_row.get("size_bytes") or 0)
                 # derive page_count from cards/chunks if absent
                 if page_count <= 0:
-                    pages = [int(p) for p in (card.get("pdf_page_indexes") or []) if isinstance(p, int)]
+                    pages = [
+                        int(p) for p in (card.get("pdf_page_indexes") or []) if isinstance(p, int)
+                    ]
                     page_count = (max(pages) + 1) if pages else 1
                 if size_bytes <= 0:
                     size_bytes = 1
                 source_sha = doc_row.get("source_sha256")
                 source_sha_text = (
                     str(source_sha).lower()
-                    if isinstance(source_sha, str) and re.fullmatch(r"[0-9a-fA-F]{64}", str(source_sha))
+                    if isinstance(source_sha, str)
+                    and re.fullmatch(r"[0-9a-fA-F]{64}", str(source_sha))
                     else None
                 )
                 _document, version = _ensure_document_version(
@@ -930,7 +1020,9 @@ def import_publication_package(
                         db,
                         version=version,
                         chapter_key=chapter_key,
-                        title=str(chapter_row.get("title") or chapter_row.get("chapter") or chapter_key),
+                        title=str(
+                            chapter_row.get("title") or chapter_row.get("chapter") or chapter_key
+                        ),
                         sort_order=int(chapter_row.get("sort_order") or 0),
                         pdf_page_index_start=start,
                         pdf_page_index_end=end,
@@ -1008,15 +1100,16 @@ def import_publication_package(
                 if not chunk_id or chunk_id in chunk_by_key:
                     continue
                 chunk_row = chunks_by_id.get(chunk_id, {})
-                start = int(
+                start = _coerce_int(
                     source.get("pdf_page_index_start")
                     if source.get("pdf_page_index_start") is not None
-                    else chunk_row.get("pdf_page_index_start") or 0
+                    else chunk_row.get("pdf_page_index_start"),
                 )
-                end = int(
+                end = _coerce_int(
                     source.get("pdf_page_index_end")
                     if source.get("pdf_page_index_end") is not None
-                    else chunk_row.get("pdf_page_index_end") or start
+                    else chunk_row.get("pdf_page_index_end"),
+                    default=start,
                 )
                 if end >= version.page_count:
                     version.page_count = end + 1
@@ -1045,11 +1138,11 @@ def import_publication_package(
                     and re.fullmatch(r"[0-9a-fA-F]{64}", str(content_hash))
                     else None
                 )
-                chapter = chapter_by_pair.get((document_key, chapter_title))
+                source_chapter = chapter_by_pair.get((document_key, chapter_title))
                 chunk_by_key[chunk_id] = _ensure_chunk(
                     db,
                     version=version,
-                    chapter=chapter,
+                    chapter=source_chapter,
                     chunk_key=chunk_id,
                     chapter_path=list(chunk_row.get("chapter_path") or [chapter_title]),
                     pdf_page_index_start=start,
@@ -1073,7 +1166,9 @@ def import_publication_package(
             document_key = str(card.get("document_key") or "").strip()
             chapter_title = str(card.get("chapter") or "未分章").strip() or "未分章"
             section = card.get("section")
-            section_text = str(section).strip() if isinstance(section, str) and section.strip() else None
+            section_text = (
+                str(section).strip() if isinstance(section, str) and section.strip() else None
+            )
             card_type = str(card.get("card_type") or "other").strip() or "other"
             question = str(card.get("question") or "").strip()
             answer = str(card.get("answer") or "").strip()
@@ -1095,7 +1190,12 @@ def import_publication_package(
             existing_card = db.scalar(select(Card).where(Card.external_id == external_id).limit(1))
             if existing_card is not None:
                 existing_hash = (existing_card.content_hash or "").lower()
-                if existing_hash and existing_hash == content_hash:
+                if (
+                    existing_hash
+                    and existing_hash == content_hash
+                    and existing_card.status == "published"
+                    and existing_card.sources
+                ):
                     stats.cards_skipped += 1
                     continue
                 if existing_hash and existing_hash != content_hash:
@@ -1112,7 +1212,8 @@ def import_publication_package(
                         )
                     )
                     continue
-                # Existing card without content_hash: treat as update to publication metadata.
+                # Matching content can still be an approved pre-publication card or lack sources.
+                # Materialize the complete published catalog state instead of silently skipping it.
                 existing_card.book_id = book.id
                 existing_card.chapter = chapter_title
                 existing_card.section = section_text
@@ -1281,6 +1382,17 @@ def import_publication_package(
         raise
     except IntegrityError as exc:
         db.rollback()
+        existing = db.scalar(
+            select(PublicationImport)
+            .where(PublicationImport.publication_id == publication_id)
+            .limit(1)
+        )
+        if (
+            existing is not None
+            and existing.manifest_hash == manifest_hash
+            and existing.package_hash == package_hash
+        ):
+            return _record_to_import_result(existing, idempotent_replay=True)
         raise InvalidRequestError(
             code="PUBLICATION_IMPORT_CONFLICT",
             message="发布包导入与现有数据冲突",
@@ -1293,9 +1405,7 @@ def import_publication_package(
 
 def get_publication_status(db: Session, publication_id: str) -> PublicationStatusOut:
     row = db.scalar(
-        select(PublicationImport)
-        .where(PublicationImport.publication_id == publication_id)
-        .limit(1)
+        select(PublicationImport).where(PublicationImport.publication_id == publication_id).limit(1)
     )
     if row is None:
         raise ResourceNotFoundError(

@@ -6,14 +6,13 @@
     </view>
   </view>
 
-  <view class="error" wx:if="{{error}}">{{error}}</view>
-  <view class="ok" wx:if="{{ok}}">{{ok}}</view>
+  <state-view wx:if="{{viewState === 'loading'}}" type="loading" title="正在加载档案"></state-view>
+  <state-view wx:elif="{{viewState === 'unauthorized'}}" type="unauthorized" title="请先登录" action-label="前往登录" bind:action="onLogin"></state-view>
+  <state-view wx:elif="{{viewState === 'error'}}" type="error" title="档案加载失败" message="{{errorView.message}}" action-label="重试" bind:action="onRetry"></state-view>
 
-  <view class="card" wx:if="{{loading}}">
-    <view class="muted">正在加载档案…</view>
-  </view>
-
-  <block wx:if="{{!loading}}">
+  <block wx:if="{{viewState === 'ready'}}">
+    <view class="error" wx:if="{{error}}">{{error}}</view>
+    <view class="ok" wx:if="{{ok}}">{{ok}}</view>
     <view class="card">
       <view class="section-title">基本信息</view>
       <view class="label">显示昵称</view>

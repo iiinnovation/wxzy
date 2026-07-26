@@ -5,6 +5,8 @@ from typing import Annotated
 
 from pydantic import BaseModel, Field, field_validator, model_validator
 
+from ..schemas import CardOut
+
 Sha256 = Annotated[str, Field(pattern=r"^[0-9a-fA-F]{64}$")]
 
 
@@ -285,3 +287,49 @@ class CardSourceOut(BaseModel):
     pdf_page_number_end: int
     printed_page_start_label: str | None
     printed_page_end_label: str | None
+
+
+class LearningBookOut(BaseModel):
+    id: int
+    name: str
+    subject: str | None
+    chapter_count: int = Field(ge=0)
+    published_card_count: int = Field(ge=0)
+    enrolled_card_count: int = Field(ge=0)
+    queued_card_count: int = Field(ge=0)
+    active_card_count: int = Field(ge=0)
+    suspended_card_count: int = Field(ge=0)
+    mastered_card_count: int = Field(ge=0)
+
+
+class LearningChapterOut(BaseModel):
+    id: int
+    parent_id: int | None
+    title: str
+    level: int = Field(ge=0)
+    sort_order: int = Field(ge=0)
+    pdf_page_start: int = Field(gt=0)
+    pdf_page_end: int = Field(gt=0)
+    published_card_count: int = Field(ge=0)
+    enrolled_card_count: int = Field(ge=0)
+    queued_card_count: int = Field(ge=0)
+    active_card_count: int = Field(ge=0)
+    suspended_card_count: int = Field(ge=0)
+    mastered_card_count: int = Field(ge=0)
+
+
+class LearningCardDetailOut(BaseModel):
+    card: CardOut
+    sources: list[CardSourceOut]
+    enrollment_id: int | None
+    enrollment_status: str | None
+    review_state: str | None
+    mastered: bool
+
+
+class LearningCardPageOut(BaseModel):
+    total: int = Field(ge=0)
+    offset: int = Field(ge=0)
+    limit: int = Field(gt=0)
+    has_more: bool
+    items: list[CardOut]

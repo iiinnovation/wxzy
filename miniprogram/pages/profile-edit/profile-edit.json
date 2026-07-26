@@ -1,4 +1,6 @@
 {
   "navigationBarTitleText": "档案设置",
-  "usingComponents": {}
+  "usingComponents": {
+    "state-view": "/components/state-view/state-view"
+  }
 }

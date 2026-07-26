@@ -6,6 +6,7 @@ requires-python = ">=3.12"
 dependencies = [
   "alembic>=1.15,<2.0",
   "fastapi>=0.115,<1.0",
+  "fsrs>=6.3,<7.0",
   "pydantic>=2.11,<3.0",
   "pydantic-settings>=2.8,<3.0",
   "psycopg[binary]>=3.2,<4.0",

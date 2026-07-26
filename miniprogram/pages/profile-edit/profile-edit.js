@@ -1,9 +1,12 @@
-var api = require('../../services/api')
-var formHelpers = require('../../utils/profile-form')
+const api = require('../../services/api')
+const formHelpers = require('../../utils/profile-form')
+const requests = require('../../utils/page-request')
 
 Page({
   data: {
     loading: true,
+    viewState: 'loading',
+    errorView: null,
     saving: false,
     error: '',
     ok: '',
@@ -14,36 +17,54 @@ Page({
     form: formHelpers.defaultFormState()
   },
 
+  onLoad: function () {
+    this.guard = requests.createPageRequestGuard()
+  },
+
   onShow: function () {
     this.loadProfile()
   },
 
-  loadProfile: function () {
-    var snap = api.getAuthSnapshot()
-    if (!snap || (snap.authState !== 'ready' && !snap.hasSession && !snap.hasDevToken)) {
-      this.setData({
-        loading: false,
-        error: '请先登录后再编辑学习档案。'
-      })
-      return
-    }
+  onUnload: function () {
+    this.guard.dispose()
+  },
 
-    this.setData({ loading: true, error: '', ok: '' })
-    var self = this
-    api
-      .getLearningProfile()
-      .then(function (profile) {
+  loadProfile: function () {
+    const self = this
+    this.setData({
+      loading: true,
+      viewState: 'loading',
+      errorView: null,
+      error: '',
+      ok: ''
+    })
+    return requests.loadWithAuth(this.guard, {
+      authorized: function () {
+        const snap = api.getAuthSnapshot()
+        return Boolean(snap && (snap.authState === 'ready' || snap.hasSession || snap.hasDevToken))
+      },
+      onUnauthorized: function () {
+        self.setData({ loading: false, viewState: 'unauthorized' })
+      },
+      fetch: function () {
+        return api.getLearningProfile()
+      },
+      onReady: function (profile) {
         self.setData({
           loading: false,
+          viewState: 'ready',
           form: formHelpers.profileToForm(profile)
         })
-      })
-      .catch(function (err) {
+      },
+      onError: function (view) {
         self.setData({
           loading: false,
-          error: (err && err.message) || '档案加载失败'
+          viewState: view.unauthorized ? 'unauthorized' : 'error',
+          errorView: view
         })
-      })
+      },
+      fallback: '档案加载失败，请重试'
+    })
   },
 
   patchForm: function (patch) {
@@ -74,13 +95,13 @@ Page({
 
   onSelectMinutes: function (e) {
     if (this.data.saving) return
-    var value = Number(e.currentTarget.dataset.value)
+    const value = Number(e.currentTarget.dataset.value)
     this.patchForm({ daily_minutes: value, custom_minutes: '' })
   },
 
   onCustomMinutes: function (e) {
-    var value = e.detail.value
-    var n = Number(value)
+    const value = e.detail.value
+    const n = Number(value)
     this.patchForm({
       custom_minutes: value,
       daily_minutes: Number.isFinite(n) && n > 0 ? n : this.data.form.daily_minutes
@@ -89,16 +110,16 @@ Page({
 
   onToggleDay: function (e) {
     if (this.data.saving) return
-    var index = Number(e.currentTarget.dataset.index)
-    var days = formHelpers.cloneStudyDays(this.data.form.study_days)
+    const index = Number(e.currentTarget.dataset.index)
+    const days = formHelpers.cloneStudyDays(this.data.form.study_days)
     days[index] = !days[index]
     this.patchForm({ study_days: days })
   },
 
   onToggleSubject: function (e) {
     if (this.data.saving) return
-    var index = Number(e.currentTarget.dataset.index)
-    var rows = this.data.form.subject_rows.map(function (row, i) {
+    const index = Number(e.currentTarget.dataset.index)
+    const rows = this.data.form.subject_rows.map(function (row, i) {
       if (i !== index) return row
       return Object.assign({}, row, { enabled: !row.enabled })
     })
@@ -107,12 +128,12 @@ Page({
 
   onSubjectScore: function (e) {
     if (this.data.saving) return
-    var index = Number(e.currentTarget.dataset.index)
-    var field = e.currentTarget.dataset.field
-    var value = formHelpers.clampScore(e.detail.value)
-    var rows = this.data.form.subject_rows.map(function (row, i) {
+    const index = Number(e.currentTarget.dataset.index)
+    const field = e.currentTarget.dataset.field
+    const value = formHelpers.clampScore(e.detail.value)
+    const rows = this.data.form.subject_rows.map(function (row, i) {
       if (i !== index) return row
-      var next = Object.assign({}, row)
+      const next = Object.assign({}, row)
       next[field] = value
       return next
     })
@@ -133,11 +154,10 @@ Page({
 
   onSave: function () {
     if (this.data.saving) return
+    const sequence = this.guard.begin()
     this.setData({ saving: true, error: '', ok: '' })
-    var self = this
-    var options = {
-      requireExamDate: this.data.form.goal_type === 'exam'
-    }
+    const self = this
+    const options = { requireExamDate: false }
     // Keep onboarding completion state: if already complete, leave it;
     // if incomplete, saving from settings can also complete.
     if (!this.data.form.onboarding_completed) {
@@ -147,6 +167,7 @@ Page({
     api
       .saveLearningProfileForm(this.data.form, options)
       .then(function (profile) {
+        if (!self.guard.isCurrent(sequence)) return
         self.setData({
           saving: false,
           ok: '档案已保存',
@@ -154,7 +175,8 @@ Page({
         })
       })
       .catch(function (err) {
-        var message = (err && err.message) || '保存失败'
+        if (!self.guard.isCurrent(sequence)) return
+        let message = (err && err.message) || '保存失败'
         if (err && err.code === 'LEARNING_PROFILE_CONFLICT') {
           message = '档案已被其他设备更新，请刷新后重试'
         }
@@ -163,5 +185,13 @@ Page({
           error: message
         })
       })
+  },
+
+  onRetry: function () {
+    this.loadProfile()
+  },
+
+  onLogin: function () {
+    wx.switchTab({ url: '/pages/me/me' })
   }
 })

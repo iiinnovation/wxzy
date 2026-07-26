@@ -113,11 +113,7 @@ def list_cards(
     limit: int = 50,
     offset: int = 0,
 ) -> list[CardOut]:
-    statement = (
-        select(Card)
-        .options(joinedload(Card.book), selectinload(Card.sources))
-        .join(Book)
-    )
+    statement = select(Card).options(joinedload(Card.book), selectinload(Card.sources)).join(Book)
     if status is None or status in {"", "catalog", "visible"}:
         statement = statement.where(Card.status.in_(CATALOG_VISIBLE_STATUSES))
     else:

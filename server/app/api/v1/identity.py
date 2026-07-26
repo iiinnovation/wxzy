@@ -1,5 +1,7 @@
 from __future__ import annotations
 
+from datetime import UTC, datetime
+
 from fastapi import APIRouter, Depends, HTTPException, Response, status
 from fastapi.security import HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
@@ -8,18 +10,34 @@ from ...auth import require_owner, security
 from ...config import AuthMode, Settings, get_settings
 from ...core.errors import InvalidRequestError, ResourceNotFoundError
 from ...db import get_db
+from ...identity.account import (
+    OwnerAccountReferenceError,
+    delete_owner_account,
+    export_owner_learning_data,
+    learning_profile_values,
+    list_owner_sessions,
+    revoke_owner_session,
+)
 from ...identity.auth import (
     AuthSessionResult,
     OwnerBindingConflictError,
     SessionConflictError,
     SessionInvalidError,
+    get_authenticated_session,
     login_with_openid,
     refresh_session,
     revoke_session,
 )
 from ...identity.models import User
 from ...identity.schemas import LearningProfileOut, LearningProfileUpdate
-from ...identity.schemas_auth import OwnerOut, SessionTokenOut, WeChatLoginIn
+from ...identity.schemas_auth import (
+    AccountDeleteIn,
+    OwnerDataExportOut,
+    OwnerOut,
+    SessionDeviceListOut,
+    SessionTokenOut,
+    WeChatLoginIn,
+)
 from ...identity.services import (
     LearningProfileConflictError,
     LearningProfileNotFoundError,
@@ -71,6 +89,22 @@ def _session_out(result: AuthSessionResult) -> SessionTokenOut:
         expires_at=result.expires_at,
         owner=OwnerOut.model_validate(result.owner, from_attributes=True),
     )
+
+
+def _current_session_id(
+    *,
+    credentials: HTTPAuthorizationCredentials | None,
+    settings: Settings,
+    db: Session,
+) -> int | None:
+    if settings.auth_mode != AuthMode.WECHAT or credentials is None:
+        return None
+    try:
+        return get_authenticated_session(db, token=credentials.credentials).session.id
+    except SessionInvalidError:
+        # The session was revoked/expired between require_owner and this lookup;
+        # simply mark no session as current rather than failing the request.
+        return None
 
 
 @router.post("/auth/wechat", response_model=SessionTokenOut)
@@ -172,6 +206,95 @@ def logout_auth_session(
 @router.get("/me", response_model=OwnerOut)
 def get_me(owner: User = Depends(require_owner)) -> OwnerOut:
     return OwnerOut.model_validate(owner, from_attributes=True)
+
+
+@router.get("/me/sessions", response_model=SessionDeviceListOut)
+def get_my_sessions(
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+    settings: Settings = Depends(get_settings),
+    owner: User = Depends(require_owner),
+    db: Session = Depends(get_db),
+) -> SessionDeviceListOut:
+    current_session_id = _current_session_id(
+        credentials=credentials,
+        settings=settings,
+        db=db,
+    )
+    return SessionDeviceListOut(
+        items=list_owner_sessions(
+            db,
+            user_id=owner.id,
+            current_session_id=current_session_id,
+        )
+    )
+
+
+@router.delete("/me/sessions/{session_id}", status_code=204)
+def delete_my_session(
+    session_id: int,
+    owner: User = Depends(require_owner),
+    db: Session = Depends(get_db),
+) -> Response:
+    try:
+        revoke_owner_session(db, user_id=owner.id, session_id=session_id)
+    except OwnerAccountReferenceError as exc:
+        raise ResourceNotFoundError(
+            code="SESSION_NOT_FOUND",
+            message="登录设备不存在",
+        ) from exc
+    return Response(status_code=204)
+
+
+@router.get("/me/export", response_model=OwnerDataExportOut)
+def export_my_data(
+    credentials: HTTPAuthorizationCredentials | None = Depends(security),
+    settings: Settings = Depends(get_settings),
+    owner: User = Depends(require_owner),
+    db: Session = Depends(get_db),
+) -> OwnerDataExportOut:
+    try:
+        profile = get_learning_profile(db, user_id=owner.id)
+    except LearningProfileNotFoundError as exc:
+        raise ResourceNotFoundError(
+            code="LEARNING_PROFILE_NOT_FOUND",
+            message="学习档案不存在",
+        ) from exc
+    current_session_id = _current_session_id(
+        credentials=credentials,
+        settings=settings,
+        db=db,
+    )
+    return OwnerDataExportOut(
+        generated_at=datetime.now(UTC),
+        owner=OwnerOut.model_validate(owner, from_attributes=True),
+        learning_profile=learning_profile_values(profile),
+        sessions=list_owner_sessions(
+            db,
+            user_id=owner.id,
+            current_session_id=current_session_id,
+        ),
+        learning_data=export_owner_learning_data(db, user_id=owner.id),
+    )
+
+
+@router.delete("/me", status_code=204)
+def delete_my_data(
+    body: AccountDeleteIn | None = None,
+    confirmation: str | None = None,
+    owner: User = Depends(require_owner),
+    db: Session = Depends(get_db),
+) -> Response:
+    # wx.request drops DELETE bodies on some platforms (e.g. PC WeChat), so the
+    # confirmation may arrive as a query parameter instead of the JSON body.
+    value = body.confirmation if body is not None else confirmation
+    if value != "DELETE_MY_DATA":
+        raise InvalidRequestError(
+            code="ACCOUNT_DELETE_CONFIRMATION_INVALID",
+            message="confirmation must be DELETE_MY_DATA",
+            status_code=422,
+        )
+    delete_owner_account(db, user_id=owner.id)
+    return Response(status_code=204)
 
 
 @router.get("/me/learning-profile", response_model=LearningProfileOut)

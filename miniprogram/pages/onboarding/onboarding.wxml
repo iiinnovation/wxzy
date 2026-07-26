@@ -11,14 +11,14 @@
     <view class="progress-fill" style="width: {{progressPercent}}%;"></view>
   </view>
 
-  <view class="error" wx:if="{{error}}">{{error}}</view>
-  <view class="ok" wx:if="{{ok}}">{{ok}}</view>
+  <state-view wx:if="{{viewState === 'loading'}}" type="loading" title="正在读取学习档案"></state-view>
+  <state-view wx:elif="{{viewState === 'unauthorized'}}" type="unauthorized" title="请先登录" message="登录后可以继续首次设置" action-label="前往登录" bind:action="onLogin"></state-view>
+  <state-view wx:elif="{{viewState === 'error'}}" type="error" title="档案加载失败" message="{{errorView.message}}" action-label="重试" bind:action="onRetry"></state-view>
+  <state-view wx:elif="{{viewState === 'completed'}}" type="completed" title="学习档案已保存" message="正在返回今日计划"></state-view>
 
-  <view class="card step-card" wx:if="{{loading}}">
-    <view class="muted">正在读取学习档案…</view>
-  </view>
-
-  <block wx:if="{{!loading}}">
+  <block wx:if="{{viewState === 'ready'}}">
+    <view class="error" wx:if="{{error}}">{{error}}</view>
+    <view class="ok" wx:if="{{ok}}">{{ok}}</view>
     <!-- Step 1: goal -->
     <view class="card step-card" wx:if="{{step === 1}}">
       <view class="section-title">学习目的</view>

@@ -1,0 +1,31 @@
+<view class="chapter-page">
+  <view class="chapter-title">{{bookName}}</view>
+  <state-view wx:if="{{state === 'loading'}}" type="loading" title="正在加载章节"></state-view>
+  <state-view wx:elif="{{state === 'empty'}}" type="empty" title="这本书暂无可学习章节"></state-view>
+  <state-view wx:elif="{{state === 'unauthorized'}}" type="unauthorized" title="需要重新登录" action-label="前往登录" bind:action="onLogin"></state-view>
+  <state-view wx:elif="{{state === 'error'}}" type="error" title="章节加载失败" message="{{errorView.message}}" action-label="重试" bind:action="onRetry"></state-view>
+  <block wx:else>
+    <scroll-view scroll-x class="chapter-tabs">
+      <view class="chapter-tab {{activeChapter.id === item.id ? 'is-active' : ''}}" wx:for="{{chapters}}" wx:key="id" data-id="{{item.id}}" bindtap="onSelectChapter">{{item.title}}</view>
+    </scroll-view>
+    <view class="chapter-summary">
+      <view class="chapter-copy">
+        <view class="active-title">{{activeChapter.title}}</view>
+        <view class="summary-meta">PDF {{activeChapter.pdf_page_start}}–{{activeChapter.pdf_page_end}} · 发布 {{activeChapter.published_card_count}} · 掌握 {{activeChapter.mastered_card_count}}</view>
+        <view class="summary-status">{{activeChapter.enrollmentLabel}}</view>
+      </view>
+      <button class="chapter-action {{activeChapter.actionType === 'suspend' ? 'is-secondary' : ''}}" loading="{{changing}}" disabled="{{changing || activeChapter.actionDisabled}}" bindtap="onChapterAction">{{activeChapter.actionLabel}}</button>
+    </view>
+    <view class="inline-error" wx:if="{{inlineError}}">{{inlineError}}</view>
+    <view class="search-row">
+      <input value="{{keyword}}" bindinput="onKeyword" bindconfirm="onSearch" confirm-type="search" placeholder="搜索题目、答案或标签" />
+      <button disabled="{{loadingMore}}" bindtap="onSearch">搜索</button>
+    </view>
+    <view class="card-row" wx:for="{{cards}}" wx:key="id" data-id="{{item.id}}" bindtap="onOpenCard">
+      <view class="card-question">{{item.question}}</view>
+      <view class="card-meta">{{item.card_type}} · {{item.sourceLabel}}</view>
+    </view>
+    <state-view wx:if="{{!loadingMore && !cards.length}}" type="empty" title="本章暂无匹配卡片"></state-view>
+    <button class="load-more" wx:if="{{hasMore}}" loading="{{loadingMore}}" disabled="{{loadingMore}}" bindtap="onLoadMore">加载更多</button>
+  </block>
+</view>

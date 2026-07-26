@@ -1,11 +1,14 @@
-var api = require('../../services/api')
-var formHelpers = require('../../utils/profile-form')
+const api = require('../../services/api')
+const formHelpers = require('../../utils/profile-form')
+const requests = require('../../utils/page-request')
 
-var TOTAL_STEPS = 5
+const TOTAL_STEPS = 5
 
 Page({
   data: {
     loading: true,
+    viewState: 'loading',
+    errorView: null,
     saving: false,
     error: '',
     ok: '',
@@ -19,39 +22,51 @@ Page({
     summary: formHelpers.summarizeProfile(null)
   },
 
+  onLoad: function () {
+    this.guard = requests.createPageRequestGuard()
+  },
+
   onShow: function () {
     this.loadProfile()
   },
 
-  loadProfile: function () {
-    var snap = api.getAuthSnapshot()
-    if (!snap || (snap.authState !== 'ready' && !snap.hasSession && !snap.hasDevToken)) {
-      this.setData({
-        loading: false,
-        error: '请先登录后再设置学习档案。'
-      })
-      return
-    }
+  onUnload: function () {
+    this.guard.dispose()
+  },
 
-    this.setData({ loading: true, error: '', ok: '' })
-    var self = this
-    api
-      .getLearningProfile()
-      .then(function (profile) {
-        var form = formHelpers.profileToForm(profile)
+  loadProfile: function () {
+    const self = this
+    this.setData({ loading: true, viewState: 'loading', errorView: null, error: '', ok: '' })
+    return requests.loadWithAuth(this.guard, {
+      authorized: function () {
+        const snap = api.getAuthSnapshot()
+        return Boolean(snap && (snap.authState === 'ready' || snap.hasSession || snap.hasDevToken))
+      },
+      onUnauthorized: function () {
+        self.setData({ loading: false, viewState: 'unauthorized' })
+      },
+      fetch: function () {
+        return api.getLearningProfile()
+      },
+      onReady: function (profile) {
+        const form = formHelpers.profileToForm(profile)
         self.setData({
           loading: false,
+          viewState: 'ready',
           form: form,
           summary: self.buildLiveSummary(form),
           progressPercent: self.calcProgress(self.data.step)
         })
-      })
-      .catch(function (err) {
+      },
+      onError: function (view) {
         self.setData({
           loading: false,
-          error: (err && err.message) || '档案加载失败'
+          viewState: view.unauthorized ? 'unauthorized' : 'error',
+          errorView: view
         })
-      })
+      },
+      fallback: '档案加载失败，请重试'
+    })
   },
 
   calcProgress: function (step) {
@@ -59,7 +74,7 @@ Page({
   },
 
   buildLiveSummary: function (form) {
-    var maps = formHelpers.subjectMapsFromRows(form.subject_rows)
+    const maps = formHelpers.subjectMapsFromRows(form.subject_rows)
     return formHelpers.summarizeProfile({
       goal_type: form.goal_type,
       daily_minutes: formHelpers.resolveDailyMinutes(form) || form.daily_minutes,
@@ -72,7 +87,7 @@ Page({
   },
 
   patchForm: function (patch) {
-    var form = Object.assign({}, this.data.form, patch)
+    const form = Object.assign({}, this.data.form, patch)
     this.setData({
       form: form,
       summary: this.buildLiveSummary(form),
@@ -93,13 +108,13 @@ Page({
   },
 
   onSelectMinutes: function (e) {
-    var value = Number(e.currentTarget.dataset.value)
+    const value = Number(e.currentTarget.dataset.value)
     this.patchForm({ daily_minutes: value, custom_minutes: '' })
   },
 
   onCustomMinutes: function (e) {
-    var value = e.detail.value
-    var n = Number(value)
+    const value = e.detail.value
+    const n = Number(value)
     this.patchForm({
       custom_minutes: value,
       daily_minutes: Number.isFinite(n) && n > 0 ? n : this.data.form.daily_minutes
@@ -107,15 +122,15 @@ Page({
   },
 
   onToggleDay: function (e) {
-    var index = Number(e.currentTarget.dataset.index)
-    var days = formHelpers.cloneStudyDays(this.data.form.study_days)
+    const index = Number(e.currentTarget.dataset.index)
+    const days = formHelpers.cloneStudyDays(this.data.form.study_days)
     days[index] = !days[index]
     this.patchForm({ study_days: days })
   },
 
   onToggleSubject: function (e) {
-    var index = Number(e.currentTarget.dataset.index)
-    var rows = this.data.form.subject_rows.map(function (row, i) {
+    const index = Number(e.currentTarget.dataset.index)
+    const rows = this.data.form.subject_rows.map(function (row, i) {
       if (i !== index) return row
       return Object.assign({}, row, { enabled: !row.enabled })
     })
@@ -123,12 +138,12 @@ Page({
   },
 
   onSubjectScore: function (e) {
-    var index = Number(e.currentTarget.dataset.index)
-    var field = e.currentTarget.dataset.field
-    var value = formHelpers.clampScore(e.detail.value)
-    var rows = this.data.form.subject_rows.map(function (row, i) {
+    const index = Number(e.currentTarget.dataset.index)
+    const field = e.currentTarget.dataset.field
+    const value = formHelpers.clampScore(e.detail.value)
+    const rows = this.data.form.subject_rows.map(function (row, i) {
       if (i !== index) return row
-      var next = Object.assign({}, row)
+      const next = Object.assign({}, row)
       next[field] = value
       return next
     })
@@ -141,33 +156,33 @@ Page({
 
   onBack: function () {
     if (this.data.step <= 1 || this.data.saving) return
-    var step = this.data.step - 1
+    const step = this.data.step - 1
     this.setData({ step: step, progressPercent: this.calcProgress(step), error: '' })
   },
 
   onSkipOptional: function () {
     if (this.data.saving) return
-    var step = this.data.step
+    const step = this.data.step
     if (step === 2) {
       this.patchForm({ target_date: '', custom_minutes: '', daily_minutes: 20 })
     }
     if (step === 4) {
-      var rows = this.data.form.subject_rows.map(function (row) {
+      const rows = this.data.form.subject_rows.map(function (row) {
         return Object.assign({}, row, { enabled: false })
       })
       this.patchForm({ subject_rows: rows })
     }
     if (step < TOTAL_STEPS) {
-      var next = step + 1
+      const next = step + 1
       this.setData({ step: next, progressPercent: this.calcProgress(next), error: '' })
     }
   },
 
   onNext: function () {
     if (this.data.saving) return
-    var step = this.data.step
+    const step = this.data.step
     if (step < TOTAL_STEPS) {
-      var validation = formHelpers.validateForm(this.data.form, {
+      const validation = formHelpers.validateForm(this.data.form, {
         requireExamDate: false
       })
       if (step === 1 && !validation.ok && validation.errors[0] === '请选择学习目的') {
@@ -175,7 +190,7 @@ Page({
         return
       }
       if (step === 2) {
-        var minutes = formHelpers.resolveDailyMinutes(this.data.form)
+        const minutes = formHelpers.resolveDailyMinutes(this.data.form)
         if (minutes == null || minutes < 5 || minutes > 240) {
           this.setData({ error: '每日分钟需在 5–240 之间' })
           return
@@ -185,7 +200,7 @@ Page({
         this.setData({ error: '请至少选择一个学习日' })
         return
       }
-      var next = step + 1
+      const next = step + 1
       this.setData({
         step: next,
         progressPercent: this.calcProgress(next),
@@ -198,30 +213,45 @@ Page({
   },
 
   submit: function () {
+    if (this.data.saving) return
+    const sequence = this.guard.begin()
     this.setData({ saving: true, error: '', ok: '' })
-    var self = this
+    const self = this
     api
       .saveLearningProfileForm(this.data.form, {
         completeOnboarding: true,
-        requireExamDate: this.data.form.goal_type === 'exam'
+        requireExamDate: false
       })
       .then(function (profile) {
-        var form = formHelpers.profileToForm(profile)
+        if (!self.guard.isCurrent(sequence)) return
+        const form = formHelpers.profileToForm(profile)
         self.setData({
           saving: false,
+          viewState: 'completed',
           form: form,
           ok: '学习档案已保存',
           summary: formHelpers.summarizeProfile(profile)
         })
         setTimeout(function () {
-          wx.switchTab({ url: '/pages/today/today' })
+          if (self.guard.isCurrent(sequence)) {
+            wx.switchTab({ url: '/pages/today/today' })
+          }
         }, 400)
       })
       .catch(function (err) {
+        if (!self.guard.isCurrent(sequence)) return
         self.setData({
           saving: false,
           error: (err && err.message) || '保存失败'
         })
       })
+  },
+
+  onRetry: function () {
+    this.loadProfile()
+  },
+
+  onLogin: function () {
+    wx.switchTab({ url: '/pages/me/me' })
   }
 })

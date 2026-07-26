@@ -1,8 +1,13 @@
 {
   "pages": [
     "pages/today/today",
-    "pages/review/review",
-    "pages/library/library",
+    "pages/study-session/study-session",
+    "pages/subjects/subjects",
+    "pages/chapter/chapter",
+    "pages/card-detail/card-detail",
+    "pages/insights/insights",
+    "pages/weak-topic/weak-topic",
+    "pages/weekly-test/weekly-test",
     "pages/me/me",
     "pages/onboarding/onboarding",
     "pages/profile-edit/profile-edit"
@@ -25,8 +30,12 @@
         "text": "今日"
       },
       {
-        "pagePath": "pages/library/library",
-        "text": "书库"
+        "pagePath": "pages/subjects/subjects",
+        "text": "学科"
+      },
+      {
+        "pagePath": "pages/insights/insights",
+        "text": "进度"
       },
       {
         "pagePath": "pages/me/me",

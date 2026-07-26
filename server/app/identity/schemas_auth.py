@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Literal
+from typing import Any, Literal
 
 from pydantic import BaseModel, Field, field_validator
 
@@ -39,3 +39,31 @@ class SessionTokenOut(BaseModel):
     token_type: Literal["bearer"] = "bearer"
     expires_at: datetime
     owner: OwnerOut
+
+
+class SessionDeviceOut(BaseModel):
+    id: int
+    device_label: str | None
+    created_at: datetime
+    expires_at: datetime
+    revoked_at: datetime | None
+    status: Literal["active", "expired", "revoked"]
+    current: bool
+
+
+class SessionDeviceListOut(BaseModel):
+    items: list[SessionDeviceOut]
+
+
+class OwnerDataExportOut(BaseModel):
+    schema_version: Literal["wxzy-owner-export-v1"] = "wxzy-owner-export-v1"
+    generated_at: datetime
+    backup_status: Literal["not_configured"] = "not_configured"
+    owner: OwnerOut
+    learning_profile: dict[str, Any]
+    sessions: list[SessionDeviceOut]
+    learning_data: dict[str, list[dict[str, Any]]]
+
+
+class AccountDeleteIn(BaseModel):
+    confirmation: Literal["DELETE_MY_DATA"]

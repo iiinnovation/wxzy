@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
+from typing import Any
 
 import pytest
 from tools.document_pipeline.candidate_schema import validate_candidate_card_v2
@@ -79,9 +80,7 @@ def test_cursor_covers_every_chunk_when_input_exceeds_max_chars(
         assert req["status"] == "success"
 
 
-def test_repeat_run_does_not_duplicate_candidates(
-    zhongyao_blocks, tmp_path: Path
-) -> None:
+def test_repeat_run_does_not_duplicate_candidates(zhongyao_blocks, tmp_path: Path) -> None:
     out_dir = tmp_path / "gen-repeat"
     state_path = out_dir / "cursor_state.json"
     first = run_cursor_generation(
@@ -165,17 +164,20 @@ def test_api_mode_invokes_caller_per_window_not_prefix_only(
 ) -> None:
     seen_chunks: list[list[str]] = []
 
-    def fake_caller(text, *, book, model, chunk_ids, input_hash):
-        seen_chunks.append(list(chunk_ids))
-        # return empty candidate list; provenance still recorded
-        return []
+    class FakeCaller:
+        last_usage: dict[str, Any] = {
+            "prompt_tokens": 10,
+            "completion_tokens": 0,
+            "total_tokens": 10,
+            "cost": 0.0,
+        }
 
-    fake_caller.last_usage = {
-        "prompt_tokens": 10,
-        "completion_tokens": 0,
-        "total_tokens": 10,
-        "cost": 0.0,
-    }
+        def __call__(self, text, *, book, model, chunk_ids, input_hash):
+            seen_chunks.append(list(chunk_ids))
+            # return empty candidate list; provenance still recorded
+            return []
+
+    fake_caller = FakeCaller()
 
     out_dir = tmp_path / "gen-api"
     result = run_cursor_generation(

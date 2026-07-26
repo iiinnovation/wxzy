@@ -6,7 +6,7 @@ from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import delete, select
+from sqlalchemy import delete, select, update
 from sqlalchemy.orm import Session
 
 from app.api.v1.identity import get_wechat_client
@@ -19,6 +19,7 @@ from app.catalog.models import (
     DocumentChunk,
     DocumentVersion,
 )
+from app.catalog.read_models import list_learning_books
 from app.catalog.schemas import (
     CardSourceCreate,
     CatalogCardCreate,
@@ -39,6 +40,8 @@ from app.db import engine
 from app.identity.models import LearningProfile, LearningProfileAudit, User, UserSession
 from app.identity.wechat import WeChatCodeError, WeChatIdentity
 from app.learning.models import CardEnrollment, CardReviewState
+from app.learning.schemas import EnrollmentStatus
+from app.learning.services import change_enrollment_status, introduce_enrollment
 from app.main import app
 
 
@@ -232,8 +235,6 @@ def test_patch_suspend_enrollment(db: Session, auth_context: tuple[TestClient, S
     enrollment_id = created["enrollments"][0]["id"]
 
     # queued cannot suspend; introduce via service then suspend via API
-    from app.learning.services import introduce_enrollment
-
     introduce_enrollment(
         db, enrollment_id=enrollment_id, now=datetime(2026, 7, 22, 9, 0, tzinfo=UTC)
     )
@@ -246,3 +247,140 @@ def test_patch_suspend_enrollment(db: Session, auth_context: tuple[TestClient, S
     assert response.status_code == 200, response.text
     assert response.json()["status"] == "suspended"
     assert db.get(CardReviewState, db.scalar(select(CardReviewState.id))) is not None
+
+
+def test_patch_chapter_pause_resume_is_idempotent_and_preserves_queued(
+    db: Session, auth_context: tuple[TestClient, Settings]
+) -> None:
+    client, _settings = auth_context
+    token = _login(client)["access_token"]
+    chapter_id, _card_ids = _seed_chapter(db)
+    created = client.post(
+        "/api/v1/enrollments",
+        headers=_headers(token),
+        json={"scope": "chapter", "chapter_id": chapter_id},
+    ).json()
+
+    for item in created["enrollments"][:2]:
+        introduce_enrollment(
+            db,
+            enrollment_id=item["id"],
+            now=datetime(2026, 7, 22, 9, 0, tzinfo=UTC),
+        )
+
+    url = f"/api/v1/chapters/{chapter_id}/enrollments"
+    paused = client.patch(url, headers=_headers(token), json={"status": "suspended"})
+    replay = client.patch(url, headers=_headers(token), json={"status": "suspended"})
+    resumed = client.patch(url, headers=_headers(token), json={"status": "active"})
+
+    assert paused.status_code == 200, paused.text
+    assert paused.json()["updated_count"] == 2
+    assert paused.json()["unchanged_count"] == 0
+    assert paused.json()["ignored_count"] == 1
+    assert replay.json()["updated_count"] == 0
+    assert replay.json()["unchanged_count"] == 2
+    assert replay.json()["ignored_count"] == 1
+    assert resumed.json()["updated_count"] == 2
+    assert (
+        db.scalar(
+            select(CardEnrollment.status).where(
+                CardEnrollment.id == created["enrollments"][2]["id"]
+            )
+        )
+        == "queued"
+    )
+    assert len(list(db.scalars(select(CardReviewState)))) == 2
+
+
+def test_catalog_counts_are_owner_scoped_and_include_enrollment_states(
+    db: Session, auth_context: tuple[TestClient, Settings]
+) -> None:
+    client, _settings = auth_context
+    login = _login(client)
+    token = login["access_token"]
+    chapter_id, card_ids = _seed_chapter(db)
+    db.execute(update(Card).where(Card.id.in_(card_ids)).values(status="published"))
+    db.commit()
+    created = client.post(
+        "/api/v1/enrollments",
+        headers=_headers(token),
+        json={"scope": "chapter", "chapter_id": chapter_id},
+    ).json()
+
+    first = created["enrollments"][0]["id"]
+    second = created["enrollments"][1]["id"]
+    introduce_enrollment(db, enrollment_id=first)
+    introduce_enrollment(db, enrollment_id=second)
+    change_enrollment_status(
+        db,
+        enrollment_id=second,
+        target_status=EnrollmentStatus.SUSPENDED,
+    )
+
+    books = client.get("/api/v1/catalog/books", headers=_headers(token))
+    chapters = client.get(
+        f"/api/v1/catalog/books/{db.get(Card, card_ids[0]).book_id}/chapters",
+        headers=_headers(token),
+    )
+
+    assert books.status_code == 200, books.text
+    assert chapters.status_code == 200, chapters.text
+    counts = chapters.json()[0]
+    assert counts["published_card_count"] == 3
+    assert counts["enrolled_card_count"] == 3
+    assert counts["queued_card_count"] == 1
+    assert counts["active_card_count"] == 1
+    assert counts["suspended_card_count"] == 1
+    foreign = list_learning_books(db, user_id=login["owner"]["id"] + 10_000)
+    assert foreign[0].enrolled_card_count == 0
+    assert foreign[0].active_card_count == 0
+
+
+def test_catalog_includes_parent_chapter_with_subtree_counts(
+    db: Session, auth_context: tuple[TestClient, Settings]
+) -> None:
+    client, _settings = auth_context
+    token = _login(client)["access_token"]
+    child_id, card_ids = _seed_chapter(db)
+    child = db.get(Chapter, child_id)
+    assert child is not None
+    parent = create_chapter(
+        db,
+        ChapterCreate(
+            document_version_id=child.document_version_id,
+            chapter_key="enroll-api-parent",
+            title="总论",
+            level=1,
+            sort_order=0,
+            pdf_page_index_start=0,
+            pdf_page_index_end=19,
+            recognition_method="heading_layout",
+        ),
+    )
+    child.parent_id = parent.id
+    child.level = 2
+    db.execute(update(Card).where(Card.id.in_(card_ids)).values(status="published"))
+    db.commit()
+
+    book_id = db.get(Card, card_ids[0]).book_id
+    response = client.get(
+        f"/api/v1/catalog/books/{book_id}/chapters",
+        headers=_headers(token),
+    )
+    parent_cards = client.get(
+        f"/api/v1/catalog/cards?book_id={book_id}&chapter_id={parent.id}",
+        headers=_headers(token),
+    )
+    books = client.get("/api/v1/catalog/books", headers=_headers(token))
+
+    assert response.status_code == 200, response.text
+    by_id = {row["id"]: row for row in response.json()}
+    assert set(by_id) == {parent.id, child.id}
+    assert by_id[parent.id]["parent_id"] is None
+    assert by_id[parent.id]["published_card_count"] == 3
+    assert by_id[child.id]["parent_id"] == parent.id
+    assert by_id[child.id]["published_card_count"] == 3
+    assert parent_cards.status_code == 200, parent_cards.text
+    assert parent_cards.json()["total"] == 3
+    assert books.status_code == 200, books.text
+    assert books.json()[0]["chapter_count"] == 2

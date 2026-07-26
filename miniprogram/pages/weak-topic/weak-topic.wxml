@@ -1,0 +1,23 @@
+<view class="weak-page">
+  <state-view wx:if="{{state === 'loading'}}" type="loading" title="正在加载薄弱点"></state-view>
+  <state-view wx:elif="{{state === 'unauthorized'}}" type="unauthorized" title="需要重新登录" action-label="前往登录" bind:action="onLogin"></state-view>
+  <state-view wx:elif="{{state === 'error'}}" type="error" title="薄弱点加载失败" message="{{errorView.message}}" action-label="重试" bind:action="onRetry"></state-view>
+  <state-view wx:elif="{{state === 'empty'}}" type="empty" title="暂无薄弱点" message="建议只会由真实学习记录触发"></state-view>
+  <block wx:else>
+    <view class="weak-detail" wx:for="{{items}}" wx:key="card_id">
+      <view class="weak-title">{{item.topic}}</view>
+      <view class="weak-source">{{item.source.book_name}} · {{item.source.chapter || '未分章'}}</view>
+      <view class="weak-block">
+        <view>证据</view>
+        <view wx:for="{{item.signals}}" wx:key="key">{{item.label}}</view>
+      </view>
+      <view class="weak-block">
+        <view>建议动作</view>
+        <view wx:for="{{item.actions}}" wx:key="key">{{item.label}}</view>
+      </view>
+      <button data-id="{{item.card_id}}" bindtap="onSource">核对来源</button>
+    </view>
+    <button wx:if="{{hasMore}}" loading="{{loadingMore}}" disabled="{{loadingMore}}" bindtap="onMore">加载更多</button>
+  </block>
+  <source-drawer open="{{sourceOpen}}" sources="{{selectedSources}}" bind:close="onClose"></source-drawer>
+</view>

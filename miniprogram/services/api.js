@@ -5,10 +5,13 @@
 
 'use strict'
 
-var httpModule = require('./http')
-var authApiModule = require('./auth-api')
-var profileApiModule = require('./profile-api')
-var formHelpers = require('../utils/profile-form')
+const httpModule = require('./http')
+const authApiModule = require('./auth-api')
+const profileApiModule = require('./profile-api')
+const catalogApiModule = require('./catalog-api')
+const learningApiModule = require('./learning-api')
+const insightsApiModule = require('./insights-api')
+const formHelpers = require('../utils/profile-form')
 
 function client() {
   return httpModule.getDefaultClient()
@@ -20,6 +23,18 @@ function authApi() {
 
 function profileApi() {
   return profileApiModule.getDefaultProfileApi()
+}
+
+function catalogApi() {
+  return catalogApiModule.getDefaultCatalogApi()
+}
+
+function learningApi() {
+  return learningApiModule.getDefaultLearningApi()
+}
+
+function insightsApi() {
+  return insightsApiModule.getDefaultInsightsApi()
 }
 
 function getConfig() {
@@ -43,32 +58,7 @@ function getHealth() {
 }
 
 function getStats() {
-  return request('/stats/summary')
-}
-
-function getBooks() {
-  return request('/books')
-}
-
-function getCards(params) {
-  params = params || {}
-  var q = []
-  if (params.book_id != null) q.push('book_id=' + params.book_id)
-  if (params.q) q.push('q=' + encodeURIComponent(params.q))
-  if (params.limit) q.push('limit=' + params.limit)
-  var qs = q.length ? '?' + q.join('&') : ''
-  return request('/cards' + qs)
-}
-
-function getDue(limit) {
-  return request('/review/due?limit=' + (limit || 30))
-}
-
-function postAnswer(cardId, rating) {
-  return request('/review/answer', {
-    method: 'POST',
-    data: { card_id: cardId, rating: rating }
-  })
+  return request('/api/v1/stats/summary')
 }
 
 function loginWithWx() {
@@ -85,6 +75,22 @@ function bootstrapAuth(options) {
 
 function fetchMe() {
   return authApi().fetchMe()
+}
+
+function listSessions() {
+  return authApi().listSessions()
+}
+
+function revokeSession(sessionId) {
+  return authApi().revokeSession(sessionId)
+}
+
+function exportOwnerData() {
+  return authApi().exportData()
+}
+
+function deleteOwnerData() {
+  return authApi().deleteData()
 }
 
 function getLearningProfile() {
@@ -112,19 +118,22 @@ module.exports = {
   getAuthSnapshot: getAuthSnapshot,
   getHealth: getHealth,
   getStats: getStats,
-  getBooks: getBooks,
-  getCards: getCards,
-  getDue: getDue,
-  postAnswer: postAnswer,
   saveConfig: saveConfig,
   request: request,
   loginWithWx: loginWithWx,
   logout: logout,
   bootstrapAuth: bootstrapAuth,
   fetchMe: fetchMe,
+  listSessions: listSessions,
+  revokeSession: revokeSession,
+  exportOwnerData: exportOwnerData,
+  deleteOwnerData: deleteOwnerData,
   getLearningProfile: getLearningProfile,
   updateLearningProfile: updateLearningProfile,
   saveLearningProfileForm: saveLearningProfileForm,
   summarizeProfile: summarizeProfile,
-  isOnboardingComplete: isOnboardingComplete
+  isOnboardingComplete: isOnboardingComplete,
+  catalog: catalogApi,
+  learning: learningApi,
+  insights: insightsApi
 }

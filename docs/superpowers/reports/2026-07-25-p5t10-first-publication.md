@@ -23,8 +23,11 @@
 - books: **7**
 - source_coverage: **1.0**
 - high_risk_review_coverage: **1.0**
-- manifest_hash: `666d9f22e815c140f34cdb0e24184966e926371bbd21d041c36655c332affb76`
-- package_hash: `11d7d12be442b9b6c0806763a301ca2343868d0b5f173afa1a483ae8ae7fb82b`
+- manifest_hash: `b932139200afd5c87426e0ae56d40ef99a4049e53dd452a408204081e9dd7908`
+- package_hash: `d3c1b92544c16f36624352c1a1793640189293896451247060d275b52b783162`
+- stable created_at: `2026-07-25T00:00:00+00:00`
+
+The package was rebuilt on 2026-07-26 with the explicit timestamp above. Repeated builds now produce the same manifest and package hashes; these values supersede the earlier one-off export hashes.
 
 | Book | Key | Cards | Chapters | High/Critical | Reviewed | With sources |
 |---|---|---:|---:|---:|---:|---:|

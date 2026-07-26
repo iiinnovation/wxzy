@@ -5,7 +5,6 @@ Kept only for historical tests and dry-run baselines against the original
 `app.learning.fsrs_adapter` (standard py-fsrs wrapper) instead of this module.
 """
 
-
 from __future__ import annotations
 
 from dataclasses import dataclass

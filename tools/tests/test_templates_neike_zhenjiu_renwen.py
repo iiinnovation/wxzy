@@ -114,7 +114,9 @@ def test_neike_golden_covers_required_templates(neike_cards) -> None:
 
 
 def test_neike_feilao_core_fields(neike_cards) -> None:
-    concept = next(c for c in neike_cards if c.card_type == "disease_concept" and "肺痨" in c.question)
+    concept = next(
+        c for c in neike_cards if c.card_type == "disease_concept" and "肺痨" in c.question
+    )
     patho = next(
         c for c in neike_cards if c.card_type == "disease_pathogenesis" and "肺痨" in c.question
     )
@@ -151,7 +153,9 @@ def test_zhenjiu_golden_covers_required_templates(zhenjiu_cards) -> None:
 
 
 def test_zhenjiu_acupoint_and_risk(zhenjiu_cards) -> None:
-    loc = next(c for c in zhenjiu_cards if c.card_type == "acupoint_location" and "足三里" in c.question)
+    loc = next(
+        c for c in zhenjiu_cards if c.card_type == "acupoint_location" and "足三里" in c.question
+    )
     ind = next(
         c for c in zhenjiu_cards if c.card_type == "acupoint_indication" and "足三里" in c.question
     )

@@ -4,8 +4,8 @@
  */
 'use strict'
 
-var httpModule = require('./http')
-var formHelpers = require('../utils/profile-form')
+const httpModule = require('./http')
+const formHelpers = require('../utils/profile-form')
 
 function createProfileApi(client) {
   client = client || httpModule.getDefaultClient()
@@ -26,7 +26,7 @@ function createProfileApi(client) {
   }
 
   function saveForm(form, options) {
-    var payload = formHelpers.buildUpdatePayload(form, options)
+    const payload = formHelpers.buildUpdatePayload(form, options)
     return updateLearningProfile(payload)
   }
 
@@ -37,7 +37,7 @@ function createProfileApi(client) {
   }
 }
 
-var defaultApi = null
+let defaultApi = null
 
 function getDefaultProfileApi() {
   if (!defaultApi) {

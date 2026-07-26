@@ -97,7 +97,9 @@ def _heading_stack(md: str) -> list[dict[str, Any]]:
     return headings
 
 
-def _context_at(headings: list[dict[str, Any]], char_offset: int) -> tuple[str | None, str | None, str | None]:
+def _context_at(
+    headings: list[dict[str, Any]], char_offset: int
+) -> tuple[str | None, str | None, str | None]:
     chapter: str | None = None
     section: str | None = None
     nearest: str | None = None
@@ -517,8 +519,10 @@ def extract_zhongyao_cards(
         chapter, section, nearest = _context_at(headings, match.start())
         herb_name = nearest or section or "未知中药"
         # prefer deeper heading as herb entry name when it looks like a drug name
-        if nearest and len(nearest) <= 12 and not any(
-            k in nearest for k in ("章", "节", "对比", "常用", "相似")
+        if (
+            nearest
+            and len(nearest) <= 12
+            and not any(k in nearest for k in ("章", "节", "对比", "常用", "相似"))
         ):
             herb_name = nearest
 

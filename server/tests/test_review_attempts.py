@@ -5,17 +5,20 @@ import sys
 from collections.abc import Iterator
 from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime, timedelta
+from pathlib import Path
+from threading import Barrier
 
 import pytest
 from pydantic import ValidationError
-from sqlalchemy import create_engine, delete, func, select
+from sqlalchemy import create_engine, delete, event, func, select
 from sqlalchemy.orm import Session
 
 from app.catalog.models import Book, Card
-from app.db import engine
+from app.db import Base, engine
 from app.identity.models import LearningProfile, LearningProfileAudit, User, UserSession
 from app.identity.schemas import OwnerCreate
 from app.identity.services import create_owner_with_default_profile
+from app.learning.fsrs_adapter import ALGORITHM_VERSION, schedule
 from app.learning.models import (
     CardEnrollment,
     CardIssue,
@@ -23,7 +26,6 @@ from app.learning.models import (
     ReviewAttempt,
     StudySession,
 )
-from app.learning.fsrs_adapter import ALGORITHM_VERSION, schedule
 from app.learning.schemas import (
     CardIssueCreate,
     CardIssueResolution,
@@ -201,7 +203,11 @@ def test_submit_review_attempt_updates_state_and_preserves_audit_snapshot(db: Se
         )
     )
     study_session = db.get(StudySession, session_id)
-    assert state is not None and state.reps == expected.reps and state.due_at == result.attempt.due_after
+    assert (
+        state is not None
+        and state.reps == expected.reps
+        and state.due_at == result.attempt.due_after
+    )
     assert state.last_rating == 3 and state.last_reviewed_at == reviewed_at
     assert state.algorithm_version == ALGORITHM_VERSION
     assert study_session is not None and study_session.completed_task_count == 1
@@ -225,6 +231,43 @@ def test_duplicate_attempt_returns_first_result_without_second_state_update(db: 
     assert state is not None and state.reps == 1
 
 
+def test_submit_reserves_sqlite_writer_after_authentication_read(db: Session) -> None:
+    user_id, card_id, session_id = _create_context(db)
+    values = _attempt_values(user_id=user_id, card_id=card_id, session_id=session_id)
+
+    # require_owner performs this query before the endpoint enters the review service.
+    assert db.scalar(select(User).where(User.id == user_id)) is not None
+    statements: list[str] = []
+
+    def capture_statement(
+        _connection: object,
+        _cursor: object,
+        statement: str,
+        _parameters: object,
+        _context: object,
+        _executemany: bool,
+    ) -> None:
+        statements.append(" ".join(statement.split()).lower())
+
+    event.listen(engine, "before_cursor_execute", capture_statement)
+    try:
+        submit_review_attempt(db, values, now=BASE_TIME + timedelta(minutes=2))
+    finally:
+        event.remove(engine, "before_cursor_execute", capture_statement)
+
+    replay_lookup = next(
+        index
+        for index, statement in enumerate(statements)
+        if statement.startswith("select") and "from review_attempts" in statement
+    )
+    writer_reservation = next(
+        index
+        for index, statement in enumerate(statements)
+        if statement.startswith("update users set id = id")
+    )
+    assert writer_reservation < replay_lookup
+
+
 def test_duplicate_attempt_with_different_context_is_a_conflict(db: Session) -> None:
     user_id, card_id, session_id = _create_context(db)
     values = _attempt_values(user_id=user_id, card_id=card_id, session_id=session_id)
@@ -244,24 +287,80 @@ def test_duplicate_attempt_with_different_context_is_a_conflict(db: Session) -> 
     sys.version_info >= (3, 14),
     reason="Python 3.14 + shared in-memory SQLite ThreadPool can segfault; covered by postgres marker",
 )
-def test_concurrent_duplicate_submission_creates_one_attempt(db: Session) -> None:
-    user_id, card_id, session_id = _create_context(db)
-    values = _attempt_values(user_id=user_id, card_id=card_id, session_id=session_id)
+def test_concurrent_duplicate_submission_creates_one_attempt(tmp_path: Path) -> None:
+    # A file-based database gives each thread its own connection; the shared-connection
+    # in-memory engine cannot exercise real writer contention and flakes.
+    sqlite_engine = create_engine(
+        f"sqlite:///{tmp_path / 'review-duplicate.db'}",
+        connect_args={"check_same_thread": False},
+        pool_pre_ping=True,
+    )
+    Base.metadata.create_all(sqlite_engine)
+    try:
+        with Session(sqlite_engine) as setup_db:
+            user_id, card_id, session_id = _create_context(setup_db)
+        values = _attempt_values(user_id=user_id, card_id=card_id, session_id=session_id)
 
-    def submit() -> tuple[int, bool]:
-        with Session(engine) as thread_db:
-            result = submit_review_attempt(thread_db, values, now=BASE_TIME + timedelta(minutes=2))
-            return result.attempt.id, result.replayed
+        def submit() -> tuple[int, bool]:
+            with Session(sqlite_engine) as thread_db:
+                result = submit_review_attempt(
+                    thread_db, values, now=BASE_TIME + timedelta(minutes=2)
+                )
+                return result.attempt.id, result.replayed
 
-    with ThreadPoolExecutor(max_workers=2) as executor:
-        results = list(executor.map(lambda _index: submit(), range(2)))
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            results = list(executor.map(lambda _index: submit(), range(2)))
 
-    assert len({attempt_id for attempt_id, _replayed in results}) == 1
-    assert sorted(replayed for _attempt_id, replayed in results) == [False, True]
-    with Session(engine) as verify_db:
-        assert verify_db.scalar(select(func.count()).select_from(ReviewAttempt)) == 1
-        state = verify_db.scalar(select(CardReviewState).where(CardReviewState.card_id == card_id))
-        assert state is not None and state.reps == 1
+        assert len({attempt_id for attempt_id, _replayed in results}) == 1
+        assert sorted(replayed for _attempt_id, replayed in results) == [False, True]
+        with Session(sqlite_engine) as verify_db:
+            assert verify_db.scalar(select(func.count()).select_from(ReviewAttempt)) == 1
+            state = verify_db.scalar(
+                select(CardReviewState).where(CardReviewState.card_id == card_id)
+            )
+            assert state is not None and state.reps == 1
+    finally:
+        sqlite_engine.dispose()
+
+
+def test_file_sqlite_concurrent_duplicate_after_authentication_read(tmp_path: Path) -> None:
+    sqlite_engine = create_engine(
+        f"sqlite:///{tmp_path / 'review-concurrency.db'}",
+        connect_args={"check_same_thread": False},
+        pool_pre_ping=True,
+    )
+    Base.metadata.create_all(sqlite_engine)
+    try:
+        with Session(sqlite_engine) as setup_db:
+            user_id, card_id, session_id = _create_context(setup_db)
+        values = _attempt_values(user_id=user_id, card_id=card_id, session_id=session_id)
+        ready = Barrier(2)
+
+        def submit() -> tuple[int, bool]:
+            with Session(sqlite_engine) as thread_db:
+                # Mirror require_owner opening a deferred read transaction first.
+                assert thread_db.scalar(select(User).where(User.id == user_id)) is not None
+                ready.wait(timeout=5)
+                result = submit_review_attempt(
+                    thread_db,
+                    values,
+                    now=BASE_TIME + timedelta(minutes=2),
+                )
+                return result.attempt.id, result.replayed
+
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            results = list(executor.map(lambda _index: submit(), range(2)))
+
+        assert len({attempt_id for attempt_id, _replayed in results}) == 1
+        assert sorted(replayed for _attempt_id, replayed in results) == [False, True]
+        with Session(sqlite_engine) as verify_db:
+            assert verify_db.scalar(select(func.count()).select_from(ReviewAttempt)) == 1
+            state = verify_db.scalar(
+                select(CardReviewState).where(CardReviewState.card_id == card_id)
+            )
+            assert state is not None and state.reps == 1
+    finally:
+        sqlite_engine.dispose()
 
 
 @pytest.mark.postgres

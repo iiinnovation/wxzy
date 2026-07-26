@@ -1,0 +1,6 @@
+<view class="state state-{{type}}" role="status">
+  <view class="state-mark">{{type === 'loading' ? '…' : type === 'error' ? '!' : type === 'unauthorized' ? '锁' : '✓'}}</view>
+  <view class="state-title">{{title}}</view>
+  <view class="state-message" wx:if="{{message}}">{{message}}</view>
+  <button class="state-action" wx:if="{{actionLabel}}" bindtap="onAction">{{actionLabel}}</button>
+</view>

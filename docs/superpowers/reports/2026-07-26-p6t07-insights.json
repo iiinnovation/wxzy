@@ -1,0 +1,44 @@
+{
+  "task": "P6-T07",
+  "title": "Insights Read Models",
+  "status": "complete",
+  "generated_at": "2026-07-26",
+  "stage": "insights",
+  "stage_version": "p6t07-v1",
+  "http": [
+    "GET /api/v1/insights/summary",
+    "GET /api/v1/insights/workload",
+    "GET /api/v1/insights/weak-topics"
+  ],
+  "semantics": {
+    "today": "Owner IANA timezone",
+    "coverage": "unique terminal pages in latest document versions",
+    "published": "published catalog cards",
+    "enrolled": "non-retired Owner enrollments",
+    "mastered": "active review state with reps>=3, last rating Good/Easy, and due_at>now",
+    "workload": "seven Owner-local days with overdue folded into today",
+    "weak_topic_pagination": "stable offset/limit with total and has_more"
+  },
+  "acceptance": {
+    "empty_data": true,
+    "small_data": true,
+    "cross_timezone_today": true,
+    "content_measures_separated": true,
+    "seven_day_workload": true,
+    "subject_trend": true,
+    "large_pagination": true,
+    "rebuildable": true
+  },
+  "verification": {
+    "pytest_insights_coach_daily_plan": "14 passed",
+    "pytest_full_server": "152 passed, 3 skipped",
+    "ruff_touched": "passed",
+    "openapi_routes": "passed",
+    "diff_check": "passed"
+  },
+  "remaining_risks": [
+    "asynchronous materialization deferred until measured volume requires it",
+    "mastery is a conservative rebuildable v1 read rule",
+    "postgres markers require WXZY_TEST_POSTGRES_URL"
+  ]
+}

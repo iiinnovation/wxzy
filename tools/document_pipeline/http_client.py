@@ -148,7 +148,7 @@ def _put_file_with_curl(
         cmd.extend(["--resolve", f"{host}:443:{resolve_ip}"])
     cmd.append(upload_url)
     size_mb = file_path.stat().st_size / (1024 * 1024)
-    target = f"{urlsplit(upload_url).hostname}{'@'+resolve_ip if resolve_ip else ''}"
+    target = f"{urlsplit(upload_url).hostname}{'@' + resolve_ip if resolve_ip else ''}"
     print(
         f"[put_file] curl upload start size={size_mb:.1f}MB host={target}",
         flush=True,
@@ -235,13 +235,10 @@ def put_file(
                     upload_url,
                     data=f,
                     timeout=timeout,
-                    proxies={"http": None, "https": None},
                     headers={},
                 )
             if resp.status_code not in (200, 201):
-                raise SystemExit(
-                    f"upload failed HTTP {resp.status_code}: {resp.text[:300]}"
-                )
+                raise SystemExit(f"upload failed HTTP {resp.status_code}: {resp.text[:300]}")
             return resp.status_code
         except SystemExit:
             raise

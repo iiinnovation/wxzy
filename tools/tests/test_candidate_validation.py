@@ -60,7 +60,10 @@ def test_duplicate_questions_are_intercepted() -> None:
     # also direct near-dup map
     from tools.document_pipeline.candidate_schema import CandidateCardV2
 
-    models = [CandidateCardV2.model_validate(cards["duplicate_a"]), CandidateCardV2.model_validate(cards["duplicate_b"])]
+    models = [
+        CandidateCardV2.model_validate(cards["duplicate_a"]),
+        CandidateCardV2.model_validate(cards["duplicate_b"]),
+    ]
     near = find_near_duplicates(models)
     assert near[models[0].id]
     assert near[models[1].id]

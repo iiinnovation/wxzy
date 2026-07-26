@@ -1,0 +1,46 @@
+{
+  "task": "P6-T05",
+  "title": "StudySession API",
+  "status": "complete",
+  "generated_at": "2026-07-26",
+  "stage": "study_session",
+  "stage_version": "p6t05-v1",
+  "acceptance": {
+    "single_current_task": true,
+    "reject_out_of_order_attempt": true,
+    "idempotent_cursor_advance": true,
+    "interrupt_resume": true,
+    "cross_day_resume": true,
+    "empty_session": true,
+    "completed_reopen": true
+  },
+  "http": {
+    "POST /api/v1/study-sessions": "create/start DailyPlan-bound session when daily_plan_id is provided",
+    "GET /api/v1/study-sessions/{id}/next": "current task or null",
+    "POST /api/v1/study-sessions/{id}/complete": "complete exhausted session",
+    "POST /api/v1/study-sessions/{id}/interrupt": "interrupt and accumulate time",
+    "POST /api/v1/study-sessions/{id}/resume": "resume original plan"
+  },
+  "migration": {
+    "revision": "20260725_0010",
+    "down_revision": "20260725_0009",
+    "columns": [
+      "daily_plan_id",
+      "plan_date",
+      "cursor_position",
+      "active_started_at"
+    ]
+  },
+  "verification": {
+    "pytest_focused": "22 passed, 2 skipped",
+    "pytest_migration_and_p6t05": "7 passed, 1 skipped",
+    "pytest_full_server": "147 passed, 3 skipped",
+    "ruff_touched": "passed",
+    "diff_check": "passed"
+  },
+  "remaining_risks": [
+    "postgres markers require WXZY_TEST_POSTGRES_URL",
+    "full-tree ruff has unrelated pre-existing test import findings",
+    "legacy unbound session path remains for compatibility"
+  ]
+}

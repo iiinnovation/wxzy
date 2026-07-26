@@ -206,10 +206,9 @@ def schedule(
         review_datetime=reviewed_at,
     )
 
-    next_stability = float(updated.stability if updated.stability is not None else DEFAULT_STABILITY)
-    next_difficulty = float(
-        _clamp_difficulty(updated.difficulty) if updated.difficulty is not None else DEFAULT_DIFFICULTY
-    )
+    next_stability = updated.stability if updated.stability is not None else DEFAULT_STABILITY
+    clamped_difficulty = _clamp_difficulty(updated.difficulty)
+    next_difficulty = clamped_difficulty if clamped_difficulty is not None else DEFAULT_DIFFICULTY
     next_due = _require_utc(updated.due, field_name="due_at")
     scheduled_days = max((next_due - reviewed_at).total_seconds() / 86400.0, 0.0)
     next_state = _map_state_from_fsrs(updated.state, previous=state)
@@ -366,8 +365,18 @@ def dry_run_algorithm_upgrade(
         else:
             last_reviewed = None
         state = str(row.get("state") or "new")
-        stability = float(row.get("stability") if row.get("stability") is not None else DEFAULT_STABILITY)
-        difficulty = float(row.get("difficulty") if row.get("difficulty") is not None else DEFAULT_DIFFICULTY)
+        raw_stability = row.get("stability")
+        raw_difficulty = row.get("difficulty")
+        stability = (
+            float(raw_stability)
+            if isinstance(raw_stability, (int, float, str))
+            else DEFAULT_STABILITY
+        )
+        difficulty = (
+            float(raw_difficulty)
+            if isinstance(raw_difficulty, (int, float, str))
+            else DEFAULT_DIFFICULTY
+        )
         reps = int(row.get("reps") or 0)
         lapses = int(row.get("lapses") or 0)
         # Prefer last_rating when available so dry-run mirrors the last observed grade.
@@ -391,10 +400,7 @@ def dry_run_algorithm_upgrade(
         delta_days = (proposed.due_at - current_due).total_seconds() / 86400.0
         abs_deltas.append(abs(delta_days))
         card_key = str(
-            row.get("external_id")
-            or row.get("card_id")
-            or row.get("id")
-            or f"row-{index}"
+            row.get("external_id") or row.get("card_id") or row.get("id") or f"row-{index}"
         )
         samples.append(
             UpgradeSample(

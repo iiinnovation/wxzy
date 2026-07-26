@@ -5,13 +5,13 @@
 
 'use strict'
 
-var httpModule = require('./http')
+const httpModule = require('./http')
 
 function createAuthApi(client, deps) {
   client = client || httpModule.getDefaultClient()
   deps = deps || {}
-  var wxLogin = deps.wxLogin || defaultWxLogin
-  var deviceLabel = deps.deviceLabel || defaultDeviceLabel
+  const wxLogin = deps.wxLogin || defaultWxLogin
+  const deviceLabel = deps.deviceLabel || defaultDeviceLabel
 
   function loginWithCode(code, label) {
     return client
@@ -35,7 +35,7 @@ function createAuthApi(client, deps) {
     return wxLogin()
       .then(function (code) {
         if (!code) {
-          var err = httpModule.createApiError({
+          const err = httpModule.createApiError({
             code: 'WECHAT_LOGIN_FAILED',
             message: '微信登录失败，请重试',
             statusCode: 0
@@ -52,7 +52,7 @@ function createAuthApi(client, deps) {
           client.setAuthState(client.AUTH_STATE.FORBIDDEN)
         } else if (!(err && err.name === 'ApiError' && client.getAuthSnapshot().authState === client.AUTH_STATE.FORBIDDEN)) {
           if (!err || !err.offline) {
-            var snap = client.getAuthSnapshot()
+            const snap = client.getAuthSnapshot()
             if (snap.authState === client.AUTH_STATE.AUTHENTICATING) {
               client.setAuthState(client.AUTH_STATE.UNAUTHENTICATED)
             }
@@ -77,7 +77,7 @@ function createAuthApi(client, deps) {
   }
 
   function logout() {
-    var token = client.getBearerToken()
+    const token = client.getBearerToken()
     if (!token || !client.getAuthSnapshot().hasSession) {
       client.clearSession(client.AUTH_STATE.UNAUTHENTICATED)
       return Promise.resolve({ ok: true, localOnly: true })
@@ -116,6 +116,46 @@ function createAuthApi(client, deps) {
     })
   }
 
+  function listSessions() {
+    return client.request('/api/v1/me/sessions', {
+      method: 'GET',
+      auth: true
+    })
+  }
+
+  function revokeSession(sessionId) {
+    return client.request('/api/v1/me/sessions/' + Number(sessionId), {
+      method: 'DELETE',
+      auth: true
+    })
+  }
+
+  function exportData() {
+    return client.request('/api/v1/me/export', {
+      method: 'GET',
+      auth: true,
+      timeout: 30000
+    })
+  }
+
+  function deleteData() {
+    // Confirmation travels in the query string because wx.request drops DELETE
+    // bodies on some platforms (e.g. PC WeChat); the body is kept as a fallback.
+    return client
+      .request('/api/v1/me?confirmation=DELETE_MY_DATA', {
+        method: 'DELETE',
+        auth: true,
+        data: { confirmation: 'DELETE_MY_DATA' }
+      })
+      .then(function () {
+        client.clearSession(client.AUTH_STATE.UNAUTHENTICATED)
+        if (client.isDevEnvironment() && client.setDevToken) {
+          client.setDevToken('')
+        }
+        return { ok: true }
+      })
+  }
+
   /**
    * Boot sequence:
    * 1. load storage session
@@ -133,7 +173,7 @@ function createAuthApi(client, deps) {
       })
     })
 
-    var snap = client.getAuthSnapshot()
+    const snap = client.getAuthSnapshot()
 
     if (snap.hasSession) {
       return fetchMe()
@@ -245,6 +285,10 @@ function createAuthApi(client, deps) {
     refresh: refresh,
     logout: logout,
     fetchMe: fetchMe,
+    listSessions: listSessions,
+    revokeSession: revokeSession,
+    exportData: exportData,
+    deleteData: deleteData,
     bootstrap: bootstrap
   }
 }
@@ -291,8 +335,8 @@ function defaultWxLogin() {
 function defaultDeviceLabel() {
   try {
     if (typeof wx !== 'undefined' && wx.getSystemInfoSync) {
-      var info = wx.getSystemInfoSync()
-      var parts = [info.brand, info.model, info.system].filter(Boolean)
+      const info = wx.getSystemInfoSync()
+      const parts = [info.brand, info.model, info.system].filter(Boolean)
       return parts.join(' ').slice(0, 128) || 'wechat-miniprogram'
     }
   } catch (e) {
@@ -301,7 +345,7 @@ function defaultDeviceLabel() {
   return 'wechat-miniprogram'
 }
 
-var defaultAuthApi = null
+let defaultAuthApi = null
 
 function getDefaultAuthApi() {
   if (!defaultAuthApi) {

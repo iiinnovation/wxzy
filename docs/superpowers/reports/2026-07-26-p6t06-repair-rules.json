@@ -1,0 +1,55 @@
+{
+  "task": "P6-T06",
+  "title": "Weak Topic and Repair Rules",
+  "status": "complete",
+  "generated_at": "2026-07-26",
+  "stage": "repair_rules",
+  "stage_version": "p6t06-v1",
+  "thresholds": {
+    "lookback_days": 30,
+    "repeated_again_count": 2,
+    "slow_hard_count": 2,
+    "slow_response_ms": 60000,
+    "tag_confusion_distinct_cards": 2
+  },
+  "signals": [
+    "repeated_again",
+    "slow_hard",
+    "tag_confusion",
+    "card_issue"
+  ],
+  "actions": [
+    "reread_source",
+    "written_recall",
+    "compare_cards",
+    "split_card",
+    "review_content"
+  ],
+  "http": {
+    "GET /api/v1/learning/repair-suggestions": "Owner-scoped read-only suggestions, limit 1-500"
+  },
+  "acceptance": {
+    "repeated_again_triggers": true,
+    "slow_hard_triggers": true,
+    "tag_confusion_triggers": true,
+    "issues_aggregate": true,
+    "single_again_does_not_trigger": true,
+    "fast_hard_does_not_trigger": true,
+    "single_tag_failure_does_not_trigger": true,
+    "specific_source_returned": true,
+    "no_content_write": true
+  },
+  "verification": {
+    "pytest_rules_and_daily_plan": "11 passed",
+    "pytest_p6_focused": "24 passed, 2 skipped",
+    "pytest_full_server": "149 passed, 3 skipped",
+    "ruff_touched": "passed",
+    "diff_check": "passed"
+  },
+  "remaining_risks": [
+    "threshold tuning needs longitudinal data and rule versioning",
+    "tag confusion quality depends on catalog tags",
+    "paginated insight read models are deferred to P6-T07",
+    "postgres markers require WXZY_TEST_POSTGRES_URL"
+  ]
+}

@@ -224,9 +224,7 @@ def extract_neike_cards(
         line = _clean(raw)
         if not line or HEADING_RE.match(raw):
             continue
-        chapter, section, _ = _context_at(
-            headings, sum(len(x) + 1 for x in lines[:i])
-        )
+        chapter, section, _ = _context_at(headings, sum(len(x) + 1 for x in lines[:i]))
         disease = _disease_name(section, chapter)
 
         if line.startswith("【选方】"):
@@ -256,14 +254,24 @@ def extract_neike_cards(
         vm = VERSIONED_LINE_RE.match(line) or VERSIONED_LINE_RE.match(
             re.sub(r"^#+\s*", "", raw).strip()
         )
-        if vm and ("分" in vm.group("body") or "中经络" in vm.group("body") or "中脏腑" in vm.group("body")):
+        if vm and (
+            "分" in vm.group("body") or "中经络" in vm.group("body") or "中脏腑" in vm.group("body")
+        ):
             label = vm.group("label")
             body = _clean(vm.group(0))
             # include following non-heading prose line if it elaborates
             if i + 1 < len(lines):
                 nxt = _clean(lines[i + 1])
-                if nxt and not HEADING_RE.match(lines[i + 1]) and label in nxt or (
-                    nxt and not HEADING_RE.match(lines[i + 1]) and len(nxt) > 8 and "教材" not in nxt[:4]
+                if (
+                    nxt
+                    and not HEADING_RE.match(lines[i + 1])
+                    and label in nxt
+                    or (
+                        nxt
+                        and not HEADING_RE.match(lines[i + 1])
+                        and len(nxt) > 8
+                        and "教材" not in nxt[:4]
+                    )
                 ):
                     if label.split("教材")[0] in nxt or "中经络" in nxt or "中脏腑" in nxt:
                         body = _clean(body + " " + nxt)
@@ -443,9 +451,7 @@ def extract_neike_cards(
                     else ""
                 )
                 stage = (
-                    _clean(row[col["stage"]])
-                    if "stage" in col and col["stage"] < len(row)
-                    else ""
+                    _clean(row[col["stage"]]) if "stage" in col and col["stage"] < len(row) else ""
                 )
                 if not (method or formula):
                     continue
@@ -512,9 +518,7 @@ def extract_zhenjiu_cards(
         line = _clean(raw)
         if not line:
             continue
-        chapter, section, nearest = _context_at(
-            headings, sum(len(x) + 1 for x in lines[:i])
-        )
+        chapter, section, nearest = _context_at(headings, sum(len(x) + 1 for x in lines[:i]))
         title = nearest or section or ""
         if any(k in title for k in ("经络", "经脉", "胃经", "膀胱经", "任脉", "督脉")) or (
             "经" in title and len(title) <= 12
@@ -550,9 +554,7 @@ def extract_zhenjiu_cards(
         chunk_base = f"{chunk_id_prefix}.t{t_i}"
 
         # generic caution kv
-        if len(rows) <= 4 and any(
-            _clean(r[0]) in {"注意事项", "注意", "禁忌"} for r in rows if r
-        ):
+        if len(rows) <= 4 and any(_clean(r[0]) in {"注意事项", "注意", "禁忌"} for r in rows if r):
             for r_i, row in enumerate(rows):
                 if len(row) < 2:
                     continue
@@ -783,13 +785,14 @@ def extract_renwen_cards(
         line = _clean(raw)
         if not line:
             continue
-        chapter, section, nearest = _context_at(
-            headings, sum(len(x) + 1 for x in lines[:i])
-        )
+        chapter, section, nearest = _context_at(headings, sum(len(x) + 1 for x in lines[:i]))
 
         # regulation with optional date / statute name
-        if STATUTE_RE.search(line) or ("医师" in line and "义务" in line) or DATE_RE.search(line) and any(
-            k in line for k in ("施行", "规定", "法律", "条例", "医师")
+        if (
+            STATUTE_RE.search(line)
+            or ("医师" in line and "义务" in line)
+            or DATE_RE.search(line)
+            and any(k in line for k in ("施行", "规定", "法律", "条例", "医师"))
         ):
             tags = ["法规"]
             for m in STATUTE_RE.findall(line):

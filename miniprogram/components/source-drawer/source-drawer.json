@@ -1,0 +1,6 @@
+{
+  "component": true,
+  "usingComponents": {
+    "state-view": "../state-view/state-view"
+  }
+}

@@ -37,10 +37,7 @@ def test_schedule_returns_utc_due(rating: int) -> None:
 
 
 def test_four_ratings_produce_distinct_due() -> None:
-    dues = {
-        rating: schedule(rating=rating, now=NOW, state="new").due_at
-        for rating in (1, 2, 3, 4)
-    }
+    dues = {rating: schedule(rating=rating, now=NOW, state="new").due_at for rating in (1, 2, 3, 4)}
     # Again < Hard < Good for first learning steps; Easy graduates far later.
     assert dues[1] < dues[2] < dues[3] < dues[4]
     easy_days = (dues[4] - NOW).total_seconds() / 86400.0

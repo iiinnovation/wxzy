@@ -4,17 +4,17 @@
  */
 'use strict'
 
-var GOAL_OPTIONS = [
+const GOAL_OPTIONS = [
   { value: 'daily_learning', label: '日常巩固', hint: '每天保持少量复习' },
   { value: 'exam', label: '考试准备', hint: '按目标日期收紧计划' },
   { value: 'focused', label: '专项强化', hint: '优先高优先级学科' }
 ]
 
-var MINUTE_PRESETS = [10, 20, 30]
+const MINUTE_PRESETS = [10, 20, 30]
 
-var DAY_LABELS = ['一', '二', '三', '四', '五', '六', '日']
+const DAY_LABELS = ['一', '二', '三', '四', '五', '六', '日']
 
-var DEFAULT_SUBJECTS = [
+const DEFAULT_SUBJECTS = [
   '基础理论',
   '诊断学',
   '中药学',
@@ -25,7 +25,7 @@ var DEFAULT_SUBJECTS = [
 ]
 
 function cloneStudyDays(days) {
-  var source = Array.isArray(days) && days.length === 7 ? days : [true, true, true, true, true, true, true]
+  const source = Array.isArray(days) && days.length === 7 ? days : [true, true, true, true, true, true, true]
   return source.map(function (item) {
     return Boolean(item)
   })
@@ -51,7 +51,7 @@ function defaultFormState() {
 }
 
 function profileToForm(profile) {
-  var form = defaultFormState()
+  const form = defaultFormState()
   if (!profile || typeof profile !== 'object') {
     return form
   }
@@ -70,9 +70,9 @@ function profileToForm(profile) {
   form.expected_updated_at = profile.updated_at || ''
   form.onboarding_completed = Boolean(profile.onboarding_completed_at)
 
-  var priorities = profile.subject_priorities || {}
-  var assessments = profile.initial_self_assessment || {}
-  var names = Object.keys(priorities)
+  const priorities = profile.subject_priorities || {}
+  const assessments = profile.initial_self_assessment || {}
+  const names = Object.keys(priorities)
   DEFAULT_SUBJECTS.forEach(function (name) {
     if (names.indexOf(name) < 0) names.push(name)
   })
@@ -81,8 +81,8 @@ function profileToForm(profile) {
   })
 
   form.subject_rows = names.map(function (name) {
-    var hasPriority = Object.prototype.hasOwnProperty.call(priorities, name)
-    var hasAssessment = Object.prototype.hasOwnProperty.call(assessments, name)
+    const hasPriority = Object.prototype.hasOwnProperty.call(priorities, name)
+    const hasAssessment = Object.prototype.hasOwnProperty.call(assessments, name)
     return {
       name: name,
       priority: hasPriority ? Number(priorities[name]) : 3,
@@ -95,14 +95,14 @@ function profileToForm(profile) {
 }
 
 function subjectMapsFromRows(rows) {
-  var priorities = {}
-  var assessments = {}
+  const priorities = {}
+  const assessments = {}
   ;(rows || []).forEach(function (row) {
     if (!row || !row.enabled) return
-    var name = String(row.name || '').trim()
+    const name = String(row.name || '').trim()
     if (!name) return
-    var priority = clampScore(row.priority)
-    var assessment = clampScore(row.assessment)
+    const priority = clampScore(row.priority)
+    const assessment = clampScore(row.assessment)
     priorities[name] = priority
     assessments[name] = assessment
   })
@@ -110,7 +110,7 @@ function subjectMapsFromRows(rows) {
 }
 
 function clampScore(value) {
-  var n = Number(value)
+  const n = Number(value)
   if (!Number.isFinite(n)) return 3
   if (n < 1) return 1
   if (n > 5) return 5
@@ -118,31 +118,31 @@ function clampScore(value) {
 }
 
 function resolveDailyMinutes(form) {
-  var custom = String(form.custom_minutes || '').trim()
+  const custom = String(form.custom_minutes || '').trim()
   if (custom) {
-    var n = Number(custom)
+    const n = Number(custom)
     if (!Number.isFinite(n)) return null
     return Math.round(n)
   }
-  var minutes = Number(form.daily_minutes)
+  const minutes = Number(form.daily_minutes)
   if (!Number.isFinite(minutes)) return null
   return Math.round(minutes)
 }
 
 function validateForm(form, options) {
   options = options || {}
-  var errors = []
-  var goal = form.goal_type
+  const errors = []
+  const goal = form.goal_type
   if (goal !== 'daily_learning' && goal !== 'exam' && goal !== 'focused') {
     errors.push('请选择学习目的')
   }
 
-  var minutes = resolveDailyMinutes(form)
+  const minutes = resolveDailyMinutes(form)
   if (minutes == null || minutes < 5 || minutes > 240) {
     errors.push('每日分钟需在 5–240 之间')
   }
 
-  var days = cloneStudyDays(form.study_days)
+  const days = cloneStudyDays(form.study_days)
   if (!days.some(Boolean)) {
     errors.push('请至少选择一个学习日')
   }
@@ -159,7 +159,7 @@ function validateForm(form, options) {
     }
   }
 
-  var name = String(form.display_name || '').trim()
+  const name = String(form.display_name || '').trim()
   if (name.length > 64) {
     errors.push('昵称不能超过 64 个字符')
   }
@@ -174,31 +174,31 @@ function validateForm(form, options) {
 
 function buildUpdatePayload(form, options) {
   options = options || {}
-  var validation = validateForm(form, options)
+  const validation = validateForm(form, options)
   if (!validation.ok) {
-    var err = new Error(validation.errors[0] || '表单无效')
+    const err = new Error(validation.errors[0] || '表单无效')
     err.code = 'FORM_INVALID'
     err.errors = validation.errors
     throw err
   }
 
   if (!form.expected_updated_at) {
-    var missing = new Error('缺少档案版本，请刷新后重试')
+    const missing = new Error('缺少档案版本，请刷新后重试')
     missing.code = 'PROFILE_VERSION_MISSING'
     throw missing
   }
 
-  var maps = subjectMapsFromRows(form.subject_rows)
-  var retention = Number(form.desired_retention)
+  const maps = subjectMapsFromRows(form.subject_rows)
+  let retention = Number(form.desired_retention)
   if (!Number.isFinite(retention)) retention = 0.9
   if (retention < 0.7) retention = 0.7
   if (retention > 0.99) retention = 0.99
-  var ceiling = Number(form.new_card_ceiling)
+  let ceiling = Number(form.new_card_ceiling)
   if (!Number.isFinite(ceiling)) ceiling = 5
   if (ceiling < 0) ceiling = 0
   if (ceiling > 100) ceiling = 100
   ceiling = Math.round(ceiling)
-  var payload = {
+  const payload = {
     expected_updated_at: form.expected_updated_at,
     goal_type: form.goal_type,
     target_date: form.target_date ? String(form.target_date) : null,
@@ -231,17 +231,17 @@ function summarizeProfile(profile) {
       subjectsLabel: '未设置学科优先级'
     }
   }
-  var goal = GOAL_OPTIONS.find(function (item) {
+  const goal = GOAL_OPTIONS.find(function (item) {
     return item.value === profile.goal_type
   })
-  var days = cloneStudyDays(profile.study_days)
-  var dayText = days
+  const days = cloneStudyDays(profile.study_days)
+  const dayText = days
     .map(function (on, idx) {
       return on ? DAY_LABELS[idx] : null
     })
     .filter(Boolean)
     .join('、')
-  var subjectCount = Object.keys(profile.subject_priorities || {}).length
+  const subjectCount = Object.keys(profile.subject_priorities || {}).length
   return {
     goalLabel: goal ? goal.label : profile.goal_type || '未设置',
     minutesLabel: (profile.daily_minutes || 0) + ' 分钟/天',

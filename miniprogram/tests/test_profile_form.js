@@ -1,18 +1,18 @@
 #!/usr/bin/env node
 'use strict'
 
-var assert = require('assert')
-var path = require('path')
-var form = require(path.join(__dirname, '..', 'utils', 'profile-form.js'))
-var profileApiModule = require(path.join(__dirname, '..', 'services', 'profile-api.js'))
-var httpModule = require(path.join(__dirname, '..', 'services', 'http.js'))
+const assert = require('assert')
+const path = require('path')
+const form = require(path.join(__dirname, '..', 'utils', 'profile-form.js'))
+const profileApiModule = require(path.join(__dirname, '..', 'services', 'profile-api.js'))
+const httpModule = require(path.join(__dirname, '..', 'services', 'http.js'))
 
-var passed = 0
-var failed = 0
+let passed = 0
+let failed = 0
 
 function test(name, fn) {
   try {
-    var result = fn()
+    const result = fn()
     if (result && typeof result.then === 'function') {
       return result.then(
         function () {
@@ -38,7 +38,7 @@ function test(name, fn) {
 }
 
 function createMemoryStorage(seed) {
-  var data = Object.assign({}, seed || {})
+  const data = Object.assign({}, seed || {})
   return {
     get: function (key) {
       return Object.prototype.hasOwnProperty.call(data, key) ? data[key] : ''
@@ -53,23 +53,23 @@ function createMemoryStorage(seed) {
 }
 
 function run() {
-  var chain = Promise.resolve()
+  let chain = Promise.resolve()
 
   chain = chain.then(function () {
     return test('default form is valid and skippable optionals empty', function () {
-      var state = form.defaultFormState()
-      var validation = form.validateForm(state)
+      const state = form.defaultFormState()
+      const validation = form.validateForm(state)
       assert.strictEqual(validation.ok, true)
       assert.strictEqual(validation.daily_minutes, 20)
       assert.ok(validation.study_days.every(Boolean))
-      var maps = form.subjectMapsFromRows(state.subject_rows)
+      const maps = form.subjectMapsFromRows(state.subject_rows)
       assert.deepStrictEqual(maps.subject_priorities, {})
     })
   })
 
   chain = chain.then(function () {
     return test('profileToForm and buildUpdatePayload round-trip core fields', function () {
-      var profile = {
+      const profile = {
         goal_type: 'exam',
         target_date: '2026-12-01',
         daily_minutes: 35,
@@ -83,16 +83,16 @@ function run() {
         display_name: '学习者',
         timezone: 'Asia/Shanghai'
       }
-      var state = form.profileToForm(profile)
+      const state = form.profileToForm(profile)
       assert.strictEqual(state.goal_type, 'exam')
       assert.strictEqual(state.custom_minutes, '35')
       assert.strictEqual(state.onboarding_completed, false)
-      var enabled = state.subject_rows.filter(function (row) {
+      const enabled = state.subject_rows.filter(function (row) {
         return row.enabled
       })
       assert.ok(enabled.length >= 2)
 
-      var payload = form.buildUpdatePayload(state, { completeOnboarding: true })
+      const payload = form.buildUpdatePayload(state, { completeOnboarding: true })
       assert.strictEqual(payload.goal_type, 'exam')
       assert.strictEqual(payload.daily_minutes, 35)
       assert.strictEqual(payload.target_date, '2026-12-01')
@@ -104,7 +104,7 @@ function run() {
 
   chain = chain.then(function () {
     return test('validate rejects empty study days and out-of-range minutes', function () {
-      var state = form.defaultFormState()
+      let state = form.defaultFormState()
       state.study_days = [false, false, false, false, false, false, false]
       assert.strictEqual(form.validateForm(state).ok, false)
       state = form.defaultFormState()
@@ -115,7 +115,7 @@ function run() {
 
   chain = chain.then(function () {
     return test('summarize and onboarding complete flags', function () {
-      var incomplete = form.summarizeProfile({
+      const incomplete = form.summarizeProfile({
         goal_type: 'daily_learning',
         daily_minutes: 20,
         study_days: [true, true, true, true, true, true, true],
@@ -133,15 +133,15 @@ function run() {
 
   chain = chain.then(function () {
     return test('profile-api get and save use session bearer and concurrency token', function () {
-      var storage = createMemoryStorage({
+      const storage = createMemoryStorage({
         apiBase: 'http://127.0.0.1:8000',
         sessionToken: 'session-profile-1',
         sessionExpiresAt: new Date(Date.now() + 3600 * 1000).toISOString()
       })
-      var calls = []
-      var requestFn = function (options) {
+      const calls = []
+      const requestFn = function (options) {
         calls.push(options)
-        var path = options.url.replace(/^https?:\/\/[^/]+/, '')
+        const path = options.url.replace(/^https?:\/\/[^/]+/, '')
         if (options.method === 'GET' && path === '/api/v1/me/learning-profile') {
           assert.strictEqual(options.header.Authorization, 'Bearer session-profile-1')
           return Promise.resolve({
@@ -185,10 +185,10 @@ function run() {
         }
         throw new Error('unexpected ' + options.method + ' ' + path)
       }
-      var client = httpModule.createHttpClient({ storage: storage, request: requestFn })
-      var api = profileApiModule.createProfileApi(client)
+      const client = httpModule.createHttpClient({ storage: storage, request: requestFn })
+      const api = profileApiModule.createProfileApi(client)
       return api.getLearningProfile().then(function (profile) {
-        var state = form.profileToForm(profile)
+        const state = form.profileToForm(profile)
         state.daily_minutes = 30
         state.custom_minutes = ''
         return api.saveForm(state, { completeOnboarding: true }).then(function (saved) {
@@ -202,18 +202,18 @@ function run() {
 
   chain = chain.then(function () {
     return test('pages do not assemble Authorization headers', function () {
-      var fs = require('fs')
-      var root = path.join(__dirname, '..', 'pages')
-      var offenders = []
+      const fs = require('fs')
+      const root = path.join(__dirname, '..', 'pages')
+      const offenders = []
       function walk(dir) {
         fs.readdirSync(dir).forEach(function (name) {
-          var full = path.join(dir, name)
+          const full = path.join(dir, name)
           if (fs.statSync(full).isDirectory()) {
             walk(full)
             return
           }
           if (!name.endsWith('.js')) return
-          var text = fs.readFileSync(full, 'utf8')
+          const text = fs.readFileSync(full, 'utf8')
           if (/Authorization\s*:/.test(text) || /['"]Bearer\s/.test(text)) {
             offenders.push(full)
           }

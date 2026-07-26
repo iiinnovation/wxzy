@@ -1064,7 +1064,7 @@ issue 时删除迁移生成的 profile/session/Owner；一旦存在个人学习�
 
 ## P6-T04 DailyPlan v1
 
-状态：`[ ]`
+状态：`[x]`
 
 需求：PLAN-001–006。
 
@@ -1072,29 +1072,67 @@ issue 时删除迁移生成的 profile/session/Owner；一旦存在个人学习�
 
 验收：积压时 new=0；预算变化可解释；相同输入输出稳定。
 
+完成报告（2026-07-25）：
+
+- 服务：`generate_daily_plan` / `get_or_create_today_plan` / `adjust_today_budget`；`GENERATION_VERSION=daily-plan-v1`；due/overdue 优先，再 weak/repair，再 new；积压或 7 天负荷超预算暂停新卡；冷启动保守默认并标记 `is_initial`；计划项带 reason code。
+- API：`GET/PATCH /api/v1/learning/today`（临时预算 5–240 分钟，不删除未完成项）。
+- 迁移：`20260725_0009` 新增 `daily_plans` / `daily_plan_items`。
+- 验证：focused `test_daily_plan` + migrations `13 passed, 1 deselected`；server 全量 `144 passed, 3 skipped`；ruff 通过。
+- 报告：`docs/superpowers/reports/2026-07-25-p6t04-daily-plan.{json,md}`
+- 剩余风险：周混合测试仍为启发式；更深 weak/repair 归 P6-T06；计划项游标会话归 P6-T05；Postgres 标记测试需 `WXZY_TEST_POSTGRES_URL`。
+
 ## P6-T05 StudySession API
 
-状态：`[ ]`
+状态：`[x]`
 
 工作：start/next/complete/interrupted；计划项游标；一次只取当前/下一任务；实际分钟统计。
 
 验收：中断恢复、空会话、已完成重开和跨日边界测试。
 
+完成报告（2026-07-26）：
+
+- 持久化：`StudySession` 绑定唯一 `daily_plan_id`，固定 `plan_date`，保存 `cursor_position` 和活跃计时起点；迁移 revision `20260725_0010`。
+- 服务：计划会话 create/start/next/complete/interrupt/resume；中断保留游标和累计实际分钟，跨日恢复仍继续原计划；空计划可正常完成，已完成计划重开幂等返回原会话。
+- 事务：计划会话只允许评分当前 pending 计划项；首次成功评分在同一事务内写 ReviewAttempt、推进 FSRS、完成 DailyPlanItem 并移动游标；client attempt 重放不重复推进。
+- API：`POST /api/v1/study-sessions` 通过 `daily_plan_id` 启用计划会话；新增 `GET .../next` 与 `POST .../complete|interrupt|resume`。
+- 验证：P6-T03/T04/T05 聚焦测试 `22 passed, 2 skipped`；server 全量 `147 passed, 3 skipped`；迁移 upgrade/downgrade/check 通过（Postgres 标记未配置）。
+- 报告：`docs/superpowers/reports/2026-07-26-p6t05-study-session.{json,md}`。
+
 ## P6-T06 Weak Topic 和 Repair Rules
 
-状态：`[ ]`
+状态：`[x]`
 
 工作：重复 Again、持续 Hard、耗时、混淆标签和 Issue 聚合；输出具体 reason/action；不自动发布 AI 修复卡。
 
 验收：fixture 能触发/不误触发；建议指向具体来源。
 
+完成报告（2026-07-26）：
+
+- 规则：30 天真实记录窗口；同卡 Again ≥2、慢 Hard ≥2（单次 ≥60 秒）、同标签至少两张 active 卡近期低评分、开放/in_review CardIssue 聚合。
+- 输出：每条建议包含 card revision、topic/tags、severity、结构化 signals/actions、计数证据、关联卡和具体书籍/章节/页码/原文来源；动作覆盖回原文、无提示书写、对比卡、拆卡和内容核验。
+- 计划：DailyPlan weak/repair 候选复用统一 coach 服务，reason code 为 `REPAIR_REPEATED_AGAIN` / `REPAIR_TAG_CONFUSION` / `REPAIR_CARD_ISSUE` / `WEAK_SLOW_HARD`，detail 同时记录 signals/actions。
+- API：`GET /api/v1/learning/repair-suggestions?limit=...`，Owner 作用域、只读；不创建 CandidateCard、不修改或自动发布卡片。
+- 验证：规则 + DailyPlan 聚焦 `11 passed`；P6-T03–T06 聚焦 `24 passed, 2 skipped`；server 全量 `149 passed, 3 skipped`；涉及文件 ruff 和 diff check 通过。
+- 报告：`docs/superpowers/reports/2026-07-26-p6t06-repair-rules.{json,md}`。
+
 ## P6-T07 Insights Read Models
 
-状态：`[ ]`
+状态：`[x]`
 
 工作：summary、未来 7 天、学科趋势、薄弱点；异步/可重建聚合；区分覆盖/发布/加入/掌握。
 
 验收：空数据、少量数据、跨时区当天统计和大数据分页。
+
+完成报告（2026-07-26）：
+
+- Summary：学习天数、总计/今日实际分钟与复习/新卡数、当前到期/积压；按 Owner IANA 时区计算当天边界。
+- 内容口径：最新文档版本 terminal page 覆盖、published 卡、非 retired enrollment、active 卡、当前掌握分别计数；掌握要求 review state、reps≥3、最近 Good/Easy 且未到期。
+- Workload：Owner 本地今天起 7 天分桶，历史逾期并入今天，按真实 response_ms 中位数（冷启动 45 秒）估时，并结合 LearningProfile 学习日/分钟预算标记 overloaded。
+- 学科趋势：按 Book.subject 汇总发布/加入/active/掌握及 30 天 Again/Hard/成功率；最近 15 天与此前 15 天各至少 2 次才输出 improving/stable/declining，否则 insufficient。
+- Weak topics：复用 P6-T06 repair suggestions，稳定 severity/time/card 排序，offset/limit 分页并返回 total/has_more。
+- API：`GET /api/v1/insights/summary`、`/workload`、`/weak-topics`；读模型无持久化派生状态，可从事实表完整重建。
+- 验证：Insights + coach + DailyPlan 聚焦 `14 passed`；server 全量 `152 passed, 3 skipped`；涉及文件 ruff、OpenAPI 路径和 diff check 通过。
+- 报告：`docs/superpowers/reports/2026-07-26-p6t07-insights.{json,md}`。
 
 ### P6 退出门禁
 
@@ -1108,81 +1146,101 @@ issue 时删除迁移生成的 profile/session/Owner；一旦存在个人学习�
 
 ## P7-T01 API Client v1 拆分
 
-状态：`[ ]`
+状态：`[x]`
 
 工作：`http/auth/profile/catalog/learning/insights` services；Session、request_id、业务错误、超时；页面不直接请求。
 
 验收：API fixture 单测/手工 mock；401、超时、业务冲突文案。
 
+交付：拆分 `http/auth/catalog/learning/insights` 客户端，集中处理 Session、request_id、稳定业务错误和超时；页面不直接调用 `wx.request`。API 客户端 Node 单测和通用质量门禁通过。
+
 ## P7-T02 Onboarding UI
 
-状态：`[ ]`
+状态：`[x]`
 
 工作：目的、日期、时间、学习日、优先级；保存和恢复；首次路由。
 
 验收：移动端键盘、长文本、错误/重试、两分钟完成。
 
+交付：完成目的、可选日期、每日时间、学习日和学科优先级的保存/恢复与首次路由；表单失败可重试。键盘和真机时长复核统一纳入 P7-T09。
+
 ## P7-T03 今日页 DailyPlan
 
-状态：`[ ]`
+状态：`[x]`
 
 工作：预计分钟、到期/新卡/薄弱、调整时间、overloaded/completed；最多 3–5 预览。
 
 验收：loading/empty/error/unauthorized/completed；布局稳定；计划与 API 一致。
 
+交付：今日页由 DailyPlan 驱动，显示时长、到期/新卡/薄弱、负载原因、最多 5 项预览及时间调整，并覆盖加载、空、错误、未授权和完成状态。真实 API 冒烟返回 15 项待学习任务。
+
 ## P7-T04 Study Session 页面
 
-状态：`[ ]`
+状态：`[x]`
 
 工作：review/learn/repair/test；主动回忆、可选书写、答案、来源、评分；client_attempt_id；中断恢复。
 
 验收：完整点击流、重复点击、超时重试、长答案、来源加载和返回。
 
+交付：完成计划绑定会话、主动回忆/可选书写/答案/来源/评分流程和中断恢复。评分超时保留原 payload 和 `client_attempt_id`，阻止改评；迟到响应受页面序列守卫。
+
 ## P7-T05 学科和章节
 
-状态：`[ ]`
+状态：`[x]`
 
 工作：7 本目录、章节树、发布/加入/掌握区分、加入/暂停、搜索分页。
 
 验收：无内容、部分发布、整章加入和大列表性能。
 
+交付：完成 7 本目录、章节树、卡片搜索分页、来源详情以及整章加入/暂停/恢复；分开展示 published、enrolled、active 和 mastered。真实目录冒烟为 7 本、19 章、71 张 published 卡。
+
 ## P7-T06 进度与周测
 
-状态：`[ ]`
+状态：`[x]`
 
 工作：分钟、积压、未来负荷、学科趋势、薄弱点和周测入口；样本不足提示。
 
 验收：空/少量/正常数据；图表不只靠颜色；长主题不溢出。
 
+交付：进度 Tab 接入 Summary、7 日负荷、学科趋势、薄弱主题和周测；样本不足有独立文案，状态同时用文字/数值表达。`mixed_weekly` 记录结果但不改写 FSRS 状态。
+
 ## P7-T07 我的页
 
-状态：`[ ]`
+状态：`[x]`
 
 工作：Owner、档案、目标、Session、导出/删除；dev-only API 设置；生产不显示 Token。
 
 验收：环境开关、保存失败、Session 撤销和隐私文案。
 
+交付：完成 Owner/档案/目标、设备 Session 列表和撤销、数据导出与账户删除。dev Token 控件受环境开关控制，生产首屏不渲染；导出不含密钥，删除显式清理 Owner 全部学习数据。
+
 ## P7-T08 通用状态与组件
 
-状态：`[ ]`
+状态：`[x]`
 
 工作：rating/source/loading/error/empty/progress 等真实复用组件；请求序列防迟到；减少大 setData。
 
 验收：组件尺寸稳定、无嵌套卡片、无 CSS 变量兼容问题。
 
+交付：复用 `state-view`、`progress-bar`、`rating-control`、`source-drawer` 和计划摘要组件；补全来源嵌套组件声明、错误/重试状态及 WXML 组件依赖自动检查。
+
 ## P7-T09 微信开发者工具与真机验收
 
-状态：`[ ]`
+状态：`[!]`
 
 工作：当前和最低基础库、清缓存编译、网络、断网、长文、快速返回、性能面板；真机使用 HTTPS/LAN 正确地址。
 
 验收：10 个 PRD 发布场景全部通过并保留结果记录。
 
+阻塞：2026-07-26 清理失败进程后重试 CLI，仍为 `#initialize-error: wait IDE port timeout`，9420 未监听。最新 IDE 日志报 `devtools/version manifest.json ... not installed` 和 `doCheckUpdate -80150`，属于项目编译前的 IDE/插件初始化故障。开发者工具编译、性能面板和真机 10 场景不得标记通过。
+
 ### P7 退出门禁
 
-- 四个 Tab 和学习会话完整。
-- 小程序没有任何文档处理控制功能或生产 Token 输入。
-- 真机完成登录、加入章节、学习、评分、来源和进度流程。
+- `[x]` 四个 Tab 和学习会话完整。
+- `[x]` 小程序没有任何文档处理控制功能或生产 Token 输入。
+- `[!]` 真机登录、加入章节、学习、评分、来源和进度流程受 P7-T09 外部工具故障阻塞。
+
+报告：`docs/superpowers/reports/2026-07-26-p7-productization.{json,md}`。P8/P9 保持暂缓，不以 P7 实现完成替代真机退出门禁。
 
 ---
 

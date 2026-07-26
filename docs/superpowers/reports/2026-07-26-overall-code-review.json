@@ -1,0 +1,48 @@
+{
+  "title": "整体代码审查与修复",
+  "status": "code_findings_fixed",
+  "generated_at": "2026-07-26",
+  "scope": [
+    "identity and account data",
+    "catalog and chapter hierarchy",
+    "daily plans, study sessions and review attempts",
+    "publication validation and import",
+    "Alembic migrations",
+    "miniprogram services, pages and components",
+    "repository quality gates"
+  ],
+  "findings_fixed": {
+    "high": 2,
+    "medium": 6,
+    "low": 2,
+    "total": 10
+  },
+  "verification": {
+    "quality_gate": "PASS",
+    "pytest": "316 passed, 3 skipped",
+    "coverage": "75%",
+    "mypy": "no issues in 125 source files",
+    "ruff": "passed",
+    "javascript_files": 37,
+    "json_files": 22,
+    "documentation_files": 40,
+    "alembic_head": "20260725_0010",
+    "alembic_check": "no drift",
+    "stable_publication_valid": true
+  },
+  "runtime_smoke": {
+    "url": "http://127.0.0.1:8000",
+    "books": 7,
+    "chapters": 19,
+    "published_cards": 71,
+    "today_items": 15,
+    "today_pending": 15,
+    "learnable_cards": 78,
+    "due_now": 15
+  },
+  "external_blockers": [
+    "PostgreSQL checks require WXZY_TEST_POSTGRES_URL",
+    "WeChat Developer Tools fails during plugin initialization before project compilation",
+    "real-device acceptance remains P7-T09"
+  ]
+}

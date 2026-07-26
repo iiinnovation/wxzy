@@ -1,6 +1,6 @@
 'use strict'
 
-var OWNER = {
+const OWNER = {
   id: 1,
   status: 'active',
   display_name: '学习者',
@@ -61,7 +61,7 @@ module.exports = {
     return errorBody('OWNER_ALREADY_BOUND', '此学习账户已绑定其他微信身份', 403)
   },
   networkFail: function () {
-    var err = new Error('request:fail')
+    const err = new Error('request:fail')
     err.errMsg = 'request:fail'
     return err
   }

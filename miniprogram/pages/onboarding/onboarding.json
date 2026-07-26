@@ -1,4 +1,6 @@
 {
   "navigationBarTitleText": "学习设置",
-  "usingComponents": {}
+  "usingComponents": {
+    "state-view": "/components/state-view/state-view"
+  }
 }

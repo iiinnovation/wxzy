@@ -56,14 +56,18 @@ def _clean(db: Session) -> None:
         db.execute(delete(CardReviewState).where(CardReviewState.card_id.in_(card_ids)))
         db.execute(delete(CardEnrollment).where(CardEnrollment.card_id.in_(card_ids)))
         db.execute(delete(Card).where(Card.id.in_(card_ids)))
-    db.execute(delete(PublicationImport).where(PublicationImport.publication_id.like("pub-first-batch%")))
+    db.execute(
+        delete(PublicationImport).where(PublicationImport.publication_id.like("pub-first-batch%"))
+    )
     # clean docs/chapters/chunks created by import for these document keys
     doc_keys = [spec["key"] for spec in BOOK_SPECS]
     docs = list(db.scalars(select(Document).where(Document.document_key.in_(doc_keys))).all())
     doc_ids = [d.id for d in docs]
     if doc_ids:
         versions = list(
-            db.scalars(select(DocumentVersion).where(DocumentVersion.document_id.in_(doc_ids))).all()
+            db.scalars(
+                select(DocumentVersion).where(DocumentVersion.document_id.in_(doc_ids))
+            ).all()
         )
         version_ids = [v.id for v in versions]
         if version_ids:
@@ -183,7 +187,9 @@ def test_first_publication_import_acceptance(db: Session, tmp_path: Path) -> Non
     # every published card has >=1 CardSource
     for card in batch_cards:
         n = int(
-            db.scalar(select(func.count()).select_from(CardSource).where(CardSource.card_id == card.id))
+            db.scalar(
+                select(func.count()).select_from(CardSource).where(CardSource.card_id == card.id)
+            )
             or 0
         )
         assert n >= 1, card.external_id

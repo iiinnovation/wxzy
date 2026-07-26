@@ -1,0 +1,1 @@
+.progress-wrap{width:100%}.progress-label{display:flex;justify-content:space-between;color:#5f6b76;font-size:22rpx;margin-bottom:10rpx}.progress-track{height:10rpx;border-radius:5rpx;background:#dfe6e3;overflow:hidden}.progress-fill{height:10rpx;background:#17664d;transition:width .2s}

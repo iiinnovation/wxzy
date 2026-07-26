@@ -44,7 +44,8 @@ def test_approve_reject_second_review_audit_complete(tmp_path: Path) -> None:
     a = bundle.apply_decision(ok_id, action="approve", reviewer="alice", notes="looks good")
     assert a.ok
     assert bundle.get(ok_id).status.value == "approved"
-    assert bundle.get(ok_id).review_decision.value == "approve"
+    approved_decision = bundle.get(ok_id).review_decision
+    assert approved_decision is not None and approved_decision.value == "approve"
 
     r = bundle.apply_decision(long_id, action="reject", reviewer="alice", notes="too broad")
     assert r.ok
@@ -53,7 +54,8 @@ def test_approve_reject_second_review_audit_complete(tmp_path: Path) -> None:
     s = bundle.apply_decision(single_id, action="second_review", reviewer="bob", notes="need PDF")
     assert s.ok
     assert bundle.get(single_id).status.value == "needs_review"
-    assert bundle.get(single_id).review_decision.value == "second_review"
+    second_decision = bundle.get(single_id).review_decision
+    assert second_decision is not None and second_decision.value == "second_review"
 
     actions = {e.action for e in bundle.audit}
     assert {"approve", "reject", "second_review"} <= actions
@@ -83,7 +85,8 @@ def test_edit_revalidates_and_blocks_bad_edit() -> None:
         edits={"answer": "清热生津", "answer_points": ["清热生津"]},
     )
     assert ok.ok, ok.error
-    assert bundle.get(good["id"]).review_decision.value == "edit"
+    edit_decision = bundle.get(good["id"]).review_decision
+    assert edit_decision is not None and edit_decision.value == "edit"
     assert bundle.get(good["id"]).status.value == "needs_review"
     assert ok.validation is not None and ok.validation.ok
 
@@ -121,9 +124,10 @@ def test_critical_cards_cannot_batch_approve() -> None:
     assert len(results) == 2
     by_id = {r.audit.card_id: r for r in results}
     assert by_id[crit2["id"]].ok is False
-    assert "critical" in (by_id[crit2["id"]].error or "").lower() or "batch" in (
-        by_id[crit2["id"]].error or ""
-    ).lower()
+    assert (
+        "critical" in (by_id[crit2["id"]].error or "").lower()
+        or "batch" in (by_id[crit2["id"]].error or "").lower()
+    )
     # medium may be skipped by default batch risk filter (low+medium allowed)
     # low2 is medium => should approve
     assert by_id[low2["id"]].ok is True

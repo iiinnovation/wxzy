@@ -51,7 +51,11 @@ def _as_model(card: CandidateCardV2 | dict[str, Any]) -> CandidateCardV2:
 
 
 def _risk(card: CandidateCardV2) -> RiskLevel:
-    return card.risk_level if isinstance(card.risk_level, RiskLevel) else RiskLevel(str(card.risk_level))
+    return (
+        card.risk_level
+        if isinstance(card.risk_level, RiskLevel)
+        else RiskLevel(str(card.risk_level))
+    )
 
 
 def _recompute_hash(card: CandidateCardV2) -> CandidateCardV2:
@@ -151,7 +155,8 @@ class ReviewBundle:
         doc_versions = {c.document_version for c in mapped.values()}
         return cls(
             cards=mapped,
-            document_version=document_version or (next(iter(doc_versions)) if len(doc_versions) == 1 else None),
+            document_version=document_version
+            or (next(iter(doc_versions)) if len(doc_versions) == 1 else None),
             generation_batch_id=generation_batch_id,
         )
 
@@ -181,6 +186,7 @@ class ReviewBundle:
         edits: dict[str, Any] | None = None,
         batch_id: str | None = None,
         allow_critical_batch: bool = False,
+        at: str | None = None,
     ) -> ReviewActionResult:
         """Apply one review decision to a card.
 
@@ -192,7 +198,7 @@ class ReviewBundle:
         if not reviewer or not reviewer.strip():
             raise ValueError("reviewer is required")
 
-        at = now_iso()
+        at = at or now_iso()
         try:
             card = self.get(card_id)
         except KeyError as exc:
@@ -395,6 +401,7 @@ class ReviewBundle:
         reviewer: str,
         notes: str | None = None,
         risk_levels: Iterable[str] | None = None,
+        at: str | None = None,
     ) -> list[ReviewActionResult]:
         """Batch-approve cards in a chapter.
 
@@ -404,7 +411,8 @@ class ReviewBundle:
         allowed_risks = {
             RiskLevel(x) for x in (risk_levels or [RiskLevel.LOW.value, RiskLevel.MEDIUM.value])
         }
-        batch_id = f"batch-{now_iso()}"
+        batch_at = at or now_iso()
+        batch_id = f"batch-{batch_at}"
         results: list[ReviewActionResult] = []
         for card in self.cards_for_chapter(chapter):
             if _risk(card) == RiskLevel.CRITICAL or _risk(card) not in allowed_risks:
@@ -414,7 +422,7 @@ class ReviewBundle:
                     action="batch_skip",
                     card_id=card.id,
                     reviewer=reviewer,
-                    at=now_iso(),
+                    at=batch_at,
                     notes=notes,
                     before=_public_card_view(card),
                     batch_id=batch_id,
@@ -437,6 +445,7 @@ class ReviewBundle:
                     reviewer=reviewer,
                     notes=notes,
                     batch_id=batch_id,
+                    at=batch_at,
                 )
             )
         return results
@@ -453,10 +462,17 @@ class ReviewBundle:
             "card_count": len(self.cards),
             "cards": [c.model_dump(mode="json") for c in self.cards.values()],
             "audit": [e.to_dict() for e in self.audit],
-            "by_status": _count_by(self.cards.values(), key=lambda c: str(c.status.value if hasattr(c.status, 'value') else c.status)),
+            "by_status": _count_by(
+                self.cards.values(),
+                key=lambda c: str(c.status.value if hasattr(c.status, "value") else c.status),
+            ),
             "by_decision": _count_by(
                 [c for c in self.cards.values() if c.review_decision is not None],
-                key=lambda c: str(c.review_decision.value if hasattr(c.review_decision, 'value') else c.review_decision),
+                key=lambda c: str(
+                    c.review_decision.value
+                    if hasattr(c.review_decision, "value")
+                    else c.review_decision
+                ),
             ),
         }
 
@@ -485,13 +501,19 @@ def _public_card_view(card: CandidateCardV2) -> dict[str, Any]:
     return {
         "id": card.id,
         "status": str(card.status.value if hasattr(card.status, "value") else card.status),
-        "risk_level": str(card.risk_level.value if hasattr(card.risk_level, "value") else card.risk_level),
+        "risk_level": str(
+            card.risk_level.value if hasattr(card.risk_level, "value") else card.risk_level
+        ),
         "question": card.question,
         "answer": card.answer,
         "answer_points": list(card.answer_points or []),
         "review_decision": None
         if card.review_decision is None
-        else str(card.review_decision.value if hasattr(card.review_decision, "value") else card.review_decision),
+        else str(
+            card.review_decision.value
+            if hasattr(card.review_decision, "value")
+            else card.review_decision
+        ),
         "reviewer": card.reviewer,
         "reviewed_at": card.reviewed_at,
         "content_hash": card.content_hash,

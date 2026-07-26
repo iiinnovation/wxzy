@@ -42,6 +42,7 @@ STAGE_VERSION = "p5t10-v1"
 PUBLICATION_ID = "pub-first-batch-p5t10-v1"
 DEFAULT_REVIEWER = "p5t10-reviewer"
 DEFAULT_REVIEW_NOTES = "P5-T10 first formal publication chapter approval"
+FIRST_PUBLICATION_TIMESTAMP = "2026-07-25T00:00:00+00:00"
 
 FIXTURES = ROOT / "tools" / "document_pipeline" / "fixtures"
 
@@ -223,37 +224,35 @@ def _prepare_card_for_review(card: CandidateCardV2) -> CandidateCardV2:
     return working
 
 
+_EXTRACTORS = {
+    "jichu": extract_jichu_cards,
+    "zhenduan": extract_zhenduan_cards,
+    "zhongyao": extract_zhongyao_cards,
+    "fangji": extract_fangji_cards,
+    "neike": extract_neike_cards,
+    "zhenjiu": extract_zhenjiu_cards,
+    "renwen": extract_renwen_cards,
+}
+
+
 def _extract_for_spec(spec: dict[str, Any]) -> list[CandidateCardV2]:
     md_path = FIXTURES / str(spec["fixture"])
     md = md_path.read_text(encoding="utf-8")
-    common = {
-        "document_version": str(spec["document_version"]),
-        "chunk_id_prefix": f"{spec['key']}.golden",
-        "generation_batch_id": f"p5t10-{spec['key']}-golden",
-        "pdf_page_index": int(spec["pdf_page_index"]),
-        "printed_page_label": str(spec["printed_page_label"]),
-    }
     extractor = str(spec["extractor"])
-    if extractor == "jichu":
-        return extract_jichu_cards(md, **common)
-    if extractor == "zhenduan":
-        return extract_zhenduan_cards(md, **common)
-    if extractor == "zhongyao":
-        return extract_zhongyao_cards(md, **common)
-    if extractor == "fangji":
-        return extract_fangji_cards(md, **common)
-    if extractor == "neike":
-        return extract_neike_cards(md, **common)
-    if extractor == "zhenjiu":
-        return extract_zhenjiu_cards(md, **common)
-    if extractor == "renwen":
-        return extract_renwen_cards(md, **common)
-    raise ValueError(f"unknown extractor: {extractor}")
+    extract = _EXTRACTORS.get(extractor)
+    if extract is None:
+        raise ValueError(f"unknown extractor: {extractor}")
+    return extract(
+        md,
+        document_version=str(spec["document_version"]),
+        chunk_id_prefix=f"{spec['key']}.golden",
+        generation_batch_id=f"p5t10-{spec['key']}-golden",
+        pdf_page_index=int(spec["pdf_page_index"]),
+        printed_page_label=str(spec["printed_page_label"]),
+    )
 
 
-def extract_first_batch_candidates(
-    *, keys: Sequence[str] | None = None
-) -> list[CandidateCardV2]:
+def extract_first_batch_candidates(*, keys: Sequence[str] | None = None) -> list[CandidateCardV2]:
     selected = set(keys) if keys else None
     cards: list[CandidateCardV2] = []
     seen_ids: set[str] = set()
@@ -288,6 +287,7 @@ def review_first_batch(
     *,
     reviewer: str = DEFAULT_REVIEWER,
     notes: str = DEFAULT_REVIEW_NOTES,
+    reviewed_at: str | None = None,
 ) -> ReviewBundle:
     """Approve every card with chapter batch + one-by-one high/critical review."""
     bundle = ReviewBundle.from_cards(
@@ -310,11 +310,10 @@ def review_first_batch(
                 reviewer=reviewer,
                 notes=f"{notes} [{book}/{chapter}]",
                 risk_levels=[RiskLevel.LOW.value, RiskLevel.MEDIUM.value],
+                at=reviewed_at,
             )
             for card in bundle.cards_for_chapter(chapter):
-                status = (
-                    card.status.value if hasattr(card.status, "value") else str(card.status)
-                )
+                status = card.status.value if hasattr(card.status, "value") else str(card.status)
                 if status == "approved":
                     continue
                 result = bundle.apply_decision(
@@ -322,6 +321,7 @@ def review_first_batch(
                     action="approve",
                     reviewer=reviewer,
                     notes=f"{notes} one-by-one risk={_risk_value(card)}",
+                    at=reviewed_at,
                 )
                 if not result.ok:
                     raise ValueError(
@@ -432,10 +432,11 @@ def build_first_publication(
     publication_id: str = PUBLICATION_ID,
     reviewer: str = DEFAULT_REVIEWER,
     keys: Sequence[str] | None = None,
+    created_at: str = FIRST_PUBLICATION_TIMESTAMP,
 ) -> FirstPublicationResult:
     """Extract, review, and export the first formal 7-book publication package."""
     candidates = extract_first_batch_candidates(keys=keys)
-    bundle = review_first_batch(candidates, reviewer=reviewer)
+    bundle = review_first_batch(candidates, reviewer=reviewer, reviewed_at=created_at)
     approved = list(bundle.cards.values())
     package = export_publication(
         approved,
@@ -451,6 +452,7 @@ def build_first_publication(
             "stage": STAGE,
             "stage_version": STAGE_VERSION,
         },
+        created_at=created_at,
     )
     summaries = _summarize_books(approved)
     high_total = sum(int(s["high_or_critical"]) for s in summaries)
@@ -465,6 +467,7 @@ def build_first_publication(
         book_summaries=summaries,
         high_risk_review_coverage=(high_reviewed / high_total) if high_total else 1.0,
         source_coverage=(source_ok / total) if total else 0.0,
+        created_at=created_at,
     )
 
 
@@ -509,10 +512,7 @@ def verify_imported_first_publication(
     from app.models import ReviewState
     from app.publishing.services import import_publication_package
 
-    expected = list(
-        expected_books
-        or [str(spec["book"]) for spec in BOOK_SPECS]
-    )
+    expected = list(expected_books or [str(spec["book"]) for spec in BOOK_SPECS])
     due_before = len(list_due(db, limit=100))
     rs_before = int(db.scalar(select(func.count()).select_from(ReviewState)) or 0)
     crs_before = int(db.scalar(select(func.count()).select_from(CardReviewState)) or 0)
@@ -546,9 +546,7 @@ def verify_imported_first_publication(
     for card in published_cards:
         n = int(
             db.scalar(
-                select(func.count())
-                .select_from(CardSource)
-                .where(CardSource.card_id == card.id)
+                select(func.count()).select_from(CardSource).where(CardSource.card_id == card.id)
             )
             or 0
         )
@@ -556,7 +554,7 @@ def verify_imported_first_publication(
             source_ok += 1
     source_coverage = (source_ok / len(published_cards)) if published_cards else 0.0
 
-    high_cards = list(high_risk_cards or [])
+    high_cards: list[CandidateCardV2 | dict[str, Any]] = list(high_risk_cards or [])
     if not high_cards and expected_card_ids is None:
         # fallback: read package cards.jsonl risk/reviewer fields
         cards_path = Path(package_dir) / "cards.jsonl"
@@ -565,15 +563,15 @@ def verify_imported_first_publication(
                 continue
             row = json.loads(line)
             if row.get("risk_level") in {"high", "critical"}:
-                high_cards.append(row)  # type: ignore[arg-type]
+                high_cards.append(row)
     high_total = len(high_cards)
     high_reviewed = 0
-    for card in high_cards:
-        reviewer = getattr(card, "reviewer", None)
-        reviewed_at = getattr(card, "reviewed_at", None)
-        if isinstance(card, dict):
-            reviewer = card.get("reviewer")
-            reviewed_at = card.get("reviewed_at")
+    for high_card in high_cards:
+        reviewer = getattr(high_card, "reviewer", None)
+        reviewed_at = getattr(high_card, "reviewed_at", None)
+        if isinstance(high_card, dict):
+            reviewer = high_card.get("reviewer")
+            reviewed_at = high_card.get("reviewed_at")
         if reviewer and reviewed_at:
             high_reviewed += 1
     high_coverage = (high_reviewed / high_total) if high_total else 1.0
@@ -603,7 +601,9 @@ def verify_imported_first_publication(
         ok=ok,
         details={
             "import_status": first.status,
-            "import_stats": first.stats.model_dump() if hasattr(first.stats, "model_dump") else dict(first.stats),
+            "import_stats": first.stats.model_dump()
+            if hasattr(first.stats, "model_dump")
+            else dict(first.stats),
             "expected_books": expected,
             "catalog_book_counts": {b.name: b.card_count for b in books if b.name in expected_set},
         },
@@ -624,7 +624,10 @@ def write_review_artifacts(bundle: ReviewBundle, out_dir: Path | str) -> dict[st
         encoding="utf-8",
     )
     cards_path.write_text(
-        "".join(json.dumps(c.model_dump(mode="json"), ensure_ascii=False) + "\n" for c in bundle.cards.values()),
+        "".join(
+            json.dumps(c.model_dump(mode="json"), ensure_ascii=False) + "\n"
+            for c in bundle.cards.values()
+        ),
         encoding="utf-8",
     )
     audit_path.write_text(
@@ -643,6 +646,7 @@ def write_review_artifacts(bundle: ReviewBundle, out_dir: Path | str) -> dict[st
 __all__ = [
     "BOOK_SPECS",
     "DEFAULT_REVIEWER",
+    "FIRST_PUBLICATION_TIMESTAMP",
     "FIXTURES",
     "PUBLICATION_ID",
     "STAGE",

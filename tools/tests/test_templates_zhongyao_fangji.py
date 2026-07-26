@@ -93,14 +93,22 @@ def test_zhongyao_golden_covers_required_templates(zhongyao_cards) -> None:
 
 
 def test_zhongyao_mahuang_fields(zhongyao_cards) -> None:
-    nature = next(c for c in zhongyao_cards if c.card_type == "herb_nature_flavor" and "麻黄" in c.question)
-    func = next(c for c in zhongyao_cards if c.card_type == "herb_function" and "麻黄" in c.question)
-    ind = next(c for c in zhongyao_cards if c.card_type == "herb_indication" and "麻黄" in c.question)
+    nature = next(
+        c for c in zhongyao_cards if c.card_type == "herb_nature_flavor" and "麻黄" in c.question
+    )
+    func = next(
+        c for c in zhongyao_cards if c.card_type == "herb_function" and "麻黄" in c.question
+    )
+    ind = next(
+        c for c in zhongyao_cards if c.card_type == "herb_indication" and "麻黄" in c.question
+    )
     usage = next(c for c in zhongyao_cards if c.card_type == "herb_usage" and "麻黄" in c.question)
     caution = next(
         c for c in zhongyao_cards if c.card_type == "herb_toxicity_caution" and "麻黄" in c.question
     )
-    compat = next(c for c in zhongyao_cards if c.card_type == "herb_compatibility" and "麻黄" in c.question)
+    compat = next(
+        c for c in zhongyao_cards if c.card_type == "herb_compatibility" and "麻黄" in c.question
+    )
 
     assert "肺" in nature.answer and "膀胱" in nature.answer
     assert "发汗解表" in func.answer
@@ -141,11 +149,19 @@ def test_fangji_golden_covers_required_templates(fangji_cards) -> None:
 
 
 def test_fangji_guizhi_tang(fangji_cards) -> None:
-    compose = next(c for c in fangji_cards if c.card_type == "formula_compose" and "桂枝汤" in c.question)
-    func = next(c for c in fangji_cards if c.card_type == "formula_function" and "桂枝汤" in c.question)
-    ind = next(c for c in fangji_cards if c.card_type == "formula_indication" and "桂枝汤" in c.question)
+    compose = next(
+        c for c in fangji_cards if c.card_type == "formula_compose" and "桂枝汤" in c.question
+    )
+    func = next(
+        c for c in fangji_cards if c.card_type == "formula_function" and "桂枝汤" in c.question
+    )
+    ind = next(
+        c for c in fangji_cards if c.card_type == "formula_indication" and "桂枝汤" in c.question
+    )
     song = next(c for c in fangji_cards if c.card_type == "formula_song" and "桂枝汤" in c.question)
-    usage = next(c for c in fangji_cards if c.card_type == "formula_usage_note" and "桂枝汤" in c.question)
+    usage = next(
+        c for c in fangji_cards if c.card_type == "formula_usage_note" and "桂枝汤" in c.question
+    )
     compat = next(
         c for c in fangji_cards if c.card_type == "formula_compatibility" and "桂枝汤" in c.question
     )
@@ -167,8 +183,12 @@ def test_fangji_guizhi_tang(fangji_cards) -> None:
 
 def test_fangji_baihu_tang_core_fields(fangji_cards) -> None:
     names = {c.card_type for c in fangji_cards if "白虎汤" in c.question}
-    assert {"formula_compose", "formula_function", "formula_indication", "formula_song"}.issubset(names)
-    compose = next(c for c in fangji_cards if c.card_type == "formula_compose" and "白虎汤" in c.question)
+    assert {"formula_compose", "formula_function", "formula_indication", "formula_song"}.issubset(
+        names
+    )
+    compose = next(
+        c for c in fangji_cards if c.card_type == "formula_compose" and "白虎汤" in c.question
+    )
     assert "石膏" in compose.answer and "知母" in compose.answer
 
 

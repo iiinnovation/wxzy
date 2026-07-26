@@ -17,9 +17,9 @@ from tools.document_pipeline.jobs import (
     job_path,
     load_events,
     load_manifest,
-    save_manifest,
     poll_job,
     redact_for_storage,
+    save_manifest,
     stable_data_id,
     submit_job,
 )

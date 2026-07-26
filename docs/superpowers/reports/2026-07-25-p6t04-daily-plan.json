@@ -1,0 +1,52 @@
+{
+  "task": "P6-T04",
+  "title": "DailyPlan v1",
+  "status": "complete",
+  "generated_at": "2026-07-25T09:11:49.680687+00:00",
+  "stage": "daily_plan",
+  "stage_version": "p6t04-v1",
+  "generation_version": "daily-plan-v1",
+  "acceptance": {
+    "plan_001_counts": true,
+    "plan_002_due_first": true,
+    "plan_003_forecast_pause": true,
+    "plan_004_cold_start": true,
+    "plan_005_reason_codes": true,
+    "plan_006_keep_pending": true,
+    "backlog_new_zero": true,
+    "stable_output": true
+  },
+  "http": {
+    "GET /api/v1/learning/today": "create-or-return",
+    "PATCH /api/v1/learning/today": "temporary budget_minutes"
+  },
+  "migration": {
+    "revision": "20260725_0009",
+    "down_revision": "20260725_0008",
+    "tables": [
+      "daily_plans",
+      "daily_plan_items"
+    ]
+  },
+  "artifacts": [
+    "server/app/learning/daily_plan.py",
+    "server/app/learning/models.py",
+    "server/app/learning/schemas.py",
+    "server/app/api/v1/learning_today.py",
+    "server/app/api/v1/router.py",
+    "server/migrations/versions/20260725_0009_daily_plans.py",
+    "server/tests/test_daily_plan.py",
+    "server/tests/test_migrations.py"
+  ],
+  "verification": {
+    "pytest_focused": "13 passed, 1 deselected",
+    "pytest_full_server": "144 passed, 3 skipped",
+    "ruff": "passed"
+  },
+  "remaining_risks": [
+    "weekly mixed heuristic pending StudySession integration",
+    "deeper weak/repair coach rules deferred to P6-T06",
+    "postgres markers need WXZY_TEST_POSTGRES_URL",
+    "plan item cursor/session flow deferred to P6-T05"
+  ]
+}

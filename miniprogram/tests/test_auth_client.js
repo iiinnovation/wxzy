@@ -5,19 +5,19 @@
  */
 'use strict'
 
-var assert = require('assert')
-var path = require('path')
+const assert = require('assert')
+const path = require('path')
 
-var httpModule = require(path.join(__dirname, '..', 'services', 'http.js'))
-var authApiModule = require(path.join(__dirname, '..', 'services', 'auth-api.js'))
-var fixtures = require(path.join(__dirname, 'fixtures', 'auth-responses.js'))
+const httpModule = require(path.join(__dirname, '..', 'services', 'http.js'))
+const authApiModule = require(path.join(__dirname, '..', 'services', 'auth-api.js'))
+const fixtures = require(path.join(__dirname, 'fixtures', 'auth-responses.js'))
 
-var failures = 0
-var passed = 0
+let failures = 0
+let passed = 0
 
 function test(name, fn) {
   try {
-    var result = fn()
+    const result = fn()
     if (result && typeof result.then === 'function') {
       return result.then(
         function () {
@@ -43,7 +43,7 @@ function test(name, fn) {
 }
 
 function createMemoryStorage(seed) {
-  var data = Object.assign({}, seed || {})
+  const data = Object.assign({}, seed || {})
   return {
     get: function (key) {
       return Object.prototype.hasOwnProperty.call(data, key) ? data[key] : ''
@@ -61,7 +61,7 @@ function createMemoryStorage(seed) {
 }
 
 function createMockRequest(router) {
-  var calls = []
+  const calls = []
   function requestFn(options) {
     calls.push({
       url: options.url,
@@ -78,11 +78,11 @@ function createMockRequest(router) {
 }
 
 function pathOf(url) {
-  var idx = url.indexOf('/api/')
+  const idx = url.indexOf('/api/')
   if (idx >= 0) return url.slice(idx)
-  var health = url.indexOf('/health')
+  const health = url.indexOf('/health')
   if (health >= 0) return url.slice(health)
-  var stats = url.indexOf('/stats')
+  const stats = url.indexOf('/stats')
   if (stats >= 0) return url.slice(stats)
   try {
     return url.replace(/^https?:\/\/[^/]+/, '') || '/'
@@ -93,19 +93,19 @@ function pathOf(url) {
 
 function assertNoPageAuthPattern() {
   // Pages should not assemble Authorization headers themselves.
-  var fs = require('fs')
-  var root = path.join(__dirname, '..', 'pages')
-  var offenders = []
+  const fs = require('fs')
+  const root = path.join(__dirname, '..', 'pages')
+  const offenders = []
   function walk(dir) {
     fs.readdirSync(dir).forEach(function (name) {
-      var full = path.join(dir, name)
-      var st = fs.statSync(full)
+      const full = path.join(dir, name)
+      const st = fs.statSync(full)
       if (st.isDirectory()) {
         walk(full)
         return
       }
       if (!name.endsWith('.js')) return
-      var text = fs.readFileSync(full, 'utf8')
+      const text = fs.readFileSync(full, 'utf8')
       if (/Authorization\s*:/.test(text) || /['"]Bearer\s/.test(text)) {
         offenders.push(full)
       }
@@ -116,7 +116,7 @@ function assertNoPageAuthPattern() {
 }
 
 function run() {
-  var chain = Promise.resolve()
+  let chain = Promise.resolve()
 
   chain = chain.then(function () {
     return test('pages do not assemble Authorization headers', function () {
@@ -126,18 +126,18 @@ function run() {
 
   chain = chain.then(function () {
     return test('loads valid session from storage and attaches bearer', function () {
-      var storage = createMemoryStorage({
+      const storage = createMemoryStorage({
         apiBase: 'http://127.0.0.1:8000',
         sessionToken: 'session-token-valid-0001',
         sessionExpiresAt: new Date(Date.now() + 3600 * 1000).toISOString(),
         clientEnvironment: 'development'
       })
-      var requestFn = createMockRequest(function (options) {
+      const requestFn = createMockRequest(function (options) {
         assert.strictEqual(options.header.Authorization, 'Bearer session-token-valid-0001')
         assert.ok(options.header['X-Request-Id'])
         return fixtures.ok({ id: 1, status: 'active', display_name: '学习者', timezone: 'Asia/Shanghai' })
       })
-      var client = httpModule.createHttpClient({ storage: storage, request: requestFn })
+      const client = httpModule.createHttpClient({ storage: storage, request: requestFn })
       assert.strictEqual(client.getAuthSnapshot().authState, 'ready')
       return client.request('/api/v1/me').then(function (body) {
         assert.strictEqual(body.id, 1)
@@ -148,11 +148,11 @@ function run() {
 
   chain = chain.then(function () {
     return test('expired session storage maps to expired state', function () {
-      var storage = createMemoryStorage({
+      const storage = createMemoryStorage({
         sessionToken: 'old',
         sessionExpiresAt: new Date(Date.now() - 1000).toISOString()
       })
-      var client = httpModule.createHttpClient({
+      const client = httpModule.createHttpClient({
         storage: storage,
         request: createMockRequest(function () {
           return fixtures.ok({})
@@ -165,13 +165,13 @@ function run() {
 
   chain = chain.then(function () {
     return test('401 refresh rotates token and retries original request', function () {
-      var storage = createMemoryStorage({
+      const storage = createMemoryStorage({
         apiBase: 'http://example.test',
         sessionToken: 'old-token',
         sessionExpiresAt: new Date(Date.now() + 3600 * 1000).toISOString()
       })
-      var requestFn = createMockRequest(function (options) {
-        var p = pathOf(options.url)
+      const requestFn = createMockRequest(function (options) {
+        const p = pathOf(options.url)
         if (p === '/api/v1/me' && options.header.Authorization === 'Bearer old-token') {
           return fixtures.unauthorizedExpired()
         }
@@ -184,7 +184,7 @@ function run() {
         }
         throw new Error('unexpected call ' + p + ' ' + options.header.Authorization)
       })
-      var client = httpModule.createHttpClient({ storage: storage, request: requestFn })
+      const client = httpModule.createHttpClient({ storage: storage, request: requestFn })
       return client.request('/api/v1/me').then(function (owner) {
         assert.strictEqual(owner.id, 1)
         assert.strictEqual(client.getBearerToken(), 'session-token-refreshed-0002')
@@ -196,12 +196,12 @@ function run() {
 
   chain = chain.then(function () {
     return test('revoked session clears local credentials', function () {
-      var storage = createMemoryStorage({
+      const storage = createMemoryStorage({
         sessionToken: 'revoked-token',
         sessionExpiresAt: new Date(Date.now() + 3600 * 1000).toISOString()
       })
-      var requestFn = createMockRequest(function (options) {
-        var p = pathOf(options.url)
+      const requestFn = createMockRequest(function (options) {
+        const p = pathOf(options.url)
         if (p === '/api/v1/auth/refresh') {
           return fixtures.unauthorizedRevoked()
         }
@@ -210,7 +210,7 @@ function run() {
         }
         throw new Error('unexpected ' + p)
       })
-      var client = httpModule.createHttpClient({ storage: storage, request: requestFn })
+      const client = httpModule.createHttpClient({ storage: storage, request: requestFn })
       return client.request('/api/v1/me').then(
         function () {
           throw new Error('expected failure')
@@ -231,14 +231,14 @@ function run() {
 
   chain = chain.then(function () {
     return test('network failure sets offline state', function () {
-      var storage = createMemoryStorage({
+      const storage = createMemoryStorage({
         sessionToken: 'session-token-valid-0001',
         sessionExpiresAt: new Date(Date.now() + 3600 * 1000).toISOString()
       })
-      var requestFn = function () {
+      const requestFn = function () {
         return Promise.reject(fixtures.networkFail())
       }
-      var client = httpModule.createHttpClient({ storage: storage, request: requestFn })
+      const client = httpModule.createHttpClient({ storage: storage, request: requestFn })
       return client.request('/api/v1/me').then(
         function () {
           throw new Error('expected offline error')
@@ -256,16 +256,16 @@ function run() {
 
   chain = chain.then(function () {
     return test('wechat login exchanges code and stores session', function () {
-      var storage = createMemoryStorage({ apiBase: 'http://127.0.0.1:8000' })
-      var requestFn = createMockRequest(function (options) {
-        var p = pathOf(options.url)
+      const storage = createMemoryStorage({ apiBase: 'http://127.0.0.1:8000' })
+      const requestFn = createMockRequest(function (options) {
+        const p = pathOf(options.url)
         assert.ok(!options.header.Authorization, 'login must not send bearer')
         assert.strictEqual(p, '/api/v1/auth/wechat')
         assert.strictEqual(options.data.code, 'wx-code-1')
         return fixtures.ok(fixtures.validSession())
       })
-      var client = httpModule.createHttpClient({ storage: storage, request: requestFn })
-      var auth = authApiModule.createAuthApi(client, {
+      const client = httpModule.createHttpClient({ storage: storage, request: requestFn })
+      const auth = authApiModule.createAuthApi(client, {
         wxLogin: function () {
           return Promise.resolve('wx-code-1')
         },
@@ -284,18 +284,18 @@ function run() {
 
   chain = chain.then(function () {
     return test('logout revokes remote session and clears local storage', function () {
-      var storage = createMemoryStorage({
+      const storage = createMemoryStorage({
         sessionToken: 'session-token-valid-0001',
         sessionExpiresAt: new Date(Date.now() + 3600 * 1000).toISOString(),
         ownerSummary: fixtures.OWNER
       })
-      var requestFn = createMockRequest(function (options) {
+      const requestFn = createMockRequest(function (options) {
         assert.strictEqual(pathOf(options.url), '/api/v1/auth/logout')
         assert.strictEqual(options.header.Authorization, 'Bearer session-token-valid-0001')
         return { statusCode: 204, data: '', header: {} }
       })
-      var client = httpModule.createHttpClient({ storage: storage, request: requestFn })
-      var auth = authApiModule.createAuthApi(client, {
+      const client = httpModule.createHttpClient({ storage: storage, request: requestFn })
+      const auth = authApiModule.createAuthApi(client, {
         wxLogin: function () {
           return Promise.resolve('x')
         }
@@ -311,19 +311,19 @@ function run() {
 
   chain = chain.then(function () {
     return test('production environment hides dev token config', function () {
-      var storage = createMemoryStorage({
+      const storage = createMemoryStorage({
         clientEnvironment: 'production',
         apiToken: 'should-not-be-used',
         sessionToken: ''
       })
-      var client = httpModule.createHttpClient({
+      const client = httpModule.createHttpClient({
         storage: storage,
         request: createMockRequest(function () {
           return fixtures.ok({})
         })
       })
       client.setEnvironment('production')
-      var snap = client.getAuthSnapshot()
+      const snap = client.getAuthSnapshot()
       assert.strictEqual(snap.isDevConfigVisible, false)
       assert.strictEqual(client.getBearerToken(), '')
       // production clears stored dev token
@@ -333,16 +333,16 @@ function run() {
 
   chain = chain.then(function () {
     return test('dev token still works in development without session', function () {
-      var storage = createMemoryStorage({
+      const storage = createMemoryStorage({
         clientEnvironment: 'development',
         apiToken: 'dev-fixed-token',
         apiBase: 'http://127.0.0.1:8000'
       })
-      var requestFn = createMockRequest(function (options) {
+      const requestFn = createMockRequest(function (options) {
         assert.strictEqual(options.header.Authorization, 'Bearer dev-fixed-token')
         return fixtures.ok(fixtures.OWNER)
       })
-      var client = httpModule.createHttpClient({ storage: storage, request: requestFn })
+      const client = httpModule.createHttpClient({ storage: storage, request: requestFn })
       assert.strictEqual(client.getAuthSnapshot().authState, 'ready')
       return client.request('/api/v1/me').then(function (owner) {
         assert.strictEqual(owner.id, 1)
@@ -352,16 +352,16 @@ function run() {
 
   chain = chain.then(function () {
     return test('bootstrap with valid session fetches /me', function () {
-      var storage = createMemoryStorage({
+      const storage = createMemoryStorage({
         sessionToken: 'session-token-valid-0001',
         sessionExpiresAt: new Date(Date.now() + 3600 * 1000).toISOString()
       })
-      var requestFn = createMockRequest(function (options) {
+      const requestFn = createMockRequest(function (options) {
         assert.strictEqual(pathOf(options.url), '/api/v1/me')
         return fixtures.ok(fixtures.OWNER)
       })
-      var client = httpModule.createHttpClient({ storage: storage, request: requestFn })
-      var auth = authApiModule.createAuthApi(client, {
+      const client = httpModule.createHttpClient({ storage: storage, request: requestFn })
+      const auth = authApiModule.createAuthApi(client, {
         wxLogin: function () {
           throw new Error('should not login')
         }
@@ -376,12 +376,12 @@ function run() {
 
   chain = chain.then(function () {
     return test('forbidden owner binding surfaces forbidden state', function () {
-      var storage = createMemoryStorage({ apiBase: 'http://127.0.0.1:8000' })
-      var requestFn = createMockRequest(function () {
+      const storage = createMemoryStorage({ apiBase: 'http://127.0.0.1:8000' })
+      const requestFn = createMockRequest(function () {
         return fixtures.forbiddenOwner()
       })
-      var client = httpModule.createHttpClient({ storage: storage, request: requestFn })
-      var auth = authApiModule.createAuthApi(client, {
+      const client = httpModule.createHttpClient({ storage: storage, request: requestFn })
+      const auth = authApiModule.createAuthApi(client, {
         wxLogin: function () {
           return Promise.resolve('code')
         }
@@ -395,6 +395,52 @@ function run() {
           assert.strictEqual(client.getAuthSnapshot().authState, 'forbidden')
         }
       )
+    })
+  })
+
+  chain = chain.then(function () {
+    return test('account helpers use owner routes and delete clears local auth', function () {
+      const storage = createMemoryStorage({
+        sessionToken: 'session-token-valid-0001',
+        sessionExpiresAt: new Date(Date.now() + 3600 * 1000).toISOString()
+      })
+      const requestFn = createMockRequest(function (options) {
+        const p = pathOf(options.url)
+        assert.strictEqual(options.header.Authorization, 'Bearer session-token-valid-0001')
+        if (p === '/api/v1/me/sessions' && options.method === 'GET') {
+          return fixtures.ok({ items: [{ id: 7, current: true, status: 'active' }] })
+        }
+        if (p === '/api/v1/me/sessions/8' && options.method === 'DELETE') {
+          return { statusCode: 204, data: '', header: {} }
+        }
+        if (p === '/api/v1/me/export' && options.method === 'GET') {
+          return fixtures.ok({ schema_version: 'wxzy-owner-export-v1' })
+        }
+        if (p === '/api/v1/me?confirmation=DELETE_MY_DATA' && options.method === 'DELETE') {
+          assert.deepStrictEqual(options.data, { confirmation: 'DELETE_MY_DATA' })
+          return { statusCode: 204, data: '', header: {} }
+        }
+        throw new Error('unexpected account request ' + options.method + ' ' + p)
+      })
+      const client = httpModule.createHttpClient({ storage: storage, request: requestFn })
+      const auth = authApiModule.createAuthApi(client)
+      return auth
+        .listSessions()
+        .then(function (page) {
+          assert.strictEqual(page.items[0].id, 7)
+          return auth.revokeSession(8)
+        })
+        .then(function () {
+          return auth.exportData()
+        })
+        .then(function (payload) {
+          assert.strictEqual(payload.schema_version, 'wxzy-owner-export-v1')
+          return auth.deleteData()
+        })
+        .then(function () {
+          assert.strictEqual(client.getAuthSnapshot().hasSession, false)
+          assert.strictEqual(storage.get('sessionToken'), '')
+        })
     })
   })
 

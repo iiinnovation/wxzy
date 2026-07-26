@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from datetime import UTC, datetime
+from math import ceil
 from time import monotonic, sleep
 
 from sqlalchemy import and_, case, func, select
@@ -16,7 +17,15 @@ from ..identity.models import User
 from ..models import ReviewLog, ReviewState
 from ..schemas import ReviewAnswerOut, ReviewDueItem, StatsOut
 from .fsrs_adapter import ALGORITHM_VERSION, schedule, schedule_to_review_values, utcnow
-from .models import CardEnrollment, CardIssue, CardReviewState, ReviewAttempt, StudySession
+from .models import (
+    CardEnrollment,
+    CardIssue,
+    CardReviewState,
+    DailyPlan,
+    DailyPlanItem,
+    ReviewAttempt,
+    StudySession,
+)
 from .schemas import (
     CardIssueCreate,
     CardIssueResolution,
@@ -30,6 +39,7 @@ from .schemas import (
     StudySessionCreate,
     StudySessionFinish,
     StudySessionStatus,
+    StudySessionType,
 )
 
 
@@ -81,10 +91,26 @@ class BulkEnrollmentResult:
 
 
 @dataclass(frozen=True)
+class BulkEnrollmentStatusResult:
+    enrollments: list[CardEnrollment]
+    updated_count: int
+    unchanged_count: int
+    ignored_count: int
+
+
+@dataclass(frozen=True)
 class IntroductionResult:
     enrollment: CardEnrollment
     review_state: CardReviewState
     state_created: bool
+
+
+@dataclass(frozen=True)
+class StudyTaskResult:
+    session: StudySession
+    plan_item: DailyPlanItem | None
+    card: Card | None
+    review_state: ReviewStateValues | None
 
 
 @dataclass(frozen=True)
@@ -114,7 +140,7 @@ def list_due(db: Session, *, limit: int = 30) -> list[ReviewDueItem]:
     states = db.scalars(
         select(ReviewState)
         .join(Card)
-        .where(Card.status == "approved", ReviewState.due_at <= now)
+        .where(Card.status.in_(_eligible_card_statuses()), ReviewState.due_at <= now)
         .order_by(ReviewState.due_at.asc())
         .limit(min(limit, 100))
     ).all()
@@ -134,7 +160,7 @@ def list_due(db: Session, *, limit: int = 30) -> list[ReviewDueItem]:
 
 def answer_review(db: Session, *, card_id: int, rating: int) -> ReviewAnswerOut:
     card = db.get(Card, card_id)
-    if card is None or card.status != "approved":
+    if card is None or card.status not in _eligible_card_statuses():
         raise ResourceNotFoundError(
             code="CARD_NOT_FOUND",
             message="卡片不存在或尚未发布",
@@ -202,14 +228,17 @@ def stats(db: Session) -> StatsOut:
     start = datetime(now.year, now.month, now.day, tzinfo=UTC)
     books = db.scalar(select(func.count()).select_from(Book)) or 0
     approved = (
-        db.scalar(select(func.count()).select_from(Card).where(Card.status == "approved")) or 0
+        db.scalar(
+            select(func.count()).select_from(Card).where(Card.status.in_(_eligible_card_statuses()))
+        )
+        or 0
     )
     due = (
         db.scalar(
             select(func.count())
             .select_from(ReviewState)
             .join(Card)
-            .where(Card.status == "approved", ReviewState.due_at <= now)
+            .where(Card.status.in_(_eligible_card_statuses()), ReviewState.due_at <= now)
         )
         or 0
     )
@@ -222,7 +251,7 @@ def stats(db: Session) -> StatsOut:
             select(func.count())
             .select_from(ReviewState)
             .join(Card)
-            .where(Card.status == "approved", ReviewState.state == "new")
+            .where(Card.status.in_(_eligible_card_statuses()), ReviewState.state == "new")
         )
         or 0
     )
@@ -245,6 +274,17 @@ def _require_aware_utc(value: datetime) -> datetime:
     return value.astimezone(UTC)
 
 
+def is_mastered_state(state: CardReviewState | None, *, now: datetime) -> bool:
+    """Owner-facing mastery rule shared by catalog read models and insights."""
+    return bool(
+        state
+        and state.state == "review"
+        and state.reps >= 3
+        and state.last_rating in {3, 4}
+        and state.due_at > now
+    )
+
+
 def _eligible_user_and_card(db: Session, *, user_id: int, card_id: int) -> tuple[User, Card]:
     user = db.get(User, user_id)
     if user is None or user.status != "active":
@@ -259,6 +299,8 @@ def enroll_card(
     db: Session, values: EnrollmentCreate, *, now: datetime | None = None
 ) -> EnrollmentResult:
     _eligible_user_and_card(db, user_id=values.user_id, card_id=values.card_id)
+    if db.get_bind().dialect.name == "sqlite":
+        _acquire_sqlite_write_lock(db, user_id=values.user_id)
     timestamp = _require_aware_utc(now or _utc_now())
     existing = db.scalar(
         select(CardEnrollment)
@@ -435,6 +477,8 @@ def _enroll_card_ids(
     missing = [card_id for card_id in ordered_ids if card_id not in cards_by_id]
     if missing:
         raise EnrollmentReferenceError("only approved or published cards can be enrolled")
+    if db.get_bind().dialect.name == "sqlite":
+        _acquire_sqlite_write_lock(db, user_id=user_id)
 
     existing_rows = list(
         db.scalars(
@@ -627,6 +671,8 @@ def introduce_enrollment(
     if enrollment.status in {EnrollmentStatus.SUSPENDED.value, EnrollmentStatus.RETIRED.value}:
         raise EnrollmentStateError("suspended or retired enrollment cannot be introduced")
     _eligible_user_and_card(db, user_id=enrollment.user_id, card_id=enrollment.card_id)
+    if db.get_bind().dialect.name == "sqlite":
+        _acquire_sqlite_write_lock(db, user_id=enrollment.user_id)
     algorithm_version = algorithm_version.strip()
     if not algorithm_version or len(algorithm_version) > 32:
         raise EnrollmentStateError("algorithm_version must contain 1 to 32 characters")
@@ -699,6 +745,8 @@ def change_enrollment_status(
     enrollment = db.get(CardEnrollment, enrollment_id)
     if enrollment is None:
         raise EnrollmentReferenceError("enrollment does not exist")
+    if db.get_bind().dialect.name == "sqlite":
+        _acquire_sqlite_write_lock(db, user_id=enrollment.user_id)
     if enrollment.status == target_status.value:
         return enrollment
     if target_status == EnrollmentStatus.QUEUED:
@@ -727,6 +775,69 @@ def change_enrollment_status(
     db.commit()
     db.refresh(enrollment)
     return enrollment
+
+
+def change_chapter_enrollment_status(
+    db: Session,
+    *,
+    user_id: int,
+    chapter_id: int,
+    target_status: EnrollmentStatus,
+    now: datetime | None = None,
+) -> BulkEnrollmentStatusResult:
+    """Pause or resume introduced enrollments in a chapter subtree atomically."""
+    _require_active_user(db, user_id=user_id)
+    if target_status not in {EnrollmentStatus.ACTIVE, EnrollmentStatus.SUSPENDED}:
+        raise EnrollmentStateError("chapter status supports only active or suspended")
+    if db.get_bind().dialect.name == "sqlite":
+        _acquire_sqlite_write_lock(db, user_id=user_id)
+    card_ids = list_enrollable_card_ids_for_chapter(db, chapter_id=chapter_id)
+    if not card_ids:
+        return BulkEnrollmentStatusResult([], 0, 0, 0)
+
+    rows = list(
+        db.scalars(
+            select(CardEnrollment)
+            .where(
+                CardEnrollment.user_id == user_id,
+                CardEnrollment.card_id.in_(card_ids),
+            )
+            .order_by(CardEnrollment.card_id)
+            .with_for_update()
+        )
+    )
+    source_status = (
+        EnrollmentStatus.ACTIVE.value
+        if target_status == EnrollmentStatus.SUSPENDED
+        else EnrollmentStatus.SUSPENDED.value
+    )
+    timestamp = _require_aware_utc(now or _utc_now())
+    updated: list[CardEnrollment] = []
+    unchanged_count = 0
+    ignored_count = 0
+    for enrollment in rows:
+        if enrollment.status == target_status.value:
+            unchanged_count += 1
+            continue
+        if enrollment.status != source_status:
+            ignored_count += 1
+            continue
+        enrollment.status = target_status.value
+        enrollment.updated_at = timestamp
+        updated.append(enrollment)
+    try:
+        db.commit()
+    except Exception:
+        db.rollback()
+        raise
+    for enrollment in updated:
+        db.refresh(enrollment)
+    return BulkEnrollmentStatusResult(
+        enrollments=updated,
+        updated_count=len(updated),
+        unchanged_count=unchanged_count,
+        ignored_count=ignored_count,
+    )
 
 
 def list_due_review_states(
@@ -777,6 +888,9 @@ def create_study_session(
         planned_task_count=values.planned_task_count,
         actual_minutes=0,
         completed_task_count=0,
+        daily_plan_id=values.daily_plan_id,
+        plan_date=values.plan_date,
+        cursor_position=values.cursor_position,
         created_at=timestamp,
         updated_at=timestamp,
     )
@@ -799,6 +913,7 @@ def start_study_session(
     timestamp = _require_aware_utc(now or _utc_now())
     study_session.status = StudySessionStatus.ACTIVE.value
     study_session.started_at = timestamp
+    study_session.active_started_at = timestamp
     study_session.updated_at = timestamp
     db.commit()
     db.refresh(study_session)
@@ -825,6 +940,7 @@ def finish_study_session(
     study_session.actual_minutes = values.actual_minutes
     study_session.completed_task_count = values.completed_task_count
     study_session.interruption_reason = None
+    study_session.active_started_at = None
     study_session.updated_at = timestamp
     db.commit()
     db.refresh(study_session)
@@ -858,6 +974,272 @@ def interrupt_study_session(
     study_session.actual_minutes = actual_minutes
     study_session.completed_task_count = completed_task_count
     study_session.interruption_reason = normalized_reason
+    study_session.active_started_at = None
+    study_session.updated_at = timestamp
+    db.commit()
+    db.refresh(study_session)
+    return study_session
+
+
+def _owned_study_session(db: Session, *, session_id: int, user_id: int) -> StudySession:
+    study_session = db.get(StudySession, session_id)
+    if study_session is None or study_session.user_id != user_id:
+        raise StudySessionReferenceError("study session does not exist")
+    return study_session
+
+
+def _accumulate_active_minutes(study_session: StudySession, timestamp: datetime) -> int:
+    segment_start = study_session.active_started_at
+    if segment_start is None:
+        return study_session.actual_minutes
+    elapsed_seconds = max(0.0, (timestamp - segment_start).total_seconds())
+    return min(1440, study_session.actual_minutes + ceil(elapsed_seconds / 60))
+
+
+def create_plan_study_session(
+    db: Session,
+    *,
+    user_id: int,
+    daily_plan_id: int | None = None,
+    auto_start: bool = True,
+    now: datetime | None = None,
+) -> StudySession:
+    """Create at most one cursor session for a DailyPlan, returning it on retries."""
+    timestamp = _require_aware_utc(now or _utc_now())
+    user = db.get(User, user_id)
+    if user is None or user.status != "active":
+        raise StudySessionReferenceError("an active Owner is required")
+    plan: DailyPlan
+    if daily_plan_id is None:
+        from .daily_plan import get_or_create_today_plan
+
+        plan = get_or_create_today_plan(db, user_id=user_id, now=timestamp)
+    else:
+        stored_plan = db.get(DailyPlan, daily_plan_id)
+        if stored_plan is None or stored_plan.user_id != user_id:
+            raise StudySessionReferenceError("daily plan does not exist")
+        plan = stored_plan
+    if db.get_bind().dialect.name == "sqlite":
+        _acquire_sqlite_write_lock(db, user_id=user_id)
+
+    existing = db.scalar(select(StudySession).where(StudySession.daily_plan_id == plan.id).limit(1))
+    if existing is not None:
+        if existing.status == StudySessionStatus.PLANNED.value and auto_start:
+            return start_study_session(db, session_id=existing.id, now=timestamp)
+        if existing.status in {
+            StudySessionStatus.COMPLETED.value,
+            StudySessionStatus.CANCELLED.value,
+        }:
+            reopen_pending = sorted(
+                (item for item in plan.items if item.status == "pending"),
+                key=lambda item: item.position,
+            )
+            if reopen_pending:
+                # A budget raise appended new items after the session ended; the unique
+                # session-per-plan constraint forbids a second session, so reopen this one.
+                existing.status = StudySessionStatus.ACTIVE.value
+                existing.ended_at = None
+                existing.active_started_at = timestamp
+                existing.interruption_reason = None
+                existing.planned_task_count = existing.completed_task_count + len(reopen_pending)
+                existing.cursor_position = reopen_pending[0].position
+                existing.updated_at = timestamp
+                db.commit()
+                db.refresh(existing)
+        return existing
+
+    pending = sorted(
+        (item for item in plan.items if item.status == "pending"),
+        key=lambda item: item.position,
+    )
+    estimated_seconds = sum(item.estimated_seconds for item in pending)
+    try:
+        study_session = create_study_session(
+            db,
+            StudySessionCreate(
+                user_id=user_id,
+                session_type=StudySessionType.DAILY,
+                estimated_minutes=ceil(estimated_seconds / 60) if pending else 0,
+                planned_task_count=len(pending),
+                daily_plan_id=plan.id,
+                plan_date=plan.plan_date,
+                cursor_position=pending[0].position if pending else 0,
+            ),
+            now=timestamp,
+        )
+    except IntegrityError:
+        db.rollback()
+        existing = db.scalar(
+            select(StudySession).where(StudySession.daily_plan_id == plan.id).limit(1)
+        )
+        if existing is None:
+            raise
+        if existing.status == StudySessionStatus.PLANNED.value and auto_start:
+            return start_study_session(db, session_id=existing.id, now=timestamp)
+        return existing
+    if auto_start:
+        return start_study_session(db, session_id=study_session.id, now=timestamp)
+    return study_session
+
+
+def get_next_study_task(
+    db: Session,
+    *,
+    session_id: int,
+    user_id: int,
+    now: datetime | None = None,
+) -> StudyTaskResult:
+    study_session = _owned_study_session(db, session_id=session_id, user_id=user_id)
+    if study_session.daily_plan_id is None:
+        raise StudySessionStateError("study session is not bound to a daily plan")
+    if study_session.status in {
+        StudySessionStatus.COMPLETED.value,
+        StudySessionStatus.INTERRUPTED.value,
+    }:
+        return StudyTaskResult(study_session, None, None, None)
+    if study_session.status != StudySessionStatus.ACTIVE.value:
+        raise StudySessionStateError("only an active study session has a next task")
+
+    while True:
+        plan_item = db.scalar(
+            select(DailyPlanItem)
+            .where(
+                DailyPlanItem.plan_id == study_session.daily_plan_id,
+                DailyPlanItem.status == "pending",
+            )
+            .order_by(DailyPlanItem.position)
+            .limit(1)
+        )
+        if plan_item is None:
+            return StudyTaskResult(study_session, None, None, None)
+
+        enrollment = db.get(CardEnrollment, plan_item.enrollment_id)
+        if enrollment is None or enrollment.user_id != user_id:
+            raise StudySessionReferenceError("plan item enrollment does not exist")
+        if enrollment.status == EnrollmentStatus.QUEUED.value:
+            introduce_enrollment(
+                db,
+                enrollment_id=enrollment.id,
+                now=_require_aware_utc(now or _utc_now()),
+            )
+            break
+        if enrollment.status != EnrollmentStatus.ACTIVE.value:
+            # The enrollment was suspended/retired after the plan was generated; skip the
+            # item so the rest of the session stays reachable instead of dead-ending on 409.
+            plan_item.status = "skipped"
+            db.commit()
+            continue
+        break
+
+    card = db.get(Card, plan_item.card_id)
+    review_state = db.scalar(
+        select(CardReviewState).where(
+            CardReviewState.user_id == user_id,
+            CardReviewState.card_id == plan_item.card_id,
+        )
+    )
+    if card is None or review_state is None:
+        raise StudySessionReferenceError("plan item card state does not exist")
+    if study_session.cursor_position != plan_item.position:
+        study_session.cursor_position = plan_item.position
+        study_session.updated_at = _require_aware_utc(now or _utc_now())
+        db.commit()
+        db.refresh(study_session)
+    return StudyTaskResult(study_session, plan_item, card, _snapshot_review_state(review_state))
+
+
+def complete_plan_study_session(
+    db: Session, *, session_id: int, user_id: int, now: datetime | None = None
+) -> StudySession:
+    study_session = _owned_study_session(db, session_id=session_id, user_id=user_id)
+    if study_session.daily_plan_id is None:
+        raise StudySessionStateError("study session is not bound to a daily plan")
+    if study_session.status == StudySessionStatus.COMPLETED.value:
+        return study_session
+    if study_session.status != StudySessionStatus.ACTIVE.value:
+        raise StudySessionStateError("only an active study session can be completed")
+    stale_items = list(
+        db.scalars(
+            select(DailyPlanItem)
+            .join(CardEnrollment, CardEnrollment.id == DailyPlanItem.enrollment_id)
+            .where(
+                DailyPlanItem.plan_id == study_session.daily_plan_id,
+                DailyPlanItem.status == "pending",
+                CardEnrollment.status.not_in(
+                    (EnrollmentStatus.ACTIVE.value, EnrollmentStatus.QUEUED.value)
+                ),
+            )
+        )
+    )
+    for stale_item in stale_items:
+        # Items whose enrollment was suspended/retired mid-day cannot be studied; treat
+        # them as skipped rather than blocking completion.
+        stale_item.status = "skipped"
+    pending_count = db.scalar(
+        select(func.count())
+        .select_from(DailyPlanItem)
+        .where(
+            DailyPlanItem.plan_id == study_session.daily_plan_id,
+            DailyPlanItem.status == "pending",
+        )
+    )
+    if pending_count:
+        raise StudySessionStateError("all plan tasks must be completed before the session")
+    timestamp = _require_aware_utc(now or _utc_now())
+    study_session.status = StudySessionStatus.COMPLETED.value
+    study_session.ended_at = timestamp
+    study_session.actual_minutes = _accumulate_active_minutes(study_session, timestamp)
+    study_session.active_started_at = None
+    study_session.interruption_reason = None
+    study_session.updated_at = timestamp
+    db.commit()
+    db.refresh(study_session)
+    return study_session
+
+
+def interrupt_plan_study_session(
+    db: Session,
+    *,
+    session_id: int,
+    user_id: int,
+    reason: str,
+    now: datetime | None = None,
+) -> StudySession:
+    study_session = _owned_study_session(db, session_id=session_id, user_id=user_id)
+    if study_session.daily_plan_id is None:
+        raise StudySessionStateError("study session is not bound to a daily plan")
+    if study_session.status != StudySessionStatus.ACTIVE.value:
+        raise StudySessionStateError("only an active study session can be interrupted")
+    normalized_reason = reason.strip()
+    if not normalized_reason or len(normalized_reason) > 512:
+        raise StudySessionStateError("interruption reason must contain 1 to 512 characters")
+    timestamp = _require_aware_utc(now or _utc_now())
+    study_session.actual_minutes = _accumulate_active_minutes(study_session, timestamp)
+    study_session.status = StudySessionStatus.INTERRUPTED.value
+    study_session.ended_at = timestamp
+    study_session.active_started_at = None
+    study_session.interruption_reason = normalized_reason
+    study_session.updated_at = timestamp
+    db.commit()
+    db.refresh(study_session)
+    return study_session
+
+
+def resume_plan_study_session(
+    db: Session, *, session_id: int, user_id: int, now: datetime | None = None
+) -> StudySession:
+    study_session = _owned_study_session(db, session_id=session_id, user_id=user_id)
+    if study_session.daily_plan_id is None:
+        raise StudySessionStateError("study session is not bound to a daily plan")
+    if study_session.status == StudySessionStatus.ACTIVE.value:
+        return study_session
+    if study_session.status != StudySessionStatus.INTERRUPTED.value:
+        raise StudySessionStateError("only an interrupted study session can be resumed")
+    timestamp = _require_aware_utc(now or _utc_now())
+    study_session.status = StudySessionStatus.ACTIVE.value
+    study_session.ended_at = None
+    study_session.active_started_at = timestamp
+    study_session.interruption_reason = None
     study_session.updated_at = timestamp
     db.commit()
     db.refresh(study_session)
@@ -880,25 +1262,16 @@ def _snapshot_review_state(state: CardReviewState) -> ReviewStateValues:
     )
 
 
-
-def _assert_expected_current_state(
-    state: CardReviewState, values: ReviewAttemptCreate
-) -> None:
+def _assert_expected_current_state(state: CardReviewState, values: ReviewAttemptCreate) -> None:
     if values.expected_due_at is not None:
         expected_due = _require_aware_utc(values.expected_due_at)
         current_due = _require_aware_utc(state.due_at)
         if current_due != expected_due:
-            raise ReviewAttemptConflictError(
-                "current review state does not match expected due_at"
-            )
+            raise ReviewAttemptConflictError("current review state does not match expected due_at")
     if values.expected_state is not None and state.state != values.expected_state:
-        raise ReviewAttemptConflictError(
-            "current review state does not match expected state"
-        )
+        raise ReviewAttemptConflictError("current review state does not match expected state")
     if values.expected_reps is not None and state.reps != values.expected_reps:
-        raise ReviewAttemptConflictError(
-            "current review state does not match expected reps"
-        )
+        raise ReviewAttemptConflictError("current review state does not match expected reps")
 
 
 def _validate_attempt_replay(
@@ -923,11 +1296,19 @@ def _validate_attempt_replay(
     return ReviewAttemptResult(attempt=existing, replayed=True)
 
 
-def _begin_sqlite_write_transaction(db: Session) -> None:
+def _acquire_sqlite_write_lock(db: Session, *, user_id: int) -> None:
     deadline = monotonic() + 5
     while True:
         try:
-            db.connection().exec_driver_sql("BEGIN IMMEDIATE")
+            if db.in_transaction():
+                # Authentication reads open a deferred transaction before this service runs.
+                # A no-op write promotes it to SQLite's single writer before the replay lookup.
+                db.connection().exec_driver_sql(
+                    "UPDATE users SET id = id WHERE id = ?",
+                    (user_id,),
+                )
+            else:
+                db.connection().exec_driver_sql("BEGIN IMMEDIATE")
             return
         except OperationalError as exc:
             db.rollback()
@@ -939,10 +1320,11 @@ def _begin_sqlite_write_transaction(db: Session) -> None:
 def submit_review_attempt(
     db: Session, values: ReviewAttemptCreate, *, now: datetime | None = None
 ) -> ReviewAttemptResult:
-    if db.get_bind().dialect.name == "sqlite" and not db.in_transaction():
+    if db.get_bind().dialect.name == "sqlite":
         # SQLite has no row-level locks. Reserve its single writer before the replay lookup so
-        # concurrent submissions serialize around the unique key and state update.
-        _begin_sqlite_write_transaction(db)
+        # concurrent submissions serialize around the unique key and state update. The API's
+        # authentication query may already have opened a deferred read transaction.
+        _acquire_sqlite_write_lock(db, user_id=values.user_id)
     existing = db.scalar(
         select(ReviewAttempt)
         .where(
@@ -963,6 +1345,23 @@ def submit_review_attempt(
         or study_session.status != StudySessionStatus.ACTIVE.value
     ):
         raise ReviewAttemptReferenceError("an active study session owned by the user is required")
+
+    plan_item: DailyPlanItem | None = None
+    if study_session.daily_plan_id is not None:
+        plan_item = db.scalar(
+            select(DailyPlanItem)
+            .where(
+                DailyPlanItem.plan_id == study_session.daily_plan_id,
+                DailyPlanItem.status == "pending",
+            )
+            .order_by(DailyPlanItem.position)
+            .with_for_update()
+            .limit(1)
+        )
+        if plan_item is None:
+            raise ReviewAttemptConflictError("study session has no pending plan task")
+        if plan_item.card_id != values.card_id:
+            raise ReviewAttemptConflictError("review attempt is not for the current plan task")
 
     user, card = _eligible_user_and_card(db, user_id=values.user_id, card_id=values.card_id)
     del user
@@ -992,25 +1391,29 @@ def submit_review_attempt(
     _assert_expected_current_state(state, values)
 
     reviewed_at = _require_aware_utc(now or _utc_now())
-    scheduled = schedule(
-        rating=values.rating,
-        now=reviewed_at,
-        stability=state.stability,
-        difficulty=state.difficulty,
-        reps=state.reps,
-        lapses=state.lapses,
-        state=state.state,
-        last_reviewed_at=state.last_reviewed_at,
-        due_at=state.due_at,
-    )
-    next_values = ReviewStateValues.model_validate(
-        schedule_to_review_values(
-            scheduled,
-            rating=values.rating,
-            reviewed_at=reviewed_at,
-        )
-    )
     before_values = _snapshot_review_state(state)
+    is_mixed_weekly = plan_item is not None and plan_item.item_type == "mixed_weekly"
+    if is_mixed_weekly:
+        next_values = before_values
+    else:
+        scheduled = schedule(
+            rating=values.rating,
+            now=reviewed_at,
+            stability=state.stability,
+            difficulty=state.difficulty,
+            reps=state.reps,
+            lapses=state.lapses,
+            state=state.state,
+            last_reviewed_at=state.last_reviewed_at,
+            due_at=state.due_at,
+        )
+        next_values = ReviewStateValues.model_validate(
+            schedule_to_review_values(
+                scheduled,
+                rating=values.rating,
+                reviewed_at=reviewed_at,
+            )
+        )
     attempt = ReviewAttempt(
         session_id=values.session_id,
         user_id=values.user_id,
@@ -1033,19 +1436,28 @@ def submit_review_attempt(
     try:
         # Claim the idempotency key before changing review state.
         db.flush()
-        state.due_at = next_values.due_at
-        state.stability = next_values.stability
-        state.difficulty = next_values.difficulty
-        state.elapsed_days = next_values.elapsed_days
-        state.scheduled_days = next_values.scheduled_days
-        state.reps = next_values.reps
-        state.lapses = next_values.lapses
-        state.state = next_values.state
-        state.last_rating = next_values.last_rating
-        state.last_reviewed_at = next_values.last_reviewed_at
-        state.algorithm_version = next_values.algorithm_version
-        state.updated_at = reviewed_at
-        if study_session.completed_task_count < study_session.planned_task_count:
+        if not is_mixed_weekly:
+            state.due_at = next_values.due_at
+            state.stability = next_values.stability
+            state.difficulty = next_values.difficulty
+            state.elapsed_days = next_values.elapsed_days
+            state.scheduled_days = next_values.scheduled_days
+            state.reps = next_values.reps
+            state.lapses = next_values.lapses
+            state.state = next_values.state
+            state.last_rating = next_values.last_rating
+            state.last_reviewed_at = next_values.last_reviewed_at
+            state.algorithm_version = next_values.algorithm_version
+            state.updated_at = reviewed_at
+        if plan_item is not None:
+            plan_item.status = "completed"
+            study_session.cursor_position = plan_item.position + 1
+            study_session.planned_task_count = max(
+                study_session.planned_task_count,
+                study_session.completed_task_count + 1,
+            )
+            study_session.completed_task_count += 1
+        elif study_session.completed_task_count < study_session.planned_task_count:
             study_session.completed_task_count += 1
         study_session.updated_at = reviewed_at
         db.commit()

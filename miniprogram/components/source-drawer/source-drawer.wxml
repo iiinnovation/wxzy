@@ -1,0 +1,29 @@
+<view wx:if="{{open}}" class="source-mask" bindtap="onClose">
+  <view class="source-panel" catchtap="stop">
+    <view class="source-head">
+      <text class="source-title">卡片来源</text>
+      <button class="source-close" bindtap="onClose">关闭</button>
+    </view>
+    <state-view wx:if="{{loading}}" type="loading" title="正在加载来源"></state-view>
+    <state-view
+      wx:elif="{{error && !sources.length}}"
+      type="error"
+      title="来源加载失败"
+      message="{{error}}"
+      action-label="重试"
+      bind:action="onRetry"
+    ></state-view>
+    <scroll-view wx:else scroll-y class="source-scroll">
+      <view class="source-warning" wx:if="{{error}}">{{error}}，当前显示卡片已有摘录。</view>
+      <view class="source-item" wx:for="{{sources}}" wx:key="id">
+        <view class="source-meta">
+          {{item.document_title || item.book_name}} · PDF {{item.pdf_page_number_start || item.pdf_page_start || '—'}}
+          <text wx:if="{{item.pdf_page_number_end && item.pdf_page_number_end !== item.pdf_page_number_start}}">–{{item.pdf_page_number_end}}</text>
+        </view>
+        <view class="source-path" wx:if="{{item.chapter_label}}">{{item.chapter_label}}</view>
+        <text selectable class="source-text">{{item.excerpt}}</text>
+      </view>
+      <state-view wx:if="{{!sources.length}}" type="empty" title="暂无来源详情" message="可返回卡片查看已有摘录"></state-view>
+    </scroll-view>
+  </view>
+</view>

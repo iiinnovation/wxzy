@@ -38,9 +38,7 @@ def test_review_approves_all_including_critical() -> None:
     bundle = review_first_batch(cards, reviewer="tester")
     assert all(c.status == CandidateStatus.APPROVED for c in bundle.cards.values())
     high = [
-        c
-        for c in bundle.cards.values()
-        if c.risk_level in {RiskLevel.HIGH, RiskLevel.CRITICAL}
+        c for c in bundle.cards.values() if c.risk_level in {RiskLevel.HIGH, RiskLevel.CRITICAL}
     ]
     assert high
     assert all(c.reviewer == "tester" and c.reviewed_at for c in high)
@@ -109,3 +107,11 @@ def test_build_first_publication_package(tmp_path: Path) -> None:
     assert payload["status"] == "candidate_review_only"
     assert payload["card_count"] == len(cards)
     assert STAGE == "first_publication"
+
+
+def test_first_publication_default_build_is_hash_reproducible(tmp_path: Path) -> None:
+    first = build_first_publication(out_dir=tmp_path / "first", publication_id=PUBLICATION_ID)
+    second = build_first_publication(out_dir=tmp_path / "second", publication_id=PUBLICATION_ID)
+
+    assert first.package.manifest["package_hash"] == second.package.manifest["package_hash"]
+    assert first.package.manifest["manifest_hash"] == second.package.manifest["manifest_hash"]

@@ -85,9 +85,7 @@ def test_export_package_layout_and_recomputable_hashes(tmp_path: Path) -> None:
 
     # no absolute paths / secrets in package JSON files
     blob = "\n".join(
-        p.read_text(encoding="utf-8")
-        for p in out.iterdir()
-        if p.suffix in {".json", ".jsonl"}
+        p.read_text(encoding="utf-8") for p in out.iterdir() if p.suffix in {".json", ".jsonl"}
     )
     assert "/Users/" not in blob
     assert "api_key" not in blob.lower()

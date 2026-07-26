@@ -1,0 +1,11 @@
+<view class="weekly-page">
+  <view class="weekly-title">本周混合测试</view>
+  <view class="weekly-copy">跨章节题目用于检查脱离原文后的回忆，不会用一次结果重排全部学习状态。</view>
+  <state-view wx:if="{{state === 'loading'}}" type="loading" title="正在检查本周任务"></state-view>
+  <state-view wx:elif="{{state === 'empty'}}" type="empty" title="本周混合任务尚未生成" message="系统会在本周最后一个学习日按已学章节安排"></state-view>
+  <state-view wx:elif="{{state === 'completed'}}" type="completed" title="本周混合练习已完成" message="已完成 {{completedCount}} 项，可以返回进度页查看学习事实"></state-view>
+  <state-view wx:elif="{{state === 'blocked'}}" type="empty" title="先完成今日前置任务" message="混合练习前还有 {{pendingBeforeCount}} 项计划任务" action-label="前往今日" bind:action="onOpenToday"></state-view>
+  <state-view wx:elif="{{state === 'unauthorized'}}" type="unauthorized" title="需要重新登录" action-label="前往登录" bind:action="onLogin"></state-view>
+  <state-view wx:elif="{{state === 'error'}}" type="error" title="任务加载失败" message="{{errorView.message}}" action-label="重试" bind:action="onRetry"></state-view>
+  <button wx:else class="weekly-start" loading="{{starting}}" disabled="{{starting}}" bindtap="onStart">开始 {{mixedCount}} 项混合练习</button>
+</view>

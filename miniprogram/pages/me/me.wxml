@@ -10,6 +10,10 @@
     </view>
   </view>
 
+  <state-view wx:if="{{authState === 'ready' && accountState === 'loading'}}" type="loading" title="正在同步账户数据"></state-view>
+  <state-view wx:elif="{{authState === 'ready' && accountState === 'error'}}" type="error" title="账户数据加载失败" message="{{accountError.message}}" action-label="重试" bind:action="onRefreshStats"></state-view>
+  <state-view wx:elif="{{accountState === 'unauthorized'}}" type="unauthorized" title="登录已失效" message="请重新登录后继续"></state-view>
+
   <view class="settings-panel auth-panel">
     <view class="panel-heading">
       <view class="section-title">登录状态</view>
@@ -56,6 +60,24 @@
     </view>
   </view>
 
+  <view class="settings-panel session-panel" wx:if="{{authState === 'ready'}}">
+    <view class="panel-heading">
+      <view class="section-title">登录设备</view>
+      <view class="muted">可撤销其他设备的 Session</view>
+    </view>
+    <view class="session-row" wx:for="{{sessions}}" wx:key="id">
+      <view class="session-copy">
+        <view class="session-name">{{item.deviceLabel}}<text wx:if="{{item.current}}"> · 当前设备</text></view>
+        <view class="session-meta">登录 {{item.createdLabel}} · 到期 {{item.expiresLabel}}</view>
+      </view>
+      <view class="session-actions">
+        <view class="session-status status-{{item.status}}">{{item.statusLabel}}</view>
+        <button wx:if="{{!item.current && item.status === 'active'}}" class="session-revoke" data-id="{{item.id}}" loading="{{sessionActionId === item.id}}" disabled="{{sessionActionId > 0}}" bindtap="onRevokeSession">撤销</button>
+      </view>
+    </view>
+    <state-view wx:if="{{accountState === 'ready' && !sessions.length}}" type="empty" title="暂无可管理的设备 Session"></state-view>
+  </view>
+
   <view class="settings-panel" wx:if="{{showDevConfig}}">
     <view class="panel-heading">
       <view class="section-title">开发连接</view>
@@ -100,12 +122,12 @@
     <view class="muted">API：{{apiBase}}</view>
   </view>
 
-  <view class="section-header">
+  <view class="section-header" wx:if="{{authState === 'ready'}}">
     <view class="section-title">学习概览</view>
     <view class="section-action" bindtap="onRefreshStats">刷新</view>
   </view>
 
-  <view class="stats-panel">
+  <view class="stats-panel" wx:if="{{authState === 'ready'}}">
     <view class="stat-primary">
       <view class="stat-large">{{stats.cards_approved || 0}}</view>
       <view class="muted">正式卡片</view>
@@ -130,7 +152,23 @@
     </view>
   </view>
 
+  <view class="settings-panel data-panel" wx:if="{{authState === 'ready'}}">
+    <view class="panel-heading">
+      <view class="section-title">数据与隐私</view>
+      <view class="muted">导出内容不包含 Token、OpenID 或服务端密钥</view>
+    </view>
+    <view class="backup-row">
+      <view>
+        <view class="label">自动备份</view>
+        <view class="muted">部署阶段尚未配置</view>
+      </view>
+      <view class="backup-status">未启用</view>
+    </view>
+    <button class="btn btn-secondary data-action" loading="{{exporting}}" disabled="{{exporting || deleting}}" bindtap="onExportData">导出我的数据</button>
+    <button class="btn delete-action" loading="{{deleting}}" disabled="{{exporting || deleting}}" bindtap="onDeleteData">删除全部学习数据</button>
+  </view>
+
   <view class="privacy-note">
-    Session 与开发 Token 仅保存在本机，不会上传到第三方。生产环境不展示或要求填写 API Token。
+    登录凭证与开发 Token 仅保存在本机；服务端只保存不可逆凭证摘要和设备 Session 状态。生产环境不展示或要求填写 API Token。
   </view>
 </view>

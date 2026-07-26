@@ -142,7 +142,9 @@ def compute_input_hash(
         "model": model,
         "stage_version": STAGE_VERSION,
     }
-    return sha256_text(json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":")))
+    return sha256_text(
+        json.dumps(payload, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    )
 
 
 def _book_name(book_template: str) -> str:
@@ -228,7 +230,9 @@ def _attach_window_provenance(
     primary = window_blocks[0]
     chapter_path = primary.get("chapter_path") or []
     chapter = chapter_path[0] if chapter_path else None
-    section = chapter_path[-1] if len(chapter_path) >= 2 else (chapter_path[0] if chapter_path else None)
+    section = (
+        chapter_path[-1] if len(chapter_path) >= 2 else (chapter_path[0] if chapter_path else None)
+    )
     out: list[CandidateCardV2] = []
     for card in cards:
         # keep extractor chunk_ids if present, but always include window chunk ids
@@ -341,7 +345,9 @@ class CursorState:
     def save(self, path: Path) -> None:
         self.updated_at = now_iso()
         path.parent.mkdir(parents=True, exist_ok=True)
-        path.write_text(json.dumps(self.to_dict(), ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+        path.write_text(
+            json.dumps(self.to_dict(), ensure_ascii=False, indent=2) + "\n", encoding="utf-8"
+        )
 
 
 @dataclass
@@ -466,7 +472,9 @@ def run_cursor_generation(
             prompt_version=PROMPT_VERSION,
             model=model if mode_norm == "api" else None,
         )
-        if input_hash in set(state.completed_input_hashes) and all(cid in completed for cid in chunk_ids):
+        if input_hash in set(state.completed_input_hashes) and all(
+            cid in completed for cid in chunk_ids
+        ):
             skipped += 1
             continue
 
@@ -595,7 +603,9 @@ def run_cursor_generation(
         out_dir.mkdir(parents=True, exist_ok=True)
         # rewrite candidates.jsonl canonically
         (out_dir / "candidates.jsonl").write_text(
-            "".join(json.dumps(c.model_dump(mode="json"), ensure_ascii=False) + "\n" for c in cards),
+            "".join(
+                json.dumps(c.model_dump(mode="json"), ensure_ascii=False) + "\n" for c in cards
+            ),
             encoding="utf-8",
         )
         result = CursorRunResult(

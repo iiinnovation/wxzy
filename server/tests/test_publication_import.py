@@ -5,17 +5,30 @@ from __future__ import annotations
 import json
 import shutil
 from collections.abc import Iterator
+from concurrent.futures import ThreadPoolExecutor
 from copy import deepcopy
 from pathlib import Path
+from threading import Barrier
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import delete, func, select
+from sqlalchemy import create_engine, delete, func, select
 from sqlalchemy.orm import Session
+from tools.document_pipeline.candidate_schema import compute_content_hash
+from tools.document_pipeline.paths import ROOT
+from tools.document_pipeline.publish import export_publication, recompute_checksums
 
-from app.catalog.models import Book, Card, CardSource, Chapter, Document, DocumentChunk, DocumentVersion
+from app.catalog.models import (
+    Book,
+    Card,
+    CardSource,
+    Chapter,
+    Document,
+    DocumentChunk,
+    DocumentVersion,
+)
 from app.core.errors import InvalidRequestError, ResourceNotFoundError
-from app.db import engine
+from app.db import Base, engine
 from app.learning.models import CardReviewState
 from app.learning.services import list_due
 from app.main import app
@@ -26,9 +39,6 @@ from app.publishing.services import (
     import_publication_package,
     validate_publication_package,
 )
-from tools.document_pipeline.candidate_schema import compute_content_hash
-from tools.document_pipeline.paths import ROOT
-from tools.document_pipeline.publish import export_publication, recompute_checksums
 
 FIXTURE = ROOT / "tools" / "document_pipeline" / "fixtures" / "validation_p5t06_cards.json"
 PREFIX = "pub-import-test-"
@@ -65,9 +75,7 @@ def _approved(card: dict, *, reviewer: str = "alice", suffix: str = "") -> dict:
 
 
 def _clean(db: Session) -> None:
-    card_ids = list(
-        db.scalars(select(Card.id).where(Card.external_id.like(f"{PREFIX}%"))).all()
-    )
+    card_ids = list(db.scalars(select(Card.id).where(Card.external_id.like(f"{PREFIX}%"))).all())
     # Also clean cards produced from export fixtures that we tag via external ids.
     exported_ids = [
         "baihu-function-control",
@@ -129,16 +137,28 @@ def _build_package(tmp_path: Path, *, publication_id: str = "pub-test-001") -> P
 
 def _rewrite_hashes(package_dir: Path) -> None:
     files = recompute_checksums(package_dir)
-    package_hash = __import__("hashlib").sha256(
-        json.dumps(files, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
-    ).hexdigest()
+    package_hash = (
+        __import__("hashlib")
+        .sha256(
+            json.dumps(files, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode(
+                "utf-8"
+            )
+        )
+        .hexdigest()
+    )
     manifest = json.loads((package_dir / "manifest.json").read_text(encoding="utf-8"))
     manifest["checksums"] = files
     manifest["package_hash"] = package_hash
     manifest.pop("manifest_hash", None)
-    manifest_hash = __import__("hashlib").sha256(
-        json.dumps(manifest, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
-    ).hexdigest()
+    manifest_hash = (
+        __import__("hashlib")
+        .sha256(
+            json.dumps(manifest, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode(
+                "utf-8"
+            )
+        )
+        .hexdigest()
+    )
     manifest["manifest_hash"] = manifest_hash
     (package_dir / "manifest.json").write_text(
         json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
@@ -166,6 +186,62 @@ def test_validate_publication_package_ok(tmp_path: Path) -> None:
     assert result.counts.cards == 2
     assert result.counts.card_sources >= 2
     assert result.errors == []
+
+
+@pytest.mark.parametrize("declared", [0, "two", True, -1])
+def test_validate_rejects_invalid_or_incorrect_manifest_counts(
+    tmp_path: Path, declared: object
+) -> None:
+    package_dir = _build_package(tmp_path)
+    manifest_path = package_dir / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["counts"]["cards"] = declared
+    manifest_path.write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    _rewrite_hashes(package_dir)
+
+    result = validate_publication_package(package_dir)
+
+    assert result.ok is False
+    assert any("manifest.counts.cards" in error for error in result.errors)
+
+
+def test_validate_rejects_manifest_sidecar_hash_disagreement(tmp_path: Path) -> None:
+    package_dir = _build_package(tmp_path)
+    sidecar_path = package_dir / "checksums.json"
+    sidecar = json.loads(sidecar_path.read_text(encoding="utf-8"))
+    sidecar["package_hash"] = "f" * 64
+    sidecar_path.write_text(
+        json.dumps(sidecar, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+
+    result = validate_publication_package(package_dir)
+
+    assert result.ok is False
+    assert "manifest and checksums.json package_hash differ" in result.errors
+
+
+def test_validate_rejects_duplicate_card_identity(tmp_path: Path) -> None:
+    package_dir = _build_package(tmp_path)
+    cards_path = package_dir / "cards.jsonl"
+    lines = [line for line in cards_path.read_text(encoding="utf-8").splitlines() if line]
+    cards_path.write_text("\n".join([*lines, lines[0]]) + "\n", encoding="utf-8")
+    manifest_path = package_dir / "manifest.json"
+    manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+    manifest["counts"]["cards"] += 1
+    manifest_path.write_text(
+        json.dumps(manifest, ensure_ascii=False, indent=2) + "\n",
+        encoding="utf-8",
+    )
+    _rewrite_hashes(package_dir)
+
+    result = validate_publication_package(package_dir)
+
+    assert result.ok is False
+    assert any("duplicate ids" in error for error in result.errors)
 
 
 def test_import_creates_catalog_without_due_or_review_state(db: Session, tmp_path: Path) -> None:
@@ -212,9 +288,7 @@ def test_import_creates_catalog_without_due_or_review_state(db: Session, tmp_pat
     assert int(db.scalar(select(func.count()).select_from(Card)) or 0) == cards_before + 2
     assert len(list_due(db, limit=1000)) == due_before
     assert int(db.scalar(select(func.count()).select_from(ReviewState)) or 0) == review_before
-    assert (
-        int(db.scalar(select(func.count()).select_from(CardReviewState)) or 0) == personal_before
-    )
+    assert int(db.scalar(select(func.count()).select_from(CardReviewState)) or 0) == personal_before
 
     status = get_publication_status(db, "pub-test-import-1")
     assert status.status == "imported"
@@ -234,11 +308,67 @@ def test_identical_reimport_is_idempotent(db: Session, tmp_path: Path) -> None:
     assert int(db.scalar(select(func.count()).select_from(CardSource)) or 0) == sources_after_first
     assert (
         db.scalar(
-            select(func.count()).select_from(PublicationImport).where(
-                PublicationImport.publication_id == "pub-test-idempotent"
-            )
+            select(func.count())
+            .select_from(PublicationImport)
+            .where(PublicationImport.publication_id == "pub-test-idempotent")
         )
         == 1
+    )
+
+
+def test_file_sqlite_concurrent_identical_import_is_idempotent(tmp_path: Path) -> None:
+    package_dir = _build_package(tmp_path, publication_id="pub-test-concurrent")
+    sqlite_engine = create_engine(
+        f"sqlite:///{tmp_path / 'publication-concurrency.db'}",
+        connect_args={"check_same_thread": False},
+        pool_pre_ping=True,
+    )
+    Base.metadata.create_all(sqlite_engine)
+    ready = Barrier(2)
+    try:
+
+        def run_import() -> tuple[str, bool]:
+            with Session(sqlite_engine) as thread_db:
+                ready.wait(timeout=5)
+                result = import_publication_package(thread_db, package_dir)
+                return result.status, result.idempotent_replay
+
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            results = list(executor.map(lambda _index: run_import(), range(2)))
+
+        assert sorted(results) == [("imported", False), ("imported", True)]
+        with Session(sqlite_engine) as verify_db:
+            assert verify_db.scalar(select(func.count()).select_from(PublicationImport)) == 1
+            assert verify_db.scalar(select(func.count()).select_from(Card)) == 2
+    finally:
+        sqlite_engine.dispose()
+
+
+def test_import_materializes_matching_approved_card_and_missing_sources(
+    db: Session, tmp_path: Path
+) -> None:
+    package_dir = _build_package(tmp_path, publication_id="pub-test-materialize")
+    first = import_publication_package(db, package_dir)
+    assert first.status == "imported"
+    card_id = db.scalar(select(Card.id).where(Card.external_id == "baihu-function-control"))
+    assert card_id is not None
+    db.execute(delete(CardSource).where(CardSource.card_id == card_id))
+    card = db.get(Card, card_id)
+    assert card is not None
+    card.status = "approved"
+    db.execute(
+        delete(PublicationImport).where(PublicationImport.publication_id == "pub-test-materialize")
+    )
+    db.commit()
+
+    result = import_publication_package(db, package_dir)
+
+    db.refresh(card)
+    assert result.status == "imported"
+    assert result.stats.cards_updated == 1
+    assert card.status == "published"
+    assert db.scalar(
+        select(func.count()).select_from(CardSource).where(CardSource.card_id == card_id)
     )
 
 
@@ -303,9 +433,7 @@ def test_card_content_hash_conflict_rolls_back(db: Session, tmp_path: Path) -> N
     pubs_before = int(db.scalar(select(func.count()).select_from(PublicationImport)) or 0)
     result = import_publication_package(db, alt_pkg.out_dir)
     assert result.status == "conflict"
-    assert any(
-        c.entity == "card" and "content_hash conflict" in c.reason for c in result.conflicts
-    )
+    assert any(c.entity == "card" and "content_hash conflict" in c.reason for c in result.conflicts)
     assert int(db.scalar(select(func.count()).select_from(Card)) or 0) == cards_before
     assert int(db.scalar(select(func.count()).select_from(PublicationImport)) or 0) == pubs_before
     # no partial second publication record

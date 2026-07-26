@@ -224,6 +224,7 @@ def test_legacy_learning_services_are_directly_callable(db: Session) -> None:
     import_payload(db, _payload(external_id=f"{CARD_PREFIX}learning"))
     card = db.scalar(select(Card).where(Card.external_id == f"{CARD_PREFIX}learning"))
     assert card is not None and card.review_state is not None
+    card.status = "published"
     card.review_state.due_at = datetime.now(UTC) - timedelta(minutes=1)
     db.commit()
 

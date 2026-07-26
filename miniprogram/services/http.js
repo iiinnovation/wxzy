@@ -9,7 +9,7 @@
 
 'use strict'
 
-var AUTH_STATE = {
+const AUTH_STATE = {
   BOOTING: 'booting',
   AUTHENTICATING: 'authenticating',
   READY: 'ready',
@@ -20,7 +20,7 @@ var AUTH_STATE = {
   REVOKED: 'revoked'
 }
 
-var STORAGE_KEYS = {
+const STORAGE_KEYS = {
   API_BASE: 'apiBase',
   SESSION_TOKEN: 'sessionToken',
   SESSION_EXPIRES_AT: 'sessionExpiresAt',
@@ -29,20 +29,20 @@ var STORAGE_KEYS = {
   OWNER_SUMMARY: 'ownerSummary'
 }
 
-var DEFAULT_TIMEOUT_MS = 15000
-var DEFAULT_API_BASE = 'http://127.0.0.1:8000'
+const DEFAULT_TIMEOUT_MS = 15000
+const DEFAULT_API_BASE = 'http://127.0.0.1:8000'
 
 function createHttpClient(deps) {
   deps = deps || {}
-  var storage = deps.storage || createWxStorageAdapter()
-  var requestFn = deps.request || createWxRequestAdapter()
-  var now = deps.now || function () {
+  const storage = deps.storage || createWxStorageAdapter()
+  const requestFn = deps.request || createWxRequestAdapter()
+  const now = deps.now || function () {
     return Date.now()
   }
-  var idFactory = deps.idFactory || createRequestIdFactory()
-  var logger = deps.logger || { warn: function () {}, info: function () {} }
+  const idFactory = deps.idFactory || createRequestIdFactory()
+  const logger = deps.logger || { warn: function () {}, info: function () {} }
 
-  var runtime = {
+  const runtime = {
     apiBase: '',
     sessionToken: '',
     sessionExpiresAt: '',
@@ -55,14 +55,14 @@ function createHttpClient(deps) {
   }
 
   function loadFromStorage() {
-    var apiBase = normalizeBase(
+    const apiBase = normalizeBase(
       storage.get(STORAGE_KEYS.API_BASE) || DEFAULT_API_BASE
     )
-    var sessionToken = String(storage.get(STORAGE_KEYS.SESSION_TOKEN) || '')
-    var sessionExpiresAt = String(storage.get(STORAGE_KEYS.SESSION_EXPIRES_AT) || '')
-    var devToken = String(storage.get(STORAGE_KEYS.DEV_TOKEN) || '')
-    var environment = String(storage.get(STORAGE_KEYS.ENVIRONMENT) || 'development')
-    var owner = storage.get(STORAGE_KEYS.OWNER_SUMMARY) || null
+    const sessionToken = String(storage.get(STORAGE_KEYS.SESSION_TOKEN) || '')
+    const sessionExpiresAt = String(storage.get(STORAGE_KEYS.SESSION_EXPIRES_AT) || '')
+    const devToken = String(storage.get(STORAGE_KEYS.DEV_TOKEN) || '')
+    const environment = String(storage.get(STORAGE_KEYS.ENVIRONMENT) || 'development')
+    const owner = storage.get(STORAGE_KEYS.OWNER_SUMMARY) || null
 
     runtime.apiBase = apiBase
     runtime.sessionToken = sessionToken
@@ -124,9 +124,9 @@ function createHttpClient(deps) {
 
   function setSession(session) {
     session = session || {}
-    var token = String(session.access_token || session.token || '')
-    var expiresAt = session.expires_at || session.expiresAt || ''
-    var owner = session.owner || null
+    const token = String(session.access_token || session.token || '')
+    const expiresAt = session.expires_at || session.expiresAt || ''
+    const owner = session.owner || null
 
     runtime.sessionToken = token
     runtime.sessionExpiresAt = expiresAt ? String(expiresAt) : ''
@@ -225,15 +225,15 @@ function createHttpClient(deps) {
    */
   function request(path, options) {
     options = options || {}
-    var method = (options.method || 'GET').toUpperCase()
-    var useAuth = options.auth !== false
-    var retryOnUnauthorized = options.retryOnUnauthorized !== false
-    var skipRefresh = options.skipRefresh === true
-    var requestId = options.requestId || idFactory()
-    var timeout = options.timeout || DEFAULT_TIMEOUT_MS
-    var url = joinUrl(runtime.apiBase || DEFAULT_API_BASE, path)
+    const method = (options.method || 'GET').toUpperCase()
+    const useAuth = options.auth !== false
+    const retryOnUnauthorized = options.retryOnUnauthorized !== false
+    const skipRefresh = options.skipRefresh === true
+    const requestId = options.requestId || idFactory()
+    const timeout = options.timeout || DEFAULT_TIMEOUT_MS
+    const url = joinUrl(runtime.apiBase || DEFAULT_API_BASE, path)
 
-    var headers = {
+    const headers = {
       'Content-Type': 'application/json',
       'X-Request-Id': requestId
     }
@@ -244,7 +244,7 @@ function createHttpClient(deps) {
     }
 
     if (useAuth) {
-      var token = getBearerToken()
+      const token = getBearerToken()
       if (token) {
         headers.Authorization = 'Bearer ' + token
       }
@@ -273,8 +273,9 @@ function createHttpClient(deps) {
         throw err
       }
       runtime.authState = AUTH_STATE.OFFLINE
+      const timedOut = isTimeoutError(err)
       throw createApiError({
-        code: 'NETWORK_ERROR',
+        code: timedOut ? 'REQUEST_TIMEOUT' : 'NETWORK_ERROR',
         message: userMessageForNetwork(err),
         statusCode: 0,
         requestId: requestId,
@@ -285,9 +286,9 @@ function createHttpClient(deps) {
   }
 
   function handleResponse(res, context) {
-    var statusCode = res && typeof res.statusCode === 'number' ? res.statusCode : 0
-    var body = res ? res.data : null
-    var requestId =
+    const statusCode = res && typeof res.statusCode === 'number' ? res.statusCode : 0
+    const body = res ? res.data : null
+    const requestId =
       (res && res.header && (res.header['X-Request-Id'] || res.header['x-request-id'])) ||
       context.requestId
 
@@ -313,7 +314,7 @@ function createHttpClient(deps) {
     }
 
     if (statusCode === 403) {
-      var forbidden = normalizeErrorBody(body, {
+      const forbidden = normalizeErrorBody(body, {
         code: 'FORBIDDEN',
         message: '当前微信身份无法访问此学习账户',
         statusCode: 403,
@@ -329,12 +330,13 @@ function createHttpClient(deps) {
       code: 'HTTP_ERROR',
       message: '请求失败，请稍后重试',
       statusCode: statusCode,
-      requestId: requestId
+      requestId: requestId,
+      retriable: statusCode === 408 || statusCode === 429 || statusCode >= 500
     }))
   }
 
   function recoverFromUnauthorized(context, body, requestId) {
-    var hadSession = Boolean(runtime.sessionToken)
+    const hadSession = Boolean(runtime.sessionToken)
     return ensureFreshSession().then(function (refreshed) {
       if (!refreshed) {
         if (runtime.authState === AUTH_STATE.OFFLINE) {
@@ -350,12 +352,12 @@ function createHttpClient(deps) {
         if (runtime.authState !== AUTH_STATE.REVOKED && runtime.authState !== AUTH_STATE.EXPIRED) {
           markUnauthorized(body)
         }
-        var code = runtime.authState === AUTH_STATE.REVOKED
+        const code = runtime.authState === AUTH_STATE.REVOKED
           ? 'SESSION_REVOKED'
           : hadSession
             ? 'SESSION_EXPIRED'
             : 'AUTH_REQUIRED'
-        var message = code === 'SESSION_REVOKED'
+        const message = code === 'SESSION_REVOKED'
           ? '登录已失效，请重新登录'
           : hadSession
             ? '登录已过期，请重新登录'
@@ -405,7 +407,7 @@ function createHttpClient(deps) {
         runtime.authState = AUTH_STATE.OFFLINE
         return false
       }
-      var code = err && err.code
+      const code = err && err.code
       if (code === 'SESSION_REVOKED' || (err && err.statusCode === 401 && bodyLooksRevoked(err))) {
         clearSession(AUTH_STATE.REVOKED)
       } else if (code === 'SESSION_EXPIRED' || (err && err.statusCode === 401)) {
@@ -458,7 +460,7 @@ function createHttpClient(deps) {
   }
 
   function markUnauthorized(body) {
-    var code = body && body.code
+    const code = body && body.code
     if (code === 'SESSION_REVOKED') {
       clearSession(AUTH_STATE.REVOKED)
       return
@@ -475,7 +477,7 @@ function createHttpClient(deps) {
   }
 
   function bodyLooksRevoked(err) {
-    var message = String((err && err.message) || '')
+    const message = String((err && err.message) || '')
     return message.indexOf('撤销') >= 0 || message.indexOf('revok') >= 0
   }
 
@@ -537,7 +539,7 @@ function normalizeBase(value) {
 }
 
 function joinUrl(base, path) {
-  var normalizedBase = normalizeBase(base)
+  const normalizedBase = normalizeBase(base)
   if (!path) {
     return normalizedBase
   }
@@ -547,11 +549,21 @@ function joinUrl(base, path) {
   return normalizedBase + (path.charAt(0) === '/' ? path : '/' + path)
 }
 
+function withQuery(path, params) {
+  const parts = []
+  Object.keys(params || {}).forEach(function (key) {
+    const value = params[key]
+    if (value === undefined || value === null || value === '') return
+    parts.push(encodeURIComponent(key) + '=' + encodeURIComponent(String(value)))
+  })
+  return path + (parts.length ? '?' + parts.join('&') : '')
+}
+
 function isExpired(expiresAt, nowMs) {
   if (!expiresAt) {
     return false
   }
-  var ms = Date.parse(String(expiresAt))
+  const ms = Date.parse(String(expiresAt))
   if (Number.isNaN(ms)) {
     return false
   }
@@ -560,7 +572,7 @@ function isExpired(expiresAt, nowMs) {
 }
 
 function createRequestIdFactory() {
-  var counter = 0
+  let counter = 0
   return function () {
     counter += 1
     return 'mp_' + Date.now().toString(36) + '_' + counter.toString(36)
@@ -614,7 +626,7 @@ function createWxRequestAdapter() {
 }
 
 function createApiError(fields) {
-  var error = new Error(fields.message || 'request failed')
+  const error = new Error(fields.message || 'request failed')
   error.name = 'ApiError'
   error.code = fields.code || 'HTTP_ERROR'
   error.statusCode = fields.statusCode || 0
@@ -632,11 +644,12 @@ function normalizeErrorBody(body, fallback) {
       message: fallback.message,
       statusCode: fallback.statusCode,
       requestId: fallback.requestId,
-      details: null
+      details: null,
+      retriable: Boolean(fallback.retriable)
     }
   }
 
-  var message = body.message || body.detail || fallback.message
+  let message = userMessageForCode(body.code) || body.message || body.detail || fallback.message
   if (typeof message !== 'string') {
     try {
       message = JSON.stringify(message)
@@ -650,19 +663,38 @@ function normalizeErrorBody(body, fallback) {
     message: message,
     statusCode: fallback.statusCode,
     requestId: body.request_id || fallback.requestId,
-    details: body.details != null ? body.details : null
+    details: body.details != null ? body.details : null,
+    retriable: Boolean(fallback.retriable)
   }
 }
 
 function userMessageForNetwork(err) {
-  var msg = (err && (err.errMsg || err.message)) || ''
+  const msg = (err && (err.errMsg || err.message)) || ''
   if (/timeout/i.test(msg)) {
     return '网络超时，请检查连接后重试'
   }
   return '网络不可用，请检查连接后重试'
 }
 
-var defaultClient = null
+function isTimeoutError(err) {
+  return /timeout/i.test(String((err && (err.errMsg || err.message)) || ''))
+}
+
+function userMessageForCode(code) {
+  const messages = {
+    REVIEW_ATTEMPT_CONFLICT: '这张卡的学习记录已更新，请重新加载后继续',
+    STUDY_SESSION_STATE_INVALID: '本次学习状态已变化，请返回今日页后重试',
+    DAILY_PLAN_INVALID: '今日计划暂时无法调整，请刷新后重试',
+    ENROLLMENT_CONFLICT: '加入状态已变化，请刷新列表后重试',
+    PROFILE_UPDATE_CONFLICT: '档案已在其他页面更新，请重新加载后保存',
+    OWNER_ALREADY_BOUND: '此学习账户已绑定其他微信身份',
+    SESSION_EXPIRED: '登录已过期，请重新登录',
+    SESSION_REVOKED: '登录已失效，请重新登录'
+  }
+  return messages[String(code || '')] || ''
+}
+
+let defaultClient = null
 
 function getDefaultClient() {
   if (!defaultClient) {
@@ -683,5 +715,6 @@ module.exports = {
   resetDefaultClientForTests: resetDefaultClientForTests,
   createApiError: createApiError,
   isExpired: isExpired,
-  joinUrl: joinUrl
+  joinUrl: joinUrl,
+  withQuery: withQuery
 }

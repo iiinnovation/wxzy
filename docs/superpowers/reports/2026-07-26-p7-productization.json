@@ -1,0 +1,77 @@
+{
+  "stage": "P7",
+  "title": "小程序产品化验收",
+  "status": "blocked_external_runtime_acceptance",
+  "generated_at": "2026-07-26",
+  "tasks": {
+    "P7-T01": "complete",
+    "P7-T02": "complete",
+    "P7-T03": "complete",
+    "P7-T04": "complete",
+    "P7-T05": "complete",
+    "P7-T06": "complete",
+    "P7-T07": "complete",
+    "P7-T08": "complete",
+    "P7-T09": "blocked"
+  },
+  "real_database": {
+    "books": 7,
+    "chapters": 19,
+    "published_cards": 71,
+    "source_coverage": 1.0,
+    "high_risk_review_coverage": 1.0,
+    "due_before_import": 15,
+    "due_after_import": 15,
+    "review_states_created": 0,
+    "card_review_states_created": 0,
+    "idempotent_replay": true
+  },
+  "http_smoke": {
+    "health": "200",
+    "books": 7,
+    "chapters": 19,
+    "published_cards": 71,
+    "today_items": 15,
+    "today_pending": 15,
+    "today_due": 15,
+    "today_new": 0,
+    "today_weak": 0,
+    "learnable_cards": 78,
+    "due_now": 15
+  },
+  "publication": {
+    "publication_id": "pub-first-batch-p5t10-v1",
+    "manifest_hash": "b932139200afd5c87426e0ae56d40ef99a4049e53dd452a408204081e9dd7908",
+    "package_hash": "d3c1b92544c16f36624352c1a1793640189293896451247060d275b52b783162"
+  },
+  "verification": {
+    "quality_gate": "PASS",
+    "pytest": "316 passed, 3 skipped",
+    "coverage": "75%",
+    "mypy": "no issues in 125 files",
+    "ruff": "passed",
+    "javascript_files": 37,
+    "json_files": 22,
+    "documentation_files": 40,
+    "alembic_head": "20260725_0010",
+    "alembic_check": "no drift"
+  },
+  "runtime_blocker": {
+    "command_result": "#initialize-error: wait IDE port timeout",
+    "port_9420_listening": false,
+    "log": "/Users/apple/Library/Application Support/微信开发者工具/50a7d9210159a32f006158795f893857/WeappLog/logs/2026-07-26-12-33-55-991-CnqGAiiHGY.log",
+    "errors": [
+      "devtools manifest.json not installed",
+      "version manifest.json not installed",
+      "doCheckUpdate -80150"
+    ],
+    "project_compilation_reached": false,
+    "real_device_verified": false
+  },
+  "remaining_tasks": {
+    "P7": 1,
+    "P8": 7,
+    "P9": 6,
+    "total": 14
+  }
+}

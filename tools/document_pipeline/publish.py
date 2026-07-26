@@ -67,18 +67,28 @@ def _as_card(card: CandidateCardV2 | dict[str, Any]) -> CandidateCardV2:
 
 
 def _status(card: CandidateCardV2) -> CandidateStatus:
-    return card.status if isinstance(card.status, CandidateStatus) else CandidateStatus(str(card.status))
+    return (
+        card.status
+        if isinstance(card.status, CandidateStatus)
+        else CandidateStatus(str(card.status))
+    )
 
 
 def _risk(card: CandidateCardV2) -> RiskLevel:
-    return card.risk_level if isinstance(card.risk_level, RiskLevel) else RiskLevel(str(card.risk_level))
+    return (
+        card.risk_level
+        if isinstance(card.risk_level, RiskLevel)
+        else RiskLevel(str(card.risk_level))
+    )
 
 
 def _contains_abs_path(value: Any) -> bool:
     if isinstance(value, str):
         if value.startswith("/") and not value.startswith("//"):
             # allow pure relative-looking fragments; flag absolute OS paths
-            if ABS_PATH_RE.search(" " + value) or value.startswith(("/Users/", "/home/", "/var/", "/tmp/", "/private/")):
+            if ABS_PATH_RE.search(" " + value) or value.startswith(
+                ("/Users/", "/home/", "/var/", "/tmp/", "/private/")
+            ):
                 return True
         return bool(ABS_PATH_RE.search(value))
     if isinstance(value, dict):
@@ -249,7 +259,9 @@ def _sources_for_card(card: CandidateCardV2) -> list[dict[str, Any]]:
     return rows
 
 
-def _derive_documents(cards: Sequence[CandidateCardV2], documents: Sequence[dict[str, Any]] | None) -> list[dict[str, Any]]:
+def _derive_documents(
+    cards: Sequence[CandidateCardV2], documents: Sequence[dict[str, Any]] | None
+) -> list[dict[str, Any]]:
     if documents:
         cleaned: list[dict[str, Any]] = []
         for doc in documents:
@@ -257,10 +269,15 @@ def _derive_documents(cards: Sequence[CandidateCardV2], documents: Sequence[dict
                 k: v
                 for k, v in dict(doc).items()
                 if k not in {"source_abs_path", "absolute_path", "path", "local_path"}
-                and not (isinstance(v, str) and v.startswith(("/Users/", "/home/", "/var/", "/tmp/", "/private/")))
+                and not (
+                    isinstance(v, str)
+                    and v.startswith(("/Users/", "/home/", "/var/", "/tmp/", "/private/"))
+                )
             }
             if _contains_secret_key(item) or _contains_abs_path(item):
-                raise PublicationExportError([f"document payload contains forbidden fields: {item.get('document_key')}"])
+                raise PublicationExportError(
+                    [f"document payload contains forbidden fields: {item.get('document_key')}"]
+                )
             cleaned.append(item)
         return cleaned
     # derive minimal docs from cards
@@ -277,7 +294,9 @@ def _derive_documents(cards: Sequence[CandidateCardV2], documents: Sequence[dict
     return list(by_key.values())
 
 
-def _derive_chapters(cards: Sequence[CandidateCardV2], chapters: Sequence[dict[str, Any]] | None) -> list[dict[str, Any]]:
+def _derive_chapters(
+    cards: Sequence[CandidateCardV2], chapters: Sequence[dict[str, Any]] | None
+) -> list[dict[str, Any]]:
     if chapters:
         return [dict(c) for c in chapters]
     out: list[dict[str, Any]] = []
@@ -299,7 +318,9 @@ def _derive_chapters(cards: Sequence[CandidateCardV2], chapters: Sequence[dict[s
     return out
 
 
-def _derive_chunks(cards: Sequence[CandidateCardV2], chunks: Sequence[dict[str, Any]] | None) -> list[dict[str, Any]]:
+def _derive_chunks(
+    cards: Sequence[CandidateCardV2], chunks: Sequence[dict[str, Any]] | None
+) -> list[dict[str, Any]]:
     if chunks:
         cleaned = []
         for ch in chunks:
@@ -307,7 +328,11 @@ def _derive_chunks(cards: Sequence[CandidateCardV2], chunks: Sequence[dict[str, 
             # never ship huge fulltext if present
             if "text" in item and isinstance(item["text"], str) and len(item["text"]) > 2000:
                 item["text"] = item["text"][:2000]
-            if "cleaned_text" in item and isinstance(item["cleaned_text"], str) and len(item["cleaned_text"]) > 2000:
+            if (
+                "cleaned_text" in item
+                and isinstance(item["cleaned_text"], str)
+                and len(item["cleaned_text"]) > 2000
+            ):
                 item["cleaned_text"] = item["cleaned_text"][:2000]
             cleaned.append(item)
         return cleaned
@@ -343,7 +368,9 @@ def _derive_chunks(cards: Sequence[CandidateCardV2], chunks: Sequence[dict[str, 
     return out
 
 
-def _quality_summary(cards: Sequence[CandidateCardV2], *, extra: dict[str, Any] | None = None) -> dict[str, Any]:
+def _quality_summary(
+    cards: Sequence[CandidateCardV2], *, extra: dict[str, Any] | None = None
+) -> dict[str, Any]:
     risk_dist: dict[str, int] = {}
     type_dist: dict[str, int] = {}
     for card in cards:
@@ -403,6 +430,7 @@ def export_publication(
     generation_version: str = "p5t05-v1",
     review_version: str = "p5t07-v1",
     quality_extra: dict[str, Any] | None = None,
+    created_at: str | None = None,
 ) -> PublicationPackage:
     """Export an approved-only publication package."""
     models: list[CandidateCardV2] = []
@@ -411,7 +439,9 @@ def export_publication(
         try:
             card = _as_card(raw)
         except Exception as exc:  # noqa: BLE001 - collect and surface as export errors
-            cid = getattr(raw, "id", None) or (raw.get("id") if isinstance(raw, dict) else "unknown")
+            cid = getattr(raw, "id", None) or (
+                raw.get("id") if isinstance(raw, dict) else "unknown"
+            )
             errors.append(f"{cid}: schema/gate failed: {exc}")
             continue
         models.append(card)
@@ -465,7 +495,7 @@ def export_publication(
         },
         "checksums": checksums,
         "package_hash": package_hash,
-        "created_at": now_iso(),
+        "created_at": created_at or now_iso(),
         "status": "ready_for_import",
     }
     # manifest hash excludes its own hash field

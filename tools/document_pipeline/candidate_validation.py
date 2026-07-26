@@ -273,11 +273,17 @@ class BatchValidationResult:
             encoding="utf-8",
         )
         (out_dir / "accepted.jsonl").write_text(
-            "".join(json.dumps(c.model_dump(mode="json"), ensure_ascii=False) + "\n" for c in self.accepted),
+            "".join(
+                json.dumps(c.model_dump(mode="json"), ensure_ascii=False) + "\n"
+                for c in self.accepted
+            ),
             encoding="utf-8",
         )
         (out_dir / "rejected.jsonl").write_text(
-            "".join(json.dumps(c.model_dump(mode="json"), ensure_ascii=False) + "\n" for c in self.rejected),
+            "".join(
+                json.dumps(c.model_dump(mode="json"), ensure_ascii=False) + "\n"
+                for c in self.rejected
+            ),
             encoding="utf-8",
         )
 
@@ -356,7 +362,12 @@ def check_source_coverage(card: CandidateCardV2) -> list[Issue]:
 
     # short answers should largely appear in source
     ans = normalize_for_compare(card.answer)
-    if ans and len(ans) <= 40 and ans not in source_norm and similarity(card.answer, source_blob) < 0.5:
+    if (
+        ans
+        and len(ans) <= 40
+        and ans not in source_norm
+        and similarity(card.answer, source_blob) < 0.5
+    ):
         issues.append(Issue("source_coverage_fail", "answer not covered by source"))
 
     return issues
@@ -390,10 +401,19 @@ def check_fabricated_dosage_or_entity(card: CandidateCardV2) -> list[Issue]:
     # and the card is not a pure definition with short source.
     answer_entities = extract_entities(answer_blob)
     source_entities = extract_entities(source_blob)
-    novel = sorted(e for e in answer_entities if e not in source_blob and all(e not in se for se in source_entities))
+    novel = sorted(
+        e
+        for e in answer_entities
+        if e not in source_blob and all(e not in se for se in source_entities)
+    )
     # filter novel tokens that are substrings of source continuous text
     novel = [e for e in novel if e not in source_blob]
-    if len(novel) >= 2 and card.risk_level in {RiskLevel.HIGH, RiskLevel.CRITICAL, "high", "critical"}:
+    if len(novel) >= 2 and card.risk_level in {
+        RiskLevel.HIGH,
+        RiskLevel.CRITICAL,
+        "high",
+        "critical",
+    }:
         issues.append(
             Issue(
                 "fabricated_entity",

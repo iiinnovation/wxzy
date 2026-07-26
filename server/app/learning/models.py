@@ -17,7 +17,7 @@ from sqlalchemy import (
     func,
     text,
 )
-from sqlalchemy.ext.mutable import MutableDict
+from sqlalchemy.ext.mutable import MutableDict, MutableList
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..core.types import UTCDateTime
@@ -132,7 +132,10 @@ class StudySession(Base):
             "completed_task_count <= planned_task_count",
             name="ck_study_sessions_completed_le_planned",
         ),
+        CheckConstraint("cursor_position >= 0", name="ck_study_sessions_cursor_position"),
+        UniqueConstraint("daily_plan_id", name="uq_study_sessions_daily_plan_id"),
         Index("ix_study_sessions_user_status", "user_id", "status"),
+        Index("ix_study_sessions_user_plan_date", "user_id", "plan_date"),
     )
 
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -150,12 +153,19 @@ class StudySession(Base):
     planned_task_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     completed_task_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
     interruption_reason: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    daily_plan_id: Mapped[int | None] = mapped_column(
+        ForeignKey("daily_plans.id", ondelete="SET NULL"), nullable=True, index=True
+    )
+    plan_date: Mapped[str | None] = mapped_column(String(10), nullable=True)
+    cursor_position: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    active_started_at: Mapped[datetime | None] = mapped_column(UTCDateTime(), nullable=True)
     created_at: Mapped[datetime] = mapped_column(UTCDateTime(), server_default=func.now())
     updated_at: Mapped[datetime] = mapped_column(
         UTCDateTime(), server_default=func.now(), onupdate=func.now()
     )
 
     user: Mapped[User] = relationship("User")
+    daily_plan: Mapped[DailyPlan | None] = relationship("DailyPlan")
     attempts: Mapped[list[ReviewAttempt]] = relationship(
         back_populates="session", cascade="all, delete-orphan"
     )
@@ -238,4 +248,110 @@ class CardIssue(Base):
     resolved_at: Mapped[datetime | None] = mapped_column(UTCDateTime(), nullable=True)
 
     user: Mapped[User] = relationship("User")
+    card: Mapped[Card] = relationship("Card")
+
+
+class DailyPlan(Base):
+    __tablename__ = "daily_plans"
+    __table_args__ = (
+        UniqueConstraint("user_id", "plan_date", name="uq_daily_plans_user_date"),
+        CheckConstraint("budget_minutes BETWEEN 5 AND 240", name="ck_daily_plans_budget_minutes"),
+        CheckConstraint(
+            "adjusted_budget_minutes IS NULL OR (adjusted_budget_minutes BETWEEN 5 AND 240)",
+            name="ck_daily_plans_adjusted_budget_minutes",
+        ),
+        CheckConstraint(
+            "estimated_minutes BETWEEN 0 AND 1440", name="ck_daily_plans_estimated_minutes"
+        ),
+        CheckConstraint("due_count >= 0", name="ck_daily_plans_due_count"),
+        CheckConstraint("new_count >= 0", name="ck_daily_plans_new_count"),
+        CheckConstraint("weak_count >= 0", name="ck_daily_plans_weak_count"),
+        CheckConstraint("forecast_minutes_7d >= 0", name="ck_daily_plans_forecast_minutes_7d"),
+        CheckConstraint("forecast_budget_7d >= 0", name="ck_daily_plans_forecast_budget_7d"),
+        Index("ix_daily_plans_user_date", "user_id", "plan_date"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    plan_date: Mapped[str] = mapped_column(String(10), nullable=False)
+    budget_minutes: Mapped[int] = mapped_column(Integer, nullable=False)
+    adjusted_budget_minutes: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    estimated_minutes: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    due_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    new_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    weak_count: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    generation_version: Mapped[str] = mapped_column(String(32), nullable=False)
+    is_initial: Mapped[bool] = mapped_column(Boolean, default=True, server_default=text("true"))
+    forecast_minutes_7d: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    forecast_budget_7d: Mapped[int] = mapped_column(Integer, default=0, server_default="0")
+    new_cards_paused: Mapped[bool] = mapped_column(
+        Boolean, default=False, server_default=text("false")
+    )
+    pause_reasons: Mapped[list[str]] = mapped_column(
+        MutableList.as_mutable(JSON), default=list, server_default=text("'[]'")
+    )
+    plan_reasons: Mapped[list[str]] = mapped_column(
+        MutableList.as_mutable(JSON), default=list, server_default=text("'[]'")
+    )
+    generated_at: Mapped[datetime] = mapped_column(UTCDateTime(), nullable=False)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), server_default=func.now())
+    updated_at: Mapped[datetime] = mapped_column(
+        UTCDateTime(), server_default=func.now(), onupdate=func.now()
+    )
+
+    user: Mapped[User] = relationship("User")
+    items: Mapped[list[DailyPlanItem]] = relationship(
+        back_populates="plan",
+        cascade="all, delete-orphan",
+        order_by="DailyPlanItem.position",
+    )
+
+
+class DailyPlanItem(Base):
+    __tablename__ = "daily_plan_items"
+    __table_args__ = (
+        UniqueConstraint("plan_id", "position", name="uq_daily_plan_items_plan_position"),
+        UniqueConstraint("plan_id", "card_id", name="uq_daily_plan_items_plan_card"),
+        CheckConstraint(
+            "item_type IN ('due', 'overdue', 'new', 'weak_topic', 'repair', 'mixed_weekly')",
+            name="ck_daily_plan_items_type",
+        ),
+        CheckConstraint(
+            "status IN ('pending', 'completed', 'skipped')",
+            name="ck_daily_plan_items_status",
+        ),
+        CheckConstraint(
+            "estimated_seconds BETWEEN 1 AND 3600",
+            name="ck_daily_plan_items_estimated_seconds",
+        ),
+        CheckConstraint("position >= 0", name="ck_daily_plan_items_position"),
+        Index("ix_daily_plan_items_plan_id", "plan_id"),
+        Index("ix_daily_plan_items_enrollment_id", "enrollment_id"),
+        Index("ix_daily_plan_items_card_id", "card_id"),
+    )
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    plan_id: Mapped[int] = mapped_column(
+        ForeignKey("daily_plans.id", ondelete="CASCADE"), nullable=False
+    )
+    position: Mapped[int] = mapped_column(Integer, nullable=False)
+    item_type: Mapped[str] = mapped_column(String(16), nullable=False)
+    enrollment_id: Mapped[int] = mapped_column(
+        ForeignKey("card_enrollments.id", ondelete="RESTRICT"), nullable=False
+    )
+    card_id: Mapped[int] = mapped_column(
+        ForeignKey("cards.id", ondelete="RESTRICT"), nullable=False
+    )
+    estimated_seconds: Mapped[int] = mapped_column(Integer, nullable=False)
+    reason_code: Mapped[str] = mapped_column(String(64), nullable=False)
+    reason_detail: Mapped[str | None] = mapped_column(String(512), nullable=True)
+    status: Mapped[str] = mapped_column(
+        String(16), default="pending", server_default="pending", index=True
+    )
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), server_default=func.now())
+
+    plan: Mapped[DailyPlan] = relationship(back_populates="items")
+    enrollment: Mapped[CardEnrollment] = relationship("CardEnrollment")
     card: Mapped[Card] = relationship("Card")

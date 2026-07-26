@@ -10,6 +10,7 @@ from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from app.api.v1.identity import get_wechat_client
+from app.catalog.models import Book, Card
 from app.config import AppEnvironment, AuthMode, Settings
 from app.db import engine
 from app.identity.auth import hash_openid, hash_session_token
@@ -27,6 +28,8 @@ from app.learning.models import (
     CardEnrollment,
     CardIssue,
     CardReviewState,
+    DailyPlan,
+    DailyPlanItem,
     ReviewAttempt,
     StudySession,
 )
@@ -37,6 +40,8 @@ def _clean_identity_rows(db: Session) -> None:
     db.execute(delete(ReviewAttempt))
     db.execute(delete(CardIssue))
     db.execute(delete(StudySession))
+    db.execute(delete(DailyPlanItem))
+    db.execute(delete(DailyPlan))
     db.execute(delete(CardReviewState))
     db.execute(delete(CardEnrollment))
     db.execute(delete(LearningProfileAudit))
@@ -265,6 +270,258 @@ def test_logout_is_idempotent_and_revokes_session(
 
     assert first.status_code == second.status_code == 204
     assert client.get("/api/v1/me", headers=headers).status_code == 401
+
+
+def test_owner_can_list_and_revoke_device_sessions(
+    auth_context: tuple[TestClient, FakeWeChatClient, Settings],
+) -> None:
+    client, _fake, _settings = auth_context
+    _login(client)
+    second = _login(client, "same-code")
+    headers = {"Authorization": f"Bearer {second['access_token']}"}
+
+    listed = client.get("/api/v1/me/sessions", headers=headers)
+
+    assert listed.status_code == 200, listed.text
+    sessions = listed.json()["items"]
+    assert len(sessions) == 2
+    assert sum(item["current"] for item in sessions) == 1
+    current = next(item for item in sessions if item["current"])
+    other = next(item for item in sessions if not item["current"])
+    assert current["status"] == other["status"] == "active"
+    assert "token_hash" not in listed.text
+
+    revoked = client.delete(f"/api/v1/me/sessions/{other['id']}", headers=headers)
+    replay = client.delete(f"/api/v1/me/sessions/{other['id']}", headers=headers)
+    missing = client.delete("/api/v1/me/sessions/999999", headers=headers)
+
+    assert revoked.status_code == replay.status_code == 204
+    assert missing.status_code == 404
+    refreshed = client.get("/api/v1/me/sessions", headers=headers).json()["items"]
+    assert next(item for item in refreshed if item["id"] == other["id"])["status"] == "revoked"
+
+
+def test_owner_export_is_versioned_and_excludes_authentication_secrets(
+    db: Session,
+    auth_context: tuple[TestClient, FakeWeChatClient, Settings],
+) -> None:
+    client, _fake, _settings = auth_context
+    payload = _login(client)
+    active_started_at = datetime(2026, 7, 26, 1, 0, tzinfo=UTC)
+    db.add(
+        StudySession(
+            user_id=payload["owner"]["id"],
+            session_type="daily",
+            status="active",
+            started_at=active_started_at,
+            active_started_at=active_started_at,
+            estimated_minutes=10,
+            actual_minutes=0,
+            planned_task_count=1,
+            completed_task_count=0,
+            cursor_position=0,
+        )
+    )
+    db.commit()
+    response = client.get(
+        "/api/v1/me/export",
+        headers={"Authorization": f"Bearer {payload['access_token']}"},
+    )
+
+    assert response.status_code == 200, response.text
+    body = response.json()
+    assert body["schema_version"] == "wxzy-owner-export-v1"
+    assert body["backup_status"] == "not_configured"
+    assert body["owner"]["id"] == payload["owner"]["id"]
+    assert body["learning_profile"]["daily_minutes"] == 20
+    assert set(body["learning_data"]) == {
+        "learning_profile_audits",
+        "enrollments",
+        "review_states",
+        "study_sessions",
+        "review_attempts",
+        "card_issues",
+        "daily_plans",
+        "daily_plan_items",
+    }
+    assert body["learning_data"]["study_sessions"][0]["active_started_at"] == (
+        active_started_at.isoformat().replace("+00:00", "Z")
+    )
+    assert "token_hash" not in response.text
+    assert "openid" not in response.text
+    assert payload["access_token"] not in response.text
+
+
+def test_owner_delete_requires_confirmation_and_removes_identity_data(
+    db: Session,
+    auth_context: tuple[TestClient, FakeWeChatClient, Settings],
+) -> None:
+    client, _fake, _settings = auth_context
+    payload = _login(client)
+    headers = {"Authorization": f"Bearer {payload['access_token']}"}
+    owner_id = payload["owner"]["id"]
+    profile = db.scalar(select(LearningProfile).where(LearningProfile.user_id == owner_id))
+    assert profile is not None
+    now = datetime(2026, 7, 26, 1, 0, tzinfo=UTC)
+    book = Book(name="Owner deletion catalog survives", subject="测试")
+    db.add(book)
+    db.flush()
+    card = Card(
+        external_id="owner-deletion-card",
+        book_id=book.id,
+        card_type="definition",
+        question="问题",
+        answer="答案",
+        source_excerpt="来源",
+        status="published",
+        content_revision=1,
+        content_hash="d" * 64,
+        answer_points=[],
+        tags=[],
+    )
+    db.add(card)
+    db.flush()
+    enrollment = CardEnrollment(
+        user_id=owner_id,
+        card_id=card.id,
+        status="active",
+        priority=50,
+        source="manual",
+        introduced_at=now,
+    )
+    review_state = CardReviewState(
+        user_id=owner_id,
+        card_id=card.id,
+        due_at=now,
+        stability=1.0,
+        difficulty=5.0,
+        elapsed_days=0,
+        scheduled_days=0,
+        reps=0,
+        lapses=0,
+        state="new",
+        algorithm_version="fsrs-6.3.0",
+    )
+    plan = DailyPlan(
+        user_id=owner_id,
+        plan_date="2026-07-26",
+        budget_minutes=20,
+        estimated_minutes=1,
+        due_count=1,
+        new_count=0,
+        weak_count=0,
+        generation_version="daily-plan-v1",
+        is_initial=False,
+        forecast_minutes_7d=0,
+        forecast_budget_7d=140,
+        new_cards_paused=False,
+        pause_reasons=[],
+        plan_reasons=["DUE_PRIORITY"],
+        generated_at=now,
+    )
+    db.add_all([enrollment, review_state, plan])
+    db.flush()
+    plan_item = DailyPlanItem(
+        plan_id=plan.id,
+        position=0,
+        item_type="due",
+        enrollment_id=enrollment.id,
+        card_id=card.id,
+        estimated_seconds=60,
+        reason_code="DUE",
+        status="pending",
+    )
+    study_session = StudySession(
+        user_id=owner_id,
+        session_type="daily",
+        status="active",
+        started_at=now,
+        active_started_at=now,
+        estimated_minutes=1,
+        actual_minutes=0,
+        planned_task_count=1,
+        completed_task_count=0,
+        daily_plan_id=plan.id,
+        plan_date=plan.plan_date,
+        cursor_position=0,
+    )
+    db.add_all([plan_item, study_session])
+    db.flush()
+    db.add_all(
+        [
+            ReviewAttempt(
+                session_id=study_session.id,
+                user_id=owner_id,
+                card_id=card.id,
+                card_revision=1,
+                client_attempt_id="owner-delete-attempt",
+                rating=3,
+                response_ms=1200,
+                hint_used=False,
+                reveal_count=1,
+                state_before={"state": "new"},
+                state_after={"state": "learning"},
+                due_before=now,
+                due_after=now + timedelta(days=1),
+                algorithm_version="fsrs-6.3.0",
+                reviewed_at=now,
+            ),
+            CardIssue(
+                user_id=owner_id,
+                card_id=card.id,
+                card_revision=1,
+                issue_type="unclear",
+                details="测试",
+                status="open",
+                created_at=now,
+            ),
+            LearningProfileAudit(
+                user_id=owner_id,
+                profile_id=profile.id,
+                changed_fields=["daily_minutes"],
+                before_values={"daily_minutes": 20},
+                after_values={"daily_minutes": 30},
+                created_at=now,
+            ),
+        ]
+    )
+    db.commit()
+
+    rejected = client.request(
+        "DELETE",
+        "/api/v1/me",
+        headers=headers,
+        json={"confirmation": "wrong"},
+    )
+    assert rejected.status_code == 422
+    assert client.get("/api/v1/me", headers=headers).status_code == 200
+
+    deleted = client.request(
+        "DELETE",
+        "/api/v1/me",
+        headers=headers,
+        json={"confirmation": "DELETE_MY_DATA"},
+    )
+
+    assert deleted.status_code == 204, deleted.text
+    assert client.get("/api/v1/me", headers=headers).status_code == 401
+    for model in (
+        User,
+        UserSession,
+        LearningProfile,
+        LearningProfileAudit,
+        CardEnrollment,
+        CardReviewState,
+        DailyPlan,
+        DailyPlanItem,
+        StudySession,
+        ReviewAttempt,
+        CardIssue,
+    ):
+        assert db.scalar(select(func.count()).select_from(model)) == 0
+    assert db.get(Card, card.id) is not None
+    assert db.scalar(select(func.count()).select_from(UserSession)) == 0
+    assert db.scalar(select(func.count()).select_from(LearningProfile)) == 0
 
 
 def test_urllib_adapter_maps_provider_responses_without_persisting_session_key(
