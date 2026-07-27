@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from .api.v1.router import router as v1_router
-from .config import get_settings
+from .config import AppEnvironment, get_settings
 from .core.errors import install_exception_handlers
 from .core.logging import configure_logging, request_context_middleware
 from .routers import admin, books, cards, review, stats
@@ -13,7 +13,14 @@ from .schemas import HealthOut
 settings = get_settings()
 configure_logging()
 
-app = FastAPI(title=settings.app_name, version="0.1.0")
+production = settings.environment == AppEnvironment.PRODUCTION
+app = FastAPI(
+    title=settings.app_name,
+    version="0.1.0",
+    docs_url=None if production else "/docs",
+    redoc_url=None if production else "/redoc",
+    openapi_url=None if production else "/openapi.json",
+)
 install_exception_handlers(app)
 app.middleware("http")(request_context_middleware)
 

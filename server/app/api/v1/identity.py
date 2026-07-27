@@ -20,9 +20,11 @@ from ...identity.account import (
 )
 from ...identity.auth import (
     AuthSessionResult,
+    MobileActivationInvalidError,
     OwnerBindingConflictError,
     SessionConflictError,
     SessionInvalidError,
+    activate_owner_device,
     get_authenticated_session,
     login_with_openid,
     refresh_session,
@@ -32,6 +34,7 @@ from ...identity.models import User
 from ...identity.schemas import LearningProfileOut, LearningProfileUpdate
 from ...identity.schemas_auth import (
     AccountDeleteIn,
+    MobileActivateIn,
     OwnerDataExportOut,
     OwnerOut,
     SessionDeviceListOut,
@@ -145,6 +148,34 @@ def wechat_login(
             code="OWNER_ALREADY_BOUND",
             message="此学习账户已绑定其他微信身份",
             status_code=403,
+        ) from exc
+    except SessionConflictError as exc:
+        raise InvalidRequestError(
+            code="SESSION_CONFLICT",
+            message="登录会话创建冲突，请重试",
+            status_code=409,
+        ) from exc
+    return _session_out(result)
+
+
+@router.post("/auth/mobile/activate", response_model=SessionTokenOut)
+def mobile_activate(
+    body: MobileActivateIn,
+    db: Session = Depends(get_db),
+    settings: Settings = Depends(get_settings),
+) -> SessionTokenOut:
+    _require_wechat_mode(settings)
+    try:
+        result = activate_owner_device(
+            db,
+            activation_code=body.activation_code,
+            session_ttl_seconds=settings.session_ttl_seconds,
+            device_label=body.device_label,
+        )
+    except MobileActivationInvalidError as exc:
+        raise InvalidRequestError(
+            code="MOBILE_ACTIVATION_INVALID",
+            message="设备激活码无效或已过期",
         ) from exc
     except SessionConflictError as exc:
         raise InvalidRequestError(

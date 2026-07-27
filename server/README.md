@@ -38,6 +38,21 @@ docker compose run --rm api alembic -c alembic.ini upgrade head
 docker compose up -d api
 ```
 
+## Android device activation
+
+After the database is migrated and the active Owner exists, issue a short-lived, one-time code
+inside the API container:
+
+```bash
+docker compose exec api python scripts/issue_mobile_activation.py --ttl-minutes 30
+```
+
+The command prints the activation code once. Transfer it through a controlled channel and do not
+put it in shell arguments, logs, tickets, or repository files. Issuing another code revokes any
+previous unused code for the Owner. The Android client exchanges it at
+`POST /api/v1/auth/mobile/activate`; the database stores only SHA-256 hashes for activation codes
+and Session tokens.
+
 Install the development toolchain and run the current quality checks from the repository root:
 
 ```bash

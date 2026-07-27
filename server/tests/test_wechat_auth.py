@@ -1,20 +1,36 @@
 from __future__ import annotations
 
+import os
 from collections.abc import Iterator
+from concurrent.futures import ThreadPoolExecutor
 from datetime import UTC, datetime, timedelta
 from typing import Any
 
 import pytest
 from fastapi.testclient import TestClient
-from sqlalchemy import delete, func, select
+from sqlalchemy import create_engine, delete, func, select
 from sqlalchemy.orm import Session
 
 from app.api.v1.identity import get_wechat_client
 from app.catalog.models import Book, Card
 from app.config import AppEnvironment, AuthMode, Settings
 from app.db import engine
-from app.identity.auth import hash_openid, hash_session_token
-from app.identity.models import LearningProfile, LearningProfileAudit, User, UserSession
+from app.identity.auth import (
+    MobileActivationInvalidError,
+    MobileActivationUnavailableError,
+    activate_owner_device,
+    hash_activation_code,
+    hash_openid,
+    hash_session_token,
+    issue_mobile_activation_code,
+)
+from app.identity.models import (
+    LearningProfile,
+    LearningProfileAudit,
+    OwnerActivationCode,
+    User,
+    UserSession,
+)
 from app.identity.schemas import OwnerCreate
 from app.identity.services import create_owner_with_default_profile
 from app.identity.wechat import (
@@ -46,6 +62,7 @@ def _clean_identity_rows(db: Session) -> None:
     db.execute(delete(CardEnrollment))
     db.execute(delete(LearningProfileAudit))
     db.execute(delete(LearningProfile))
+    db.execute(delete(OwnerActivationCode))
     db.execute(delete(UserSession))
     db.execute(delete(User))
     db.commit()
@@ -180,6 +197,189 @@ def test_different_openid_is_rejected_without_creating_a_session(
     assert response.status_code == 403
     assert response.json()["code"] == "OWNER_ALREADY_BOUND"
     assert db.scalar(select(func.count()).select_from(UserSession)) == 1
+
+
+def test_mobile_activation_reuses_owner_and_consumes_code(
+    db: Session,
+    auth_context: tuple[TestClient, FakeWeChatClient, Settings],
+) -> None:
+    client, _fake, _settings = auth_context
+    owner = create_owner_with_default_profile(db, data=OwnerCreate(display_name="Mobile Owner"))
+    owner_id = owner.id
+    activation_code = issue_mobile_activation_code(
+        db,
+        ttl_seconds=1800,
+        code_factory=lambda: "one-time-mobile-activation-secret",
+    )
+
+    response = client.post(
+        "/api/v1/auth/mobile/activate",
+        json={"activation_code": activation_code, "device_label": "Xiaomi 17 Pro"},
+    )
+
+    assert response.status_code == 200, response.text
+    payload = response.json()
+    assert payload["owner"]["id"] == owner_id
+    assert payload["owner"]["display_name"] == "Mobile Owner"
+    assert db.scalar(select(func.count()).select_from(User)) == 1
+    assert db.scalar(select(func.count()).select_from(UserSession)) == 1
+    activation = db.scalar(select(OwnerActivationCode))
+    assert activation is not None and activation.used_at is not None
+    assert activation.code_hash == hash_activation_code(activation_code)
+    assert activation_code not in activation.code_hash
+    session = db.scalar(select(UserSession))
+    assert session is not None and session.device_label == "Xiaomi 17 Pro"
+    token = payload["access_token"]
+    assert session.token_hash == hash_session_token(token)
+    assert client.get("/api/v1/me", headers={"Authorization": f"Bearer {token}"}).status_code == 200
+
+
+def test_mobile_activation_replay_has_safe_generic_error(
+    db: Session,
+    auth_context: tuple[TestClient, FakeWeChatClient, Settings],
+) -> None:
+    client, _fake, _settings = auth_context
+    create_owner_with_default_profile(db, data=OwnerCreate())
+    activation_code = issue_mobile_activation_code(
+        db,
+        ttl_seconds=1800,
+        code_factory=lambda: "single-use-activation-secret",
+    )
+
+    first = client.post(
+        "/api/v1/auth/mobile/activate",
+        json={"activation_code": activation_code},
+    )
+    replay = client.post(
+        "/api/v1/auth/mobile/activate",
+        json={"activation_code": activation_code},
+    )
+    unknown = client.post(
+        "/api/v1/auth/mobile/activate",
+        json={"activation_code": "unknown-activation-secret"},
+    )
+
+    assert first.status_code == 200
+    assert replay.status_code == unknown.status_code == 400
+    assert replay.json()["code"] == unknown.json()["code"] == "MOBILE_ACTIVATION_INVALID"
+    assert replay.json()["message"] == unknown.json()["message"]
+    assert activation_code not in replay.text
+    assert db.scalar(select(func.count()).select_from(UserSession)) == 1
+
+
+@pytest.mark.parametrize("state", ["expired", "revoked"])
+def test_mobile_activation_rejects_inactive_code(
+    db: Session,
+    auth_context: tuple[TestClient, FakeWeChatClient, Settings],
+    state: str,
+) -> None:
+    client, _fake, _settings = auth_context
+    create_owner_with_default_profile(db, data=OwnerCreate())
+    activation_code = issue_mobile_activation_code(
+        db,
+        ttl_seconds=1800,
+        code_factory=lambda: f"{state}-activation-secret",
+    )
+    activation = db.scalar(select(OwnerActivationCode))
+    assert activation is not None
+    if state == "expired":
+        activation.expires_at = datetime.now(UTC) - timedelta(seconds=1)
+    else:
+        activation.revoked_at = datetime.now(UTC)
+    db.commit()
+
+    response = client.post(
+        "/api/v1/auth/mobile/activate",
+        json={"activation_code": activation_code},
+    )
+
+    assert response.status_code == 400
+    assert response.json()["code"] == "MOBILE_ACTIVATION_INVALID"
+    assert db.scalar(select(func.count()).select_from(UserSession)) == 0
+
+
+def test_issuing_new_mobile_activation_revokes_unused_code(db: Session) -> None:
+    create_owner_with_default_profile(db, data=OwnerCreate())
+    first = issue_mobile_activation_code(
+        db,
+        ttl_seconds=1800,
+        code_factory=lambda: "first-activation-secret",
+    )
+    second = issue_mobile_activation_code(
+        db,
+        ttl_seconds=1800,
+        code_factory=lambda: "second-activation-secret",
+    )
+
+    first_row = db.scalar(
+        select(OwnerActivationCode).where(
+            OwnerActivationCode.code_hash == hash_activation_code(first)
+        )
+    )
+    second_row = db.scalar(
+        select(OwnerActivationCode).where(
+            OwnerActivationCode.code_hash == hash_activation_code(second)
+        )
+    )
+    assert first_row is not None and first_row.revoked_at is not None
+    assert second_row is not None and second_row.revoked_at is None
+
+
+def test_mobile_activation_cannot_be_issued_without_owner(db: Session) -> None:
+    with pytest.raises(MobileActivationUnavailableError):
+        issue_mobile_activation_code(db, ttl_seconds=1800)
+
+
+@pytest.mark.postgres
+def test_mobile_activation_concurrent_consumption_creates_one_session() -> None:
+    url = os.environ.get("WXZY_TEST_POSTGRES_URL")
+    if not url:
+        pytest.skip("set WXZY_TEST_POSTGRES_URL to run the PostgreSQL activation check")
+    assert "test" in url or "wxzy_p0_" in url
+    postgres_engine = create_engine(url, pool_pre_ping=True)
+    try:
+        with Session(postgres_engine) as setup:
+            setup.execute(delete(OwnerActivationCode))
+            setup.execute(delete(UserSession))
+            setup.execute(delete(LearningProfile))
+            setup.execute(delete(User))
+            setup.commit()
+            create_owner_with_default_profile(setup, data=OwnerCreate())
+            activation_code = issue_mobile_activation_code(
+                setup,
+                ttl_seconds=1800,
+                code_factory=lambda: "concurrent-mobile-activation-secret",
+            )
+
+        def consume(index: int) -> str:
+            with Session(postgres_engine) as session:
+                try:
+                    activate_owner_device(
+                        session,
+                        activation_code=activation_code,
+                        session_ttl_seconds=3600,
+                        device_label=f"concurrent-{index}",
+                    )
+                except MobileActivationInvalidError:
+                    return "invalid"
+                return "success"
+
+        with ThreadPoolExecutor(max_workers=2) as executor:
+            outcomes = list(executor.map(consume, (1, 2)))
+
+        assert sorted(outcomes) == ["invalid", "success"]
+        with Session(postgres_engine) as verify:
+            assert verify.scalar(select(func.count()).select_from(UserSession)) == 1
+            activation = verify.scalar(select(OwnerActivationCode))
+            assert activation is not None and activation.used_at is not None
+    finally:
+        with Session(postgres_engine) as cleanup:
+            cleanup.execute(delete(OwnerActivationCode))
+            cleanup.execute(delete(UserSession))
+            cleanup.execute(delete(LearningProfile))
+            cleanup.execute(delete(User))
+            cleanup.commit()
+        postgres_engine.dispose()
 
 
 @pytest.mark.parametrize(
@@ -486,6 +686,11 @@ def test_owner_delete_requires_confirmation_and_removes_identity_data(
         ]
     )
     db.commit()
+    issue_mobile_activation_code(
+        db,
+        ttl_seconds=1800,
+        code_factory=lambda: "owner-delete-activation-secret",
+    )
 
     rejected = client.request(
         "DELETE",
@@ -522,6 +727,7 @@ def test_owner_delete_requires_confirmation_and_removes_identity_data(
     assert db.get(Card, card.id) is not None
     assert db.scalar(select(func.count()).select_from(UserSession)) == 0
     assert db.scalar(select(func.count()).select_from(LearningProfile)) == 0
+    assert db.scalar(select(func.count()).select_from(OwnerActivationCode)) == 0
 
 
 def test_urllib_adapter_maps_provider_responses_without_persisting_session_key(

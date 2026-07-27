@@ -15,7 +15,13 @@ from ..learning.models import (
     ReviewAttempt,
     StudySession,
 )
-from .models import LearningProfile, LearningProfileAudit, User, UserSession
+from .models import (
+    LearningProfile,
+    LearningProfileAudit,
+    OwnerActivationCode,
+    User,
+    UserSession,
+)
 from .schemas_auth import SessionDeviceOut
 
 
@@ -323,6 +329,7 @@ def delete_owner_account(db: Session, *, user_id: int) -> None:
         db.execute(delete(CardEnrollment).where(CardEnrollment.user_id == user_id))
         db.execute(delete(LearningProfileAudit).where(LearningProfileAudit.user_id == user_id))
         db.execute(delete(LearningProfile).where(LearningProfile.user_id == user_id))
+        db.execute(delete(OwnerActivationCode).where(OwnerActivationCode.user_id == user_id))
         db.execute(delete(UserSession).where(UserSession.user_id == user_id))
         db.execute(delete(User).where(User.id == user_id))
         db.commit()

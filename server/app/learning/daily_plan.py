@@ -299,9 +299,7 @@ def _build_new_candidates(
 ) -> list[_Candidate]:
     queued = list_queued_enrollments(db, user_id=user_id, limit=max(limit * 3, 20))
     queued_card_ids = [
-        enrollment.card_id
-        for enrollment in queued
-        if enrollment.card_id not in excluded_card_ids
+        enrollment.card_id for enrollment in queued if enrollment.card_id not in excluded_card_ids
     ]
     subjects = _card_subjects(db, queued_card_ids)
     chapter_sorts = _chapter_sorts_for_cards(db, queued_card_ids)

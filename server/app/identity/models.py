@@ -51,6 +51,9 @@ class User(Base):
     sessions: Mapped[list[UserSession]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
+    activation_codes: Mapped[list[OwnerActivationCode]] = relationship(
+        back_populates="user", cascade="all, delete-orphan"
+    )
     learning_profile: Mapped[LearningProfile | None] = relationship(
         back_populates="user", cascade="all, delete-orphan", uselist=False
     )
@@ -71,6 +74,23 @@ class UserSession(Base):
     created_at: Mapped[datetime] = mapped_column(UTCDateTime(), server_default=func.now())
 
     user: Mapped[User] = relationship(back_populates="sessions")
+
+
+class OwnerActivationCode(Base):
+    __tablename__ = "owner_activation_codes"
+    __table_args__ = (UniqueConstraint("code_hash", name="uq_owner_activation_codes_code_hash"),)
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    code_hash: Mapped[str] = mapped_column(String(128), nullable=False)
+    expires_at: Mapped[datetime] = mapped_column(UTCDateTime(), nullable=False, index=True)
+    used_at: Mapped[datetime | None] = mapped_column(UTCDateTime(), nullable=True)
+    revoked_at: Mapped[datetime | None] = mapped_column(UTCDateTime(), nullable=True)
+    created_at: Mapped[datetime] = mapped_column(UTCDateTime(), server_default=func.now())
+
+    user: Mapped[User] = relationship(back_populates="activation_codes")
 
 
 class LearningProfile(Base):

@@ -137,6 +137,7 @@ def test_unhandled_error_is_safe_and_logged(
 def test_log_sanitizer_redacts_sensitive_keys_and_text() -> None:
     sanitized = sanitize_for_log(
         {
+            "activation_code": "one-time-device-secret",
             "Authorization": "Bearer abc123",
             "api_token": "secret-token",
             "source_excerpt": "完整原文",
@@ -146,7 +147,14 @@ def test_log_sanitizer_redacts_sensitive_keys_and_text() -> None:
 
     encoded = json.dumps(sanitized, ensure_ascii=False)
     assert "abc123" not in encoded
+    assert "one-time-device-secret" not in encoded
     assert "secret-token" not in encoded
     assert "another-secret" not in encoded
     assert "完整原文" not in encoded
     assert logging.getLogger("uvicorn.access").disabled is True
+
+
+def test_log_sanitizer_redacts_activation_code_in_text() -> None:
+    sanitized = sanitize_for_log("activation_code=one-time-device-secret cannot be consumed")
+
+    assert "one-time-device-secret" not in sanitized

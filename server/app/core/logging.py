@@ -27,7 +27,8 @@ logger.setLevel(logging.INFO)
 _request_id_pattern = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]{7,63}$")
 _bearer_pattern = re.compile(r"(?i)\bbearer\s+[^\s,;]+")
 _named_secret_pattern = re.compile(
-    r"(?i)\b(authorization|api[_-]?token|access[_-]?token|api[_-]?key|password|secret)"
+    r"(?i)\b(activation[_-]?code|authorization|api[_-]?token|access[_-]?token|"
+    r"api[_-]?key|password|secret)"
     r"\s*[:=]\s*(?:bearer\s+)?[^\s,;]+"
 )
 _url_query_pattern = re.compile(r"(https?://[^\s?]+)\?[^\s]+", re.IGNORECASE)

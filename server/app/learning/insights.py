@@ -251,9 +251,7 @@ def build_insight_summary(
         current_due_count=sum(row.due_at <= timestamp for row in active_states),
         backlog_count=sum(row.due_at < day_start for row in active_states),
         content=_content_progress(db, user_id=user_id, mastered_ids=mastered_ids),
-        subjects=_subject_trends(
-            db, user_id=user_id, now=timestamp, mastered_ids=mastered_ids
-        ),
+        subjects=_subject_trends(db, user_id=user_id, now=timestamp, mastered_ids=mastered_ids),
     )
 
 

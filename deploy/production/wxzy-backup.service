@@ -1,0 +1,10 @@
+[Unit]
+Description=Backup wxzy PostgreSQL database
+After=docker.service
+Requires=docker.service
+
+[Service]
+Type=oneshot
+User=root
+WorkingDirectory=/opt/wxzy/current
+ExecStart=/opt/wxzy/current/deploy/production/backup.sh

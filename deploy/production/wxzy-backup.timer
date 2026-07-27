@@ -1,0 +1,10 @@
+[Unit]
+Description=Run wxzy database backup daily
+
+[Timer]
+OnCalendar=*-*-* 03:20:00 Asia/Shanghai
+Persistent=true
+RandomizedDelaySec=15m
+
+[Install]
+WantedBy=timers.target

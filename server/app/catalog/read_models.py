@@ -230,20 +230,16 @@ def search_learning_cards(
     limit: int,
 ) -> LearningCardPageOut:
     statement = select(Card).options(joinedload(Card.book), selectinload(Card.sources)).join(Book)
-    count_statement = select(func.count(func.distinct(Card.id))).select_from(Card).join(Book)
+    count_statement = select(func.count()).select_from(Card).join(Book)
+    filters = [Card.status == "published"]
     if chapter_id is not None:
         chapter_ids = _chapter_subtree_ids(db, chapter_id=chapter_id)
-        statement = (
-            statement.join(CardSource)
-            .join(DocumentChunk)
+        source_card_ids = (
+            select(CardSource.card_id)
+            .join(DocumentChunk, DocumentChunk.id == CardSource.document_chunk_id)
             .where(DocumentChunk.chapter_id.in_(chapter_ids))
         )
-        count_statement = (
-            count_statement.join(CardSource)
-            .join(DocumentChunk)
-            .where(DocumentChunk.chapter_id.in_(chapter_ids))
-        )
-    filters = [Card.status == "published"]
+        filters.append(Card.id.in_(source_card_ids))
     if book_id is not None:
         filters.append(Card.book_id == book_id)
     if query:
@@ -258,7 +254,7 @@ def search_learning_cards(
                 cast(Card.tags, String).ilike(like),
             )
         )
-    statement = statement.where(*filters).distinct().order_by(Card.id).offset(offset).limit(limit)
+    statement = statement.where(*filters).order_by(Card.id).offset(offset).limit(limit)
     count_statement = count_statement.where(*filters)
     total = int(db.scalar(count_statement) or 0)
     items: list[CardOut] = [card_to_out(card) for card in db.scalars(statement).unique()]

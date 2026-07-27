@@ -27,6 +27,27 @@ class WeChatLoginIn(BaseModel):
         return normalized or None
 
 
+class MobileActivateIn(BaseModel):
+    activation_code: str = Field(min_length=1, max_length=256, repr=False)
+    device_label: str | None = Field(default=None, max_length=128)
+
+    @field_validator("activation_code")
+    @classmethod
+    def normalize_activation_code(cls, value: str) -> str:
+        normalized = value.strip()
+        if not normalized:
+            raise ValueError("activation_code must not be blank")
+        return normalized
+
+    @field_validator("device_label")
+    @classmethod
+    def normalize_mobile_device_label(cls, value: str | None) -> str | None:
+        if value is None:
+            return None
+        normalized = value.strip()
+        return normalized or None
+
+
 class OwnerOut(BaseModel):
     id: int
     status: str

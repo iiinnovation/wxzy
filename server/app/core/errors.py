@@ -16,6 +16,7 @@ REDACTED = "[REDACTED]"
 
 _request_id: ContextVar[str] = ContextVar("request_id", default="req_unknown")
 _sensitive_key_fragments = {
+    "activationcode",
     "authorization",
     "token",
     "secret",
