@@ -8,7 +8,7 @@
 
 .connection-pill.is-online {
   background: #eaf7f1;
-  color: #17664d;
+  color: #0f766e;
 }
 
 .connection-pill.is-offline {
@@ -31,7 +31,7 @@
 .settings-panel,
 .stats-panel {
   background: #ffffff;
-  border: 1rpx solid #e1e6eb;
+  border: 1rpx solid #e1e6e4;
   border-radius: 10rpx;
   padding: 28rpx;
 }
@@ -201,21 +201,23 @@
 }
 
 .status-active {
-  color: #17664d;
+  color: #0f766e;
 }
 
 .status-expired,
 .status-revoked {
-  color: #8a3030;
+  color: #8f382f;
 }
 
 .session-revoke {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   margin: 10rpx 0 0 auto;
   width: 106rpx;
   height: 54rpx;
-  line-height: 54rpx;
   padding: 0;
-  border-radius: 6rpx;
+  border-radius: 8rpx;
   background: #edf1f3;
   color: #415b6c;
   font-size: 21rpx;

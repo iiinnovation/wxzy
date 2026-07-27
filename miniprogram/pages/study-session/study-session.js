@@ -3,12 +3,15 @@
 const api = require('../../services/api')
 const requestUtils = require('../../utils/page-request')
 const format = require('../../utils/format')
+const quickReview = require('../../utils/quick-review')
 
 Page({
   data: {
     sessionId: 0, session: null, task: null, viewState: 'loading', errorView: null,
     revealed: false, writtenAnswer: '', submitting: false, submitError: '', retryRating: 0,
     submitNeedsReload: false,
+    recallMode: 'quick', writingExpanded: false, answerPointChecks: [],
+    pointCheckTouched: false, recalledPointCount: 0, recommendedRating: 0,
     attemptId: '', completed: 0, total: 0, taskLabel: '学习任务',
     sourceOpen: false, sourceLoading: false, sourceError: '', sources: [], exiting: false, resuming: false,
     retryMode: 'load', exitError: ''
@@ -83,9 +86,13 @@ Page({
       return
     }
     this.taskStartedAt = Date.now()
+    this.recallElapsedMs = null
     this.setData({
       session: session, task: task, viewState: 'recall', revealed: false, writtenAnswer: '',
       submitting: false, submitError: '', retryRating: 0, submitNeedsReload: false,
+      recallMode: 'quick', writingExpanded: false,
+      answerPointChecks: quickReview.decorateAnswerPoints(task.card.answer_points),
+      pointCheckTouched: false, recalledPointCount: 0, recommendedRating: 0,
       attemptId: api.learning().createClientAttemptId(session.id, task.card.id),
       completed: session.completed_task_count, total: session.planned_task_count,
       taskLabel: format.itemTypeLabel(task.plan_item.item_type), sources: [], sourceOpen: false,
@@ -107,8 +114,41 @@ Page({
       self.setData({ viewState: 'error', errorView: requestUtils.errorView(error, '会话完成状态保存失败') })
     })
   },
+  onSelectRecallMode: function (event) {
+    if (this.data.revealed) return
+    const mode = event.currentTarget.dataset.mode === 'writing' ? 'writing' : 'quick'
+    this.setData({ recallMode: mode, writingExpanded: mode === 'writing' })
+  },
   onWrittenInput: function (event) { this.setData({ writtenAnswer: event.detail.value }) },
-  onReveal: function () { if (!this.data.task) return; this.setData({ revealed: true, viewState: 'answer' }) },
+  onReveal: function () {
+    if (!this.data.task) return
+    this.recallElapsedMs = Math.max(0, Date.now() - this.taskStartedAt)
+    this.setData({ revealed: true, viewState: 'answer' })
+  },
+  onAnswerPointsChange: function (event) {
+    if (this.data.submitting || this.data.retryRating) return
+    const checks = quickReview.setCheckedAnswerPoints(
+      this.data.answerPointChecks,
+      event.detail.value
+    )
+    const recalled = quickReview.countRecalledPoints(checks)
+    this.setData({
+      answerPointChecks: checks,
+      pointCheckTouched: true,
+      recalledPointCount: recalled,
+      recommendedRating: quickReview.recommendRating(checks, true, this.recallElapsedMs)
+    })
+  },
+  onRecallNone: function () {
+    if (this.data.submitting || this.data.retryRating) return
+    const checks = quickReview.setCheckedAnswerPoints(this.data.answerPointChecks, [])
+    this.setData({
+      answerPointChecks: checks,
+      pointCheckTouched: true,
+      recalledPointCount: 0,
+      recommendedRating: quickReview.recommendRating(checks, true, this.recallElapsedMs)
+    })
+  },
   onRate: function (event) {
     if (this.data.retryRating) return
     this.submitRating(Number(event.detail.rating), false)
@@ -131,14 +171,19 @@ Page({
     if (!payload) {
       const task = this.data.task
       const state = task.review_state || {}
-      const answer = this.data.writtenAnswer.trim()
       payload = {
         session_id: this.data.sessionId, card_id: task.card.id, card_revision: task.card_revision,
         client_attempt_id: this.data.attemptId, rating: rating,
         response_ms: Math.max(0, Date.now() - this.taskStartedAt), hint_used: false,
         reveal_count: 1, expected_due_at: state.due_at, expected_state: state.state, expected_reps: state.reps
       }
-      if (answer) payload.answer_payload = { written_answer: answer }
+      payload.answer_payload = quickReview.buildAnswerPayload({
+        recallMode: this.data.recallMode,
+        recallMs: this.recallElapsedMs,
+        writtenAnswer: this.data.writtenAnswer,
+        points: this.data.answerPointChecks,
+        pointCheckTouched: this.data.pointCheckTouched
+      })
       this.pendingAttemptPayload = payload
     }
     const self = this

@@ -6,6 +6,7 @@ const requestUtils = require('../utils/page-request')
 const format = require('../utils/format')
 const weekly = require('../utils/weekly-test')
 const repairDisplay = require('../utils/repair-display')
+const quickReview = require('../utils/quick-review')
 
 const guard = requestUtils.createPageRequestGuard()
 const first = guard.begin()
@@ -55,6 +56,44 @@ const repair = repairDisplay.decorateRepairSuggestion({
 assert.strictEqual(repair.firstSignalLabel, '近 30 天多次选择“重来”')
 assert.strictEqual(repair.firstActionLabel, '先重读来源片段再进行回忆')
 assert.strictEqual(repair.source.chapter_label, '伤寒 / 辨证')
+
+const answerPoints = quickReview.decorateAnswerPoints(['组成', ' ', '功用'])
+assert.deepStrictEqual(answerPoints, [
+  { index: 0, text: '组成', checked: false },
+  { index: 1, text: '功用', checked: false }
+])
+assert.deepStrictEqual(quickReview.decorateAnswerPoints(null), [])
+assert.strictEqual(quickReview.recommendRating(answerPoints, false, 10000), 0)
+assert.strictEqual(quickReview.recommendRating([], true, 10000), 0)
+assert.strictEqual(quickReview.recommendRating(answerPoints, true, 10000), 1)
+const partialPoints = quickReview.setCheckedAnswerPoints(answerPoints, ['0'])
+assert.strictEqual(quickReview.countRecalledPoints(partialPoints), 1)
+assert.strictEqual(quickReview.recommendRating(partialPoints, true, 10000), 2)
+assert.strictEqual(answerPoints[0].checked, false)
+const completePoints = quickReview.setCheckedAnswerPoints(partialPoints, ['0', '1'])
+assert.strictEqual(quickReview.recommendRating(completePoints, true, 20000), 4)
+assert.strictEqual(quickReview.recommendRating(completePoints, true, 20001), 3)
+assert.deepStrictEqual(
+  quickReview.buildAnswerPayload({
+    recallMode: 'writing',
+    recallMs: 12500.4,
+    writtenAnswer: '  桂枝、芍药  ',
+    points: partialPoints,
+    pointCheckTouched: true
+  }),
+  {
+    recall_mode: 'writing',
+    recall_ms: 12500,
+    written_answer: '桂枝、芍药',
+    answer_point_count: 2,
+    recalled_point_count: 1,
+    recalled_point_indexes: '0'
+  }
+)
+assert.deepStrictEqual(
+  quickReview.buildAnswerPayload({ recallMode: 'quick', points: [], pointCheckTouched: false }),
+  { recall_mode: 'quick' }
+)
 
 const http = require('../services/http')
 assert.strictEqual(http.withQuery('/x', { a: 1, b: '', c: null, d: 'y z' }), '/x?a=1&d=y%20z')
@@ -149,7 +188,7 @@ const staleChecked = staleRun.then(function () {
 
 Promise.all([readyRun, unauthorizedRun, errorRun, staleChecked])
   .then(function () {
-    console.log('20 passed, 0 failed')
+    console.log('32 passed, 0 failed')
   })
   .catch(function (error) {
     console.error(error)

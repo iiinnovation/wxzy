@@ -13,24 +13,30 @@ App({
 
   onLaunch() {
     const client = httpModule.getDefaultClient()
+    client.loadFromStorage()
     client.setEnvironment(config.environment || 'development')
     if (config.defaultApiBase) {
-      const existing = client.getConfig().apiBase
-      if (!existing || existing === 'http://127.0.0.1:8000') {
+      if (config.environment === 'production') {
+        // A release build must not inherit a LAN/dev endpoint from local storage.
+        client.setApiBase(config.defaultApiBase)
+      } else {
+        const existing = client.getConfig().apiBase
         // Prefer stored apiBase when the user already configured one.
-        let stored = null
-        try {
-          stored = wx.getStorageSync('apiBase')
-        } catch (e) {
-          stored = null
-        }
-        if (!stored) {
-          client.setApiBase(config.defaultApiBase)
+        if (!existing || existing === 'http://127.0.0.1:8000') {
+          let stored = null
+          try {
+            stored = wx.getStorageSync('apiBase')
+          } catch (e) {
+            stored = null
+          }
+          if (!stored) {
+            client.setApiBase(config.defaultApiBase)
+          }
         }
       }
     }
 
-    const snap = client.loadFromStorage()
+    const snap = client.getAuthSnapshot()
     this.globalData.apiBase = snap.apiBase
     this.globalData.authState = snap.authState
     this.globalData.owner = snap.owner

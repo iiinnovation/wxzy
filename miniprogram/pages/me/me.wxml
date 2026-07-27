@@ -93,7 +93,7 @@
     />
 
     <view class="field-heading">
-      <view class="label token-label">开发 Token</view>
+      <view class="label token-label">开发 Token（可选）</view>
       <view class="token-toggle" bindtap="onToggleToken">{{showToken ? '隐藏' : '显示'}}</view>
     </view>
     <input
@@ -101,7 +101,7 @@
       value="{{token}}"
       bindinput="onToken"
       password="{{!showToken}}"
-      placeholder="AUTH_MODE=dev_token 时使用"
+      placeholder="Token 调试时填写，微信登录可留空"
     />
 
     <view class="error" wx:if="{{error}}">{{error}}</view>

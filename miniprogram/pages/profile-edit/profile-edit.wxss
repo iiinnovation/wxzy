@@ -26,12 +26,13 @@
 .day-chip.is-selected {
   border-color: #0f766e;
   background: #eaf7f1;
-  color: #17664d;
+  color: #0f766e;
   font-weight: 600;
 }
 
 .picker-input {
-  line-height: 1.4;
+  display: flex;
+  align-items: center;
 }
 
 .tiny-action {
@@ -55,7 +56,7 @@
 .subject-toggle.is-selected {
   border-color: #0f766e;
   background: #eaf7f1;
-  color: #17664d;
+  color: #0f766e;
   font-weight: 600;
 }
 
@@ -82,7 +83,7 @@
 }
 
 .ok {
-  color: #17664d;
+  color: #0f766e;
   background: #eaf7f1;
   border-radius: 8rpx;
   padding: 16rpx 18rpx;

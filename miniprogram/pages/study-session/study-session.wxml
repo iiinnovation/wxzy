@@ -11,33 +11,51 @@
   <state-view wx:elif="{{viewState === 'unauthorized'}}" type="unauthorized" title="登录已失效" message="请重新登录后继续，本轮进度已经保存在服务端" action-label="重新登录" bind:action="onLogin"></state-view>
   <state-view wx:elif="{{viewState === 'interrupted'}}" type="empty" title="本轮学习已暂停" message="恢复后会从当前计划项继续" action-label="继续学习" bind:action="onResume"></state-view>
   <state-view wx:elif="{{viewState === 'completed'}}" type="completed" title="本轮学习完成" message="所有评分均已保存，可以返回今日页查看结果" action-label="返回今日" bind:action="onBackToday"></state-view>
-  <view wx:else class="task-area">
+  <scroll-view wx:else scroll-y class="task-area">
     <view class="context-line">{{task.card.book_name}} · {{task.card.chapter || task.card.section || '未分节'}}</view>
-    <scroll-view scroll-y class="question-scroll">
+    <view class="question-block">
       <text selectable class="question-text">{{task.card.question}}</text>
-    </scroll-view>
+    </view>
     <view wx:if="{{!revealed}}">
-      <textarea class="written-input" maxlength="4000" value="{{writtenAnswer}}" bindinput="onWrittenInput" placeholder="可选：先写下自己的答案" auto-height></textarea>
+      <view class="recall-mode-selector" aria-label="回忆方式">
+        <button class="recall-mode-option {{recallMode === 'quick' ? 'active' : ''}}" data-mode="quick" bindtap="onSelectRecallMode">快速回忆</button>
+        <button class="recall-mode-option {{recallMode === 'writing' ? 'active' : ''}}" data-mode="writing" bindtap="onSelectRecallMode">书写强化</button>
+      </view>
+      <textarea wx:if="{{writingExpanded}}" class="written-input" maxlength="4000" value="{{writtenAnswer}}" bindinput="onWrittenInput" placeholder="写下自己的答案" auto-height></textarea>
       <button class="reveal-button" bindtap="onReveal">显示答案</button>
     </view>
     <view wx:else class="answer-area">
-      <view class="answer-label">参考答案</view>
-      <scroll-view scroll-y class="answer-scroll">
-        <text selectable class="answer-text">{{task.card.answer}}</text>
-        <view class="answer-point" wx:for="{{task.card.answer_points}}" wx:key="*this">• {{item}}</view>
-      </scroll-view>
-      <view class="written-review" wx:if="{{writtenAnswer}}">
-        <view class="answer-label">你的回答</view>
-        <text selectable>{{writtenAnswer}}</text>
+      <view class="answer-review-content">
+        <view class="answer-label">参考答案</view>
+        <view class="answer-card">
+          <text selectable class="answer-text">{{task.card.answer}}</text>
+        </view>
+        <view class="point-check-section" wx:if="{{answerPointChecks.length}}">
+          <view class="answer-label">回想命中的要点</view>
+          <checkbox-group bindchange="onAnswerPointsChange">
+            <label class="answer-point-check" wx:for="{{answerPointChecks}}" wx:key="index">
+              <checkbox value="{{item.index}}" checked="{{item.checked}}" disabled="{{submitting || retryRating > 0}}" color="#0f766e"></checkbox>
+              <text>{{item.text}}</text>
+            </label>
+          </checkbox-group>
+          <button class="recall-none-button {{pointCheckTouched && recalledPointCount === 0 ? 'active' : ''}}" bindtap="onRecallNone" disabled="{{submitting || retryRating > 0}}">一个也没想起</button>
+        </view>
+        <view class="written-review" wx:if="{{writtenAnswer}}">
+          <view class="answer-label">你的回答</view>
+          <text selectable>{{writtenAnswer}}</text>
+        </view>
+        <button class="source-button" bindtap="onOpenSource">查看来源</button>
       </view>
-      <button class="source-button" bindtap="onOpenSource">查看来源</button>
       <view class="submit-error" wx:if="{{submitError}}">
         <text>{{submitError}}</text>
         <button wx:if="{{submitNeedsReload}}" bindtap="onReloadAfterSubmitError" disabled="{{submitting}}">重新加载当前进度</button>
         <button wx:else bindtap="onRetrySubmit" disabled="{{submitting}}">使用同一记录重试</button>
       </view>
-      <rating-control disabled="{{submitting || exiting || retryRating > 0}}" bind:rate="onRate"></rating-control>
+      <view class="rating-section">
+        <view class="answer-label">回忆评分</view>
+        <rating-control disabled="{{submitting || exiting || retryRating > 0}}" recommended-rating="{{recommendedRating}}" bind:rate="onRate"></rating-control>
+      </view>
     </view>
-  </view>
+  </scroll-view>
   <source-drawer open="{{sourceOpen}}" loading="{{sourceLoading}}" error="{{sourceError}}" sources="{{sources}}" bind:close="onCloseSource" bind:retry="onOpenSource"></source-drawer>
 </view>

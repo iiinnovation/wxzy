@@ -12,7 +12,7 @@
 
 .progress-track {
   height: 8rpx;
-  background: #e1e6eb;
+  background: #e1e6e4;
   border-radius: 999rpx;
   overflow: hidden;
   margin-bottom: 24rpx;
@@ -32,7 +32,7 @@
 }
 
 .choice-row {
-  border: 1rpx solid #e1e6eb;
+  border: 1rpx solid #e1e6e4;
   border-radius: 8rpx;
   padding: 22rpx 20rpx;
   margin-bottom: 14rpx;
@@ -80,12 +80,13 @@
 .day-chip.is-selected {
   border-color: #0f766e;
   background: #eaf7f1;
-  color: #17664d;
+  color: #0f766e;
   font-weight: 600;
 }
 
 .picker-input {
-  line-height: 1.4;
+  display: flex;
+  align-items: center;
 }
 
 .tiny-action {
@@ -113,7 +114,7 @@
 .subject-toggle.is-selected {
   border-color: #0f766e;
   background: #eaf7f1;
-  color: #17664d;
+  color: #0f766e;
   font-weight: 600;
 }
 
@@ -150,7 +151,7 @@
 }
 
 .ok {
-  color: #17664d;
+  color: #0f766e;
   background: #eaf7f1;
   border-radius: 8rpx;
   padding: 16rpx 18rpx;

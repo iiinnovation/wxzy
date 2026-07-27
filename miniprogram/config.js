@@ -1,14 +1,33 @@
-/**
- * Client build configuration.
- * Release builds should set environment to "production" so the Me page
- * never offers a manual API Token field.
- */
-module.exports = {
+const DEVELOPMENT_CONFIG = {
   environment: 'development',
   defaultApiBase: 'http://127.0.0.1:8000',
-  /**
-   * When true and no local session/dev token exists, app boot calls wx.login.
-   * Keep false for local simulator work against AUTH_MODE=dev_token.
-   */
   autoWeChatLogin: false
 }
+
+const PRODUCTION_CONFIG = {
+  environment: 'production',
+  defaultApiBase: 'https://api.luoandlt.xin',
+  autoWeChatLogin: true
+}
+
+function forEnvVersion(envVersion) {
+  return envVersion === 'trial' || envVersion === 'release'
+    ? PRODUCTION_CONFIG
+    : DEVELOPMENT_CONFIG
+}
+
+function currentEnvVersion() {
+  try {
+    if (typeof wx !== 'undefined' && wx.getAccountInfoSync) {
+      const account = wx.getAccountInfoSync()
+      return account && account.miniProgram && account.miniProgram.envVersion
+    }
+  } catch (e) {
+    // Static tooling outside WeChat should validate the production defaults.
+  }
+  return 'release'
+}
+
+module.exports = Object.assign({}, forEnvVersion(currentEnvVersion()), {
+  forEnvVersion: forEnvVersion
+})

@@ -1,7 +1,12 @@
 {
   "description": "wxzy TCM card review mini program",
   "packOptions": {
-    "ignore": [],
+    "ignore": [
+      {
+        "type": "folder",
+        "value": "tests"
+      }
+    ],
     "include": []
   },
   "setting": {
@@ -47,8 +52,8 @@
     "disableSWC": true
   },
   "compileType": "miniprogram",
-  "libVersion": "3.5.5",
-  "appid": "wxf8dd2914154f4dea",
+  "libVersion": "3.17.0",
+  "appid": "wx60939e3a4366029e",
   "projectname": "wxzy",
   "condition": {},
   "editorSetting": {

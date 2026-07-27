@@ -1,0 +1,50 @@
+{
+  "task": "P7-T04",
+  "title": "Study Session fast review optimization",
+  "status": "implemented",
+  "generated_at": "2026-07-27",
+  "stage": "study_session_fast_review",
+  "stage_version": "p7t04-fast-review-v1",
+  "acceptance": {
+    "quick_recall_default": true,
+    "writing_optional": true,
+    "answer_point_checks": true,
+    "rating_recommendation_only": true,
+    "compact_answer_rating_flow": true,
+    "idempotent_retry_preserved": true,
+    "next_task_resets_review_state": true,
+    "unreviewed_medical_distractors_generated": false
+  },
+  "recommendation": {
+    "untouched_or_no_points": 0,
+    "none_recalled": 1,
+    "partially_recalled": 2,
+    "fully_recalled": 3,
+    "fully_recalled_within_ms": 20000,
+    "fast_full_rating": 4,
+    "auto_submit": false
+  },
+  "verification": {
+    "quick_review_node": "32 passed, 0 failed",
+    "miniprogram_contract_pytest": "3 passed",
+    "full_pytest": "317 passed, 3 skipped",
+    "coverage": "75%",
+    "ruff_check": "passed",
+    "mypy": "passed, 125 source files",
+    "miniprogram_javascript": "all syntax checks passed",
+    "structured_files": "20 JSON and 41 documentation files passed",
+    "developer_tools": "base library 3.17.0 recompiled and page ready without project compile errors",
+    "backend_health": "GET http://127.0.0.1:8000/health returned ok"
+  },
+  "review": {
+    "findings_after_fix": [],
+    "answer_points_coverage": "29 of 71 published cards; remaining cards require reviewed content backfill",
+    "manual_simulator_click_flow": "pending user acceptance",
+    "real_device": "deferred to P7-T09"
+  },
+  "remaining_risks": [
+    "Developer Tools automation could not attach to the already-open IDE because its configured port 9420 did not listen",
+    "full quality-gate.sh stops at two pre-existing Ruff format findings in daily_plan.py and insights.py; all other gate stages passed",
+    "PostgreSQL migration/concurrency tests require WXZY_TEST_POSTGRES_URL"
+  ]
+}

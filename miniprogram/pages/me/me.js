@@ -108,9 +108,9 @@ Page({
     }
     const apiBase = String(this.data.apiBase || '').trim().replace(/\/$/, '')
     const token = String(this.data.token || '').trim()
-    if (!apiBase || !token) {
+    if (!apiBase) {
       this.setData({
-        error: '请完整填写 API 地址和开发 Token。',
+        error: '请填写 API 地址。',
         ok: '',
         connectionState: '未配置'
       })
@@ -122,14 +122,27 @@ Page({
     api
       .getHealth()
       .then(function () {
+        if (!token) {
+          self.syncFromAuth()
+          self.setData({
+            apiBase: apiBase,
+            token: '',
+            saving: false,
+            ok: '服务可达，请点击微信登录',
+            connectionState: '未登录'
+          })
+          return null
+        }
         return api.fetchMe()
       })
       .then(function (owner) {
+        if (!token) return null
         return api.getStats().then(function (stats) {
           return { owner: owner, stats: stats }
         })
       })
       .then(function (result) {
+        if (!result) return null
         self.syncFromAuth()
         self.setData({
           apiBase: apiBase,
