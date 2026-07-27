@@ -30,6 +30,7 @@
 | [`specs/2026-07-22-system-design.md`](specs/2026-07-22-system-design.md) | 服务边界、数据模型、API、状态机、安全 | Baseline |
 | [`specs/2026-07-22-document-processing-design.md`](specs/2026-07-22-document-processing-design.md) | 7 本 PDF 的全量处理和卡片生产线 | Baseline |
 | [`specs/2026-07-22-learning-miniprogram-design.md`](specs/2026-07-22-learning-miniprogram-design.md) | 小程序信息架构、学习方法、个性化体验 | Baseline |
+| [`specs/2026-07-27-wenxi-android-app-design.md`](specs/2026-07-27-wenxi-android-app-design.md) | 温习 Android APP、设备激活、私有分发和真机验收 | Active |
 | [`plans/2026-07-22-wxzy-implementation-plan.md`](plans/2026-07-22-wxzy-implementation-plan.md) | 分阶段、分任务、依赖、验证和交付顺序 | Active plan |
 
 ## 两条业务边界

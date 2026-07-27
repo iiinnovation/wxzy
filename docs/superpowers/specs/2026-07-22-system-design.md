@@ -36,7 +36,7 @@
 2. **Document Processing**：PDF、任务、页、清洗、结构化和质量。
 3. **Content Catalog**：书籍、章节、发布卡和来源。
 4. **Learning & Scheduling**：enrollment、每日计划、FSRS、作答和薄弱点。
-5. **Mini Program Presentation**：页面、交互、API 客户端和本地会话缓存。
+5. **Learning Client Presentation**：微信小程序与 Android APP 的页面、交互、API 客户端和本地会话缓存。
 
 Document Processing 是控制面；其余后端模块和小程序构成学习运行面。
 
@@ -57,13 +57,12 @@ Document Processing 是控制面；其余后端模块和小程序构成学习运
                                                     versioned publish bundle
                                                           |
                                                           v
-微信小程序 <---- HTTPS /api/v1 ---- FastAPI ---- PostgreSQL
-    |                                  |             |
-    |                                  |             +-- identity/profile
-    |                                  |             +-- content catalog
-    |                                  |             +-- learning/reviews
-    |                                  |
-    +-- pages/services                 +-- admin publish importer
+微信小程序 ----+
+               +---- HTTPS /api/v1 ---- FastAPI ---- PostgreSQL
+温习 Android --+                         |             |
+                                         |             +-- identity/profile
+                                         |             +-- content catalog
+                                         +-- learning/reviews/admin importer
 
 私有原始文件和中间产物可迁移到 OSS；小程序只接收必要的分页数据和短来源摘录。
 ```
@@ -82,6 +81,13 @@ Document Processing 是控制面；其余后端模块和小程序构成学习运
 - FastAPI + Pydantic + SQLAlchemy。
 - 提供身份、档案、目录、计划、复习、统计和发布导入 API。
 - 承担鉴权、事务、幂等、领域规则和审计。
+
+### 5.2A Wenxi Android APP
+
+- React + TypeScript + Capacitor，独立于微信运行时。
+- 通过一次性设备激活码连接现有 Owner，后续使用通用 Bearer Session。
+- Token 保存到 Android Keystore 支持的安全存储，不保存服务端密钥和完整 PDF。
+- 第一版通过签名 APK 私有分发，联网使用现有 HTTPS API。
 
 ### 5.3 Document Worker/CLI
 
@@ -106,6 +112,15 @@ miniprogram/
   components/
   services/
   utils/
+
+mobile/
+  src/
+    app/
+    components/
+    features/
+    services/
+    platform/
+  android/
 
 server/
   app/
@@ -169,6 +184,21 @@ Python `zoneinfo` 校验。
 
 `token_hash` 使用唯一约束，数据库不保存可直接使用的 Session Token。Token 签发、刷新和撤销
 接口属于 P2 身份任务，P1 只建立可迁移的数据边界。
+
+#### OwnerActivationCode
+
+| 字段 | 说明 |
+|---|---|
+| id | 激活记录 ID |
+| user_id | 唯一 active Owner |
+| code_hash | 高熵激活码 SHA-256，唯一 |
+| expires_at | UTC 失效时间 |
+| used_at | 成功交换 Session 的时间 |
+| revoked_at | 提前撤销时间 |
+| created_at | UTC 创建时间 |
+
+激活码由服务端 CLI 签发，明文只显示一次；成功交换时原子写入 `used_at` 并创建普通
+`UserSession`。它只用于把 Android 设备连接到现有 Owner，不能创建第二个 Owner。
 
 #### LearningProfile
 
@@ -426,6 +456,17 @@ planned -> cancelled
 
 通过显式配置 `AUTH_MODE=dev_token` 启用固定 Token。生产配置启动时若仍使用默认 Token 必须失败，而不是静默运行。
 
+### 10.3 Android 私有激活
+
+1. Operator 在服务器为现有 active Owner 签发一次性高熵激活码。
+2. APP 将激活码和最小设备标签发送到 `/api/v1/auth/mobile/activate`。
+3. 后端校验哈希、有效期、撤销和使用状态，不接受用户 ID 或 Owner claim 输入。
+4. 同一事务内消费激活码并创建普通 `UserSession`，响应复用现有 Session 契约。
+5. 后续 refresh/logout/业务鉴权与微信 Session 完全一致。
+
+激活接口采用通用失败响应，日志不记录请求体。生产当前保留 `AUTH_MODE=wechat` 兼容名，
+它控制 Session Bearer 鉴权，不限制 Session 必须由微信提供方签发。
+
 ## 11. API 设计
 
 ### 11.1 通用约定
@@ -450,6 +491,7 @@ planned -> cancelled
 | Method | Path | 用途 |
 |---|---|---|
 | POST | `/api/v1/auth/wechat` | 微信登录/绑定 |
+| POST | `/api/v1/auth/mobile/activate` | Android 一次性设备激活 |
 | POST | `/api/v1/auth/refresh` | 刷新 Session |
 | POST | `/api/v1/auth/logout` | 撤销 Session |
 | GET | `/api/v1/me` | 当前 Owner |
@@ -620,6 +662,8 @@ ReviewState 的 due、stability、difficulty、reps、lapses、state、algorithm
 | ADR-005 | PostgreSQL 为生产真相，SQLite 为开发辅助 | 支持事务、迁移和未来 JSON/检索能力 |
 | ADR-006 | 先规则化个性学习，再使用 AI 建议 | 可解释、可测试，避免模型随意调度 |
 | ADR-007 | 内容 revision 不覆盖历史事实版本 | 保持作答和来源审计一致 |
+| ADR-008 | Android 客户端与小程序同仓库、独立目录 | 原子演进 API，避免微信打包边界污染 |
+| ADR-009 | Android 激活复用 UserSession | 保留唯一 Owner 和多设备同步，不建立第二套 Token |
 
 ## 21. 延后决策
 

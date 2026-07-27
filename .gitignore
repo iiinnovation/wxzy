@@ -34,6 +34,10 @@ htmlcov/
 node_modules/
 dist/
 build/
+*.tsbuildinfo
+playwright-report/
+test-results/
+mobile/artifacts/
 
 # Server runtime
 server/.venv/

@@ -1184,6 +1184,12 @@ issue 时删除迁移生成的 profile/session/Owner；一旦存在个人学习�
 
 交付：完成计划绑定会话、主动回忆/可选书写/答案/来源/评分流程和中断恢复。评分超时保留原 payload 和 `client_attempt_id`，阻止改评；迟到响应受页面序列守卫。
 
+2026-07-27 快速复习优化：普通卡默认“快速回忆”，书写强化折叠；答案揭晓后复用已审核 `answer_points` 进行命中核对，并按命中数量与揭晓前耗时高亮评分建议。建议不得自动提交或限制用户选择；没有审核要点时不生成临时医学选项。提交的受限 `answer_payload` 可记录回忆模式、书写内容、要点总数/命中数和逗号分隔的命中索引，同时继续复用原评分重试 payload 与 `client_attempt_id`。
+
+优化验收：默认流程无需键盘即可完成；书写模式可展开并保留输入；要点勾选可撤销且建议随之更新；用户可选择任意评分；下一张卡重置模式、核对项和建议；重复点击、超时重试、中断恢复、长答案及无 `answer_points` 卡片不回归。验证包括纯函数测试、WXML 契约、JavaScript 语法、全量质量门禁和开发者工具运行时冒烟。
+
+优化交付：实现及代码复查完成，报告见 `docs/superpowers/reports/2026-07-27-p7t04-fast-review.{json,md}`。开发者工具 3.17.0 热编译通过；模拟器人工点击和真机验收仍归 P7-T09。
+
 ## P7-T05 学科和章节
 
 状态：`[x]`
@@ -1232,7 +1238,7 @@ issue 时删除迁移生成的 profile/session/Owner；一旦存在个人学习�
 
 验收：10 个 PRD 发布场景全部通过并保留结果记录。
 
-阻塞：2026-07-26 清理失败进程后重试 CLI，仍为 `#initialize-error: wait IDE port timeout`，9420 未监听。最新 IDE 日志报 `devtools/version manifest.json ... not installed` 和 `doCheckUpdate -80150`，属于项目编译前的 IDE/插件初始化故障。开发者工具编译、性能面板和真机 10 场景不得标记通过。
+进展：2026-07-27 开发者工具已启动，基础库 3.17.0 对 P7-T04 快速复习变更完成热编译并进入 page ready，未发现项目编译错误。CLI 自动化仍无法接管已打开实例，配置的 9420 端口未监听；模拟器人工流程、性能面板、最低基础库和真机 10 场景仍不得标记通过。
 
 ### P7 退出门禁
 
@@ -1252,17 +1258,23 @@ issue 时删除迁移生成的 profile/session/Owner；一旦存在个人学习�
 
 工作：Compose/托管库、连接池、Alembic、时区、备份；SQLite/Postgres 差异测试。
 
+2026-07-27 生产落点：阿里云 Ubuntu 24.04 单机部署，保留现有 Nginx 与 `fetcher.luoandlt.xin` 服务。新增 Docker Compose 内网 PostgreSQL 16 和 FastAPI；数据库不映射宿主机端口，API 仅绑定 `127.0.0.1:18000`。针对约 1.6 GiB 可用内存增加 swap、限制 PostgreSQL 连接/缓存和容器日志。生产库从空库执行 Alembic 到 head，只导入已审核 `pub-first-batch-p5t10-v1` 发布包，不迁移 SQLite 中的 Owner、档案、enrollment、计划、会话或评分。
+
 ## P8-T02 HTTPS 和域名
 
 状态：`[ ]`
 
 工作：Nginx/网关、证书、合法业务域名、CORS、健康检查、反向代理大小限制。
 
+生产域名为 `api.luoandlt.xin`，A 记录指向 `115.29.224.127`。使用宿主机现有 Nginx 新增独立虚拟主机，反向代理到 `127.0.0.1:18000`；Certbot 只签发该域名证书，不覆盖现有站点。公网仅开放 22/80/443，8000/18000/5432 均不开放。
+
 ## P8-T03 微信生产认证
 
 状态：`[ ]`
 
 工作：AppSecret 密钥管理、Owner claim 保护、Session rotation、dev_token 禁用。
+
+生产小程序继续使用 AppID `wxf8dd2914154f4dea`，客户端固定 `environment=production`、`defaultApiBase=https://api.luoandlt.xin` 和自动微信登录。AppSecret 仅进入服务器未跟踪环境文件；首次正式登录绑定空生产库中的唯一 Owner，生产不得接受开发 Token。
 
 ## P8-T04 私有内容存储
 
@@ -1342,6 +1354,201 @@ issue 时删除迁移生成的 profile/session/Owner；一旦存在个人学习�
 - 学习负荷可持续且无长期积压。
 - 高频低质量卡有闭环。
 - 下一阶段决策有数据依据。
+
+---
+
+# P10 温习 Android 私有客户端
+
+依据：`MOBILE-001` 至 `MOBILE-007`、`AUTH-006`、`AUTH-007` 和
+[`2026-07-27-wenxi-android-app-design.md`](../specs/2026-07-27-wenxi-android-app-design.md)。
+
+已确认目标：APP 名称“温习”，applicationId `xin.luoandlt.wxzy`，首个真机改为用户实际持有的
+OPPO Find X7 Pro（ColorOS/Android 版本连接后读取），通过私有 HTTPS 分发签名 APK。微信体验版保留，
+Android 与小程序共用当前唯一 Owner 和全部学习数据。
+
+## P10-T01 Android 规格和工程边界
+
+状态：`[x]`
+
+目标：在写跨端代码前确定同仓库独立 `mobile/`、认证边界、实施门禁和真机交付证据。
+
+范围外：不创建 npm/Gradle 工程，不修改数据库和生产服务。
+
+依赖文件：PRD、系统设计、Android APP 设计、Superpowers README 和本实施计划。
+
+输入输出：输入为已确认设备、名称、包名和私有分发决策；输出为可链接、无冲突的 Active 规格。
+
+验证：Markdown 链接检查、`git diff --check`、需求 ID 和计划任务互相引用检查。
+
+验收：Operator 与 Learner 可分离；唯一 Owner、现有数据复用、安全存储、签名和范围外内容写清楚。
+
+风险：原 P8/P9 仍以小程序为主要发布路径；P10 增量不得把旧阶段状态伪改为已完成。
+
+完成记录（2026-07-27）：新增 Active Android 设计，更新 PRD、系统设计、文档地图和本计划；
+固定“温习”/`xin.luoandlt.wxzy`/OPPO Find X7 Pro/私有签名 APK，明确 Operator 与 Learner 可分离、
+现有 Owner 数据复用和一次性设备激活边界。`tools/quality_checks.py docs` 验证 42 份文档通过，
+`git diff --check` 通过。
+
+## P10-T02 一次性设备激活
+
+状态：`[x]`
+
+目标：让 Android 设备在不携带微信 AppSecret、不创建第二个 Owner 的情况下获得普通 UserSession。
+
+范围外：公开注册、手机号/短信、短 PIN、密码找回、多用户和 OAuth 提供方框架。
+
+依赖文件：`server/app/identity/`、`server/app/api/v1/identity.py`、Alembic、认证测试和生产部署配置。
+
+输入输出：CLI 为现有 active Owner 生成一次性高熵码；`POST /api/v1/auth/mobile/activate` 消费后输出
+现有 `SessionTokenOut`；数据库只保存 code/token 哈希和 UTC 生命周期。
+
+验证：正常、无 Owner、过期、撤销、已使用、错误码、并发消费、Session 刷新/撤销、账户删除级联、
+SQLite/PostgreSQL migration、日志脱敏、Ruff/Mypy/pytest。
+
+验收：同一码最多产生一个 Session；失败不泄露码状态；现有微信 Owner/Session 回归通过。
+
+风险：当前 `AUTH_MODE=wechat` 是历史兼容名；P10 先复用 Session Bearer，不在同任务重命名生产模式。
+
+完成记录（2026-07-27）：新增 `owner_activation_codes` migration/ORM、一次性高熵码 CLI、原子消费
+领域服务和 `/api/v1/auth/mobile/activate`，复用现有 Session refresh/logout/device revoke；激活码与
+Token 仅保存 SHA-256，通用错误和日志清洗不暴露码状态。真实 PostgreSQL 门禁发现并修复了
+`joinedload` 外连接与 `FOR UPDATE` 不兼容的问题，行锁现限定到激活码表。同一测试库执行认证、
+并发消费和完整升级/降级链为 29 passed；SQLite 回归、账户删除级联、Ruff format/check 和 Mypy
+通过。Operator 命令与一次性传递约束已写入 `server/README.md`。
+
+## P10-T03 Mobile 工程基线
+
+状态：`[x]`
+
+目标：建立 `mobile/` React + TypeScript + Vite + Capacitor 项目和可重复质量命令。
+
+范围外：不一次迁移全部页面，不建立跨端 shared 包，不生成生产 keystore。
+
+依赖文件：Android APP 设计、后端 OpenAPI 契约、根 `.gitignore`。
+
+输入输出：真实四 Tab 应用壳、激活页、HTTP/Session adapter、环境配置、lint/typecheck/test/build 和
+Capacitor 配置；applicationId 固定为 `xin.luoandlt.wxzy`。
+
+验证：npm lockfile 安装、ESLint、TypeScript、Vitest、Vite production build、敏感字符串扫描。
+
+验收：浏览器首屏直接进入激活或今日，不是营销页；测试不依赖真实 Token；构建产物不进 Git。
+
+风险：安全存储插件必须在 Android 真机再验，浏览器测试只能使用显式内存适配器。
+
+完成记录（2026-07-27）：建立 React 19 + TypeScript + Vite + Capacitor `mobile/` 工程，固定“温习”
+和 `xin.luoandlt.wxzy`，实现认证前激活页、认证后四 Tab 壳、可注入 HTTP client、稳定错误映射、
+SessionStore 接口、浏览器内存适配器、Session 恢复/401 清理/本地退出和显式 API 环境配置。
+浏览器不使用 localStorage/sessionStorage 保存 Token；Android Keystore AES-GCM 插件已在 T06 工程中
+实现，实际持久化仍由 T07 真机门禁验收。`npm ci`、ESLint、TypeScript、9 个 Vitest、带显式 API Base 的 Vite production build
+和敏感字符串扫描通过；Chrome 390x844 首屏截图确认激活页无空白、横向溢出或元素重叠。
+
+## P10-T04 最小学习闭环
+
+状态：`[ ]`
+
+目标：完成激活 -> 今日 -> 开始计划会话 -> 下一张 -> 回忆/答案/要点 -> 幂等评分 -> 完成。
+
+范围外：完整目录、图表美化、离线卡库、推送和自动更新。
+
+依赖文件：P10-T02/T03、`/api/v1/learning/today`、StudySession 和 ReviewAttempt 契约。
+
+输入输出：移动端纵向闭环；超时重试复用 `client_attempt_id` 和原 payload；服务端成功后才推进 UI。
+
+验证：组件状态测试、API fixture、Playwright 移动 viewport、真实开发 API E2E、长文本和软键盘布局。
+
+验收：10/30 分钟计划均可开始；完整会话无重复 Attempt；中断和恢复保留游标。
+
+风险：Android WebView 生命周期和返回手势需在 P10-T07 真机确认。
+
+进展记录（2026-07-27）：移动端已接入今日计划、10/20/30 分钟调整、计划会话创建、下一项、
+快速回忆/可选书写、答案/审核要点/来源摘录、四档评分、完成、暂停和恢复 API。评分失败后将完整
+payload 与 `client_attempt_id` 保存在任务状态中，只允许原样重试；服务端成功后才加载下一张。
+ESLint、TypeScript、Vite build 和 12 个 Vitest 通过，其中组件测试验证首次网络失败与重试使用同一
+payload 对象并只在成功后推进。隔离临时 SQLite + 实际 FastAPI + Chrome Playwright E2E 已验证激活、
+10 分钟、暂停/恢复、书写、要点、首次评分断网、原 payload 重试和完成；数据库最终仅 1 条 Attempt，
+会话为 `completed/1/1`。30 分钟启动已有组件测试覆盖。尚缺长文本/中文软键盘移动截图和 Android
+WebView 生命周期验证，因此本任务保持未完成。
+
+## P10-T05 其余学习运行面
+
+状态：`[x]`
+
+目标：迁移档案、学科、章节、加入学习、卡片/来源、进度、薄弱点、周测和设备管理。
+
+范围外：文档处理控制面、候选审核、完整 PDF 阅读、多用户和医疗建议。
+
+依赖文件：小程序设计和现有 11 个页面的 `/api/v1` 行为。
+
+输入输出：四 Tab 和任务页；每个网络页具备 loading/empty/error/unauthorized/retry，写操作有提交锁。
+
+验证：Vitest、Playwright、真实 API smoke、页面文字溢出/无来源/空数据/断网/过期 Session。
+
+验收：小程序核心学习能力均有 Android 落点，页面不显示 Token、控制面路径或生产配置。
+
+风险：先保持服务端契约为真，不复制小程序页面中的临时兼容逻辑。
+
+完成记录（2026-07-27）：Android 已实现档案/引导、学科、章节树、搜索分页、整章与单卡加入、
+暂停/恢复、卡片详情、完整来源、进度、七日负荷、学科趋势、薄弱点、周测、设备 Session 撤销和
+数据导出。四 Tab 不再包含占位页；所有网络页具备 loading/empty/error/retry，写操作有提交锁。
+Session 支持到期前轮换、401 单次刷新重试、WebView 恢复前台复验和失效后清理安全存储并返回
+激活页。10 个 Vitest 文件 22 个用例通过；390x844 Playwright 覆盖全部 Tab 和任务页、无横向溢出；隔离 SQLite + 真实
+FastAPI E2E 覆盖激活、目录/章节/来源、进度、档案、设备、暂停/恢复、评分断网幂等和完成。
+
+## P10-T06 Android 构建、签名和分发
+
+状态：`[ ]`
+
+目标：生成可复现 Android 工程、release signing 模板、版本清单和私有下载产物。
+
+范围外：应用商店上架、公开下载、应用内差分更新和本轮 APP 备案结论。
+
+依赖文件：Capacitor Android、Gradle、JDK/Android SDK、部署说明和 `.gitignore`。
+
+输入输出：unsigned debug APK 自动构建；由用户本地生成并保管 release keystore 后产出签名 APK、
+SHA-256 和证书指纹。密码、keystore、APK 不提交 Git。
+
+验证：Gradle test/lint/assemble、`apksigner verify`、校验和复算、同签名覆盖安装设计检查。
+
+验收：固定包名和版本；私有链接可撤销；签名材料有离线加密备份说明。
+
+风险：生成 release keystore 需要用户确认保存位置和口令，是明确暂停点。
+
+进展记录（2026-07-27）：已生成 Capacitor Android 工程，固定 versionName `0.1.0`、versionCode `1`、
+compile/target SDK 36 和 min SDK 24；关闭系统备份，仅申请 INTERNET。新增自有 `SecureSession`
+Capacitor 插件，使用 Android Keystore AES-GCM 加密 Session 后再写私有 SharedPreferences。隔离 JDK 21
+和 Android SDK 下执行 Gradle `test lintDebug assembleDebug` 成功（193 tasks），产出 4.0 MiB debug APK；
+`aapt` 验证包名/版本/权限，`apksigner` 验证 v2 debug 签名，包内敏感字符串扫描无命中。debug APK
+仅供内部安装测试。现已增加用户自管 `keystore.properties` 模板、强制签名 Gradle 门禁、release
+构建/签名/证书/SHA-256 脚本和独立 APK 校验脚本；无 keystore 时 `assembleRelease` 会明确失败。
+自有 SecureSession 已拆为可 instrumentation 验证的 Android Keystore 存储，修正插件注册时序，
+增加加密落盘/恢复/清除用例和系统返回手势桥接；Gradle `test lintDebug assembleDebug
+assembleDebugAndroidTest` 269 tasks 成功。release keystore、正式签名、私有分发和真机覆盖升级仍未完成。
+
+## P10-T07 OPPO Find X7 Pro 真机验收
+
+状态：`[ ]`
+
+目标：在确认设备上完成真实安装、激活、学习、恢复和升级。
+
+范围外：以模拟器或浏览器截图替代真机、宣称所有 Android 厂商兼容。
+
+依赖：P10-T02 至 T06、用户允许未知来源安装、USB 调试或私有下载操作。
+
+输入输出：真机验收记录，包含设备/系统/APP 版本、流程结果、request_id 和脱敏数据库计数。
+
+验证：首次安装、一次性激活、10/30 分钟、章节加入、答案/来源/评分、退出重进、断网恢复、
+Session 撤销、覆盖升级、状态栏/返回手势/中文键盘和长文本。
+
+验收：唯一 Owner 数据连续，Attempt 不重复，APK 重启/升级不丢服务端进度，无不可达主流程。
+
+风险：安装和真机交互需要用户操作；到达该门禁时暂停并逐步收集结果。
+
+### P10 退出门禁
+
+- 唯一 Owner 可在微信体验版与温习 Android APP 之间同步同一份学习数据。
+- OPPO Find X7 Pro 上签名 APK 完成最小学习闭环和恢复/升级验收；Xiaomi/HyperOS 作为后续兼容性验证。
+- 激活码、Session、签名密钥和生产凭据均未进入仓库、APK 或日志。
+- 私有交付包含版本、SHA-256、签名证书指纹、安装和恢复说明。
 
 ---
 
