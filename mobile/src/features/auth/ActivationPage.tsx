@@ -7,7 +7,7 @@ interface ActivationPageProps {
 
 export function ActivationPage({ onActivate }: ActivationPageProps) {
   const [activationCode, setActivationCode] = useState('')
-  const [deviceLabel, setDeviceLabel] = useState('OPPO Find X7 Pro')
+  const [deviceLabel, setDeviceLabel] = useState('Xiaomi 17 Pro')
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState<string | null>(null)
 

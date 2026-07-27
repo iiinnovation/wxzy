@@ -1362,9 +1362,9 @@ issue 时删除迁移生成的 profile/session/Owner；一旦存在个人学习�
 依据：`MOBILE-001` 至 `MOBILE-007`、`AUTH-006`、`AUTH-007` 和
 [`2026-07-27-wenxi-android-app-design.md`](../specs/2026-07-27-wenxi-android-app-design.md)。
 
-已确认目标：APP 名称“温习”，applicationId `xin.luoandlt.wxzy`，首个真机改为用户实际持有的
-OPPO Find X7 Pro（ColorOS/Android 版本连接后读取），通过私有 HTTPS 分发签名 APK。微信体验版保留，
-Android 与小程序共用当前唯一 Owner 和全部学习数据。
+已确认目标：APP 名称“温习”，applicationId `xin.luoandlt.wxzy`，正式目标机为 Xiaomi 17 Pro
+（HyperOS/Android 版本连接后读取），通过私有 HTTPS 分发签名 APK。OPPO Find X7 Ultra 已完成
+未激活的基础冒烟；微信体验版保留，Android 与小程序共用当前唯一 Owner 和全部学习数据。
 
 ## P10-T01 Android 规格和工程边界
 
@@ -1385,7 +1385,7 @@ Android 与小程序共用当前唯一 Owner 和全部学习数据。
 风险：原 P8/P9 仍以小程序为主要发布路径；P10 增量不得把旧阶段状态伪改为已完成。
 
 完成记录（2026-07-27）：新增 Active Android 设计，更新 PRD、系统设计、文档地图和本计划；
-固定“温习”/`xin.luoandlt.wxzy`/OPPO Find X7 Pro/私有签名 APK，明确 Operator 与 Learner 可分离、
+固定“温习”/`xin.luoandlt.wxzy`/Xiaomi 17 Pro/私有签名 APK，明确 Operator 与 Learner 可分离、
 现有 Owner 数据复用和一次性设备激活边界。`tools/quality_checks.py docs` 验证 42 份文档通过，
 `git diff --check` 通过。
 
@@ -1524,7 +1524,7 @@ Capacitor 插件，使用 Android Keystore AES-GCM 加密 Session 后再写私�
 增加加密落盘/恢复/清除用例和系统返回手势桥接；Gradle `test lintDebug assembleDebug
 assembleDebugAndroidTest` 269 tasks 成功。release keystore、正式签名、私有分发和真机覆盖升级仍未完成。
 
-## P10-T07 OPPO Find X7 Pro 真机验收
+## P10-T07 Xiaomi 17 Pro 真机验收
 
 状态：`[ ]`
 
@@ -1546,7 +1546,7 @@ Session 撤销、覆盖升级、状态栏/返回手势/中文键盘和长文本�
 ### P10 退出门禁
 
 - 唯一 Owner 可在微信体验版与温习 Android APP 之间同步同一份学习数据。
-- OPPO Find X7 Pro 上签名 APK 完成最小学习闭环和恢复/升级验收；Xiaomi/HyperOS 作为后续兼容性验证。
+- Xiaomi 17 Pro / HyperOS 上签名 APK 完成最小学习闭环和恢复/升级验收。
 - 激活码、Session、签名密钥和生产凭据均未进入仓库、APK 或日志。
 - 私有交付包含版本、SHA-256、签名证书指纹、安装和恢复说明。
 

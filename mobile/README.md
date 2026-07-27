@@ -39,8 +39,9 @@ for controlled internal installation tests; do not distribute it as a production
 
 The Android runtime stores the Session through the custom `SecureSession` Capacitor plugin. The
 plugin encrypts data with an Android Keystore AES-GCM key before writing private SharedPreferences,
-and Android system backup is disabled. Compilation and static checks pass, but persistence and
-logout still require validation on the target OPPO Find X7 Pro device.
+and Android system backup is disabled. OPPO Find X7 Ultra basic smoke testing passed installation,
+Keystore persistence, system bars, Chinese keyboard resizing, and back gesture behavior. Full
+activation, learning, recovery, and logout validation remains required on the target Xiaomi 17 Pro.
 
 ## Release signing pause point
 

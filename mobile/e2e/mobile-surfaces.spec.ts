@@ -31,7 +31,7 @@ test('all four tabs and task pages are usable at the target mobile viewport', as
   await expect(page.getByRole('heading', { name: '本周混合测试' })).toBeVisible()
 
   await page.goto('/#/me')
-  await expect(page.getByText('OPPO Find X7 Pro · 当前设备')).toBeVisible()
+  await expect(page.getByText('Xiaomi 17 Pro · 当前设备')).toBeVisible()
   await page.getByRole('link', { name: '编辑档案' }).click()
   await expect(page.getByRole('heading', { name: '档案设置' })).toBeVisible()
   await page.getByLabel('每日分钟').fill('30')
@@ -72,7 +72,7 @@ function responseFor(path: string, method: string): unknown {
   if (path.endsWith('/insights/workload')) return workload
   if (path.endsWith('/insights/weak-topics')) return weakPage
   if (path.endsWith('/learning/today')) return today
-  if (path.endsWith('/me/sessions')) return { items: [{ id: 1, device_label: 'OPPO Find X7 Pro', created_at: '2026-07-27T00:00:00Z', expires_at: '2099-01-01T00:00:00Z', revoked_at: null, status: 'active', current: true }] }
+  if (path.endsWith('/me/sessions')) return { items: [{ id: 1, device_label: 'Xiaomi 17 Pro', created_at: '2026-07-27T00:00:00Z', expires_at: '2099-01-01T00:00:00Z', revoked_at: null, status: 'active', current: true }] }
   if (path.endsWith('/me')) return owner
   return {}
 }

@@ -7,8 +7,9 @@ applicationId：`xin.luoandlt.wxzy`
 ## 结论
 
 当前已具备可安装的内部 debug APK，但尚不满足最终用户 release 分发门禁。自动化已覆盖 Web、真实
-FastAPI E2E、Android 编译、lint、debug 签名和包内容检查；缺少 OPPO Find X7 Pro 真机安装、安全存储、
-返回手势、软键盘、release 签名和覆盖升级验证。
+FastAPI E2E、Android 编译、lint、debug 签名和包内容检查；OPPO Find X7 Ultra 已通过安装和安全存储
+及基础 UI 冒烟测试；按本轮范围不在 OPPO 上激活，仍缺少 Xiaomi 17 Pro 完整闭环、release 签名和
+覆盖升级验证。
 
 ## 已通过
 
@@ -20,6 +21,7 @@ FastAPI E2E、Android 编译、lint、debug 签名和包内容检查；缺少 OP
 | 真实 API E2E | 激活 -> 目录/章节/来源 -> 进度/档案/设备 -> 10 分钟 -> 暂停/恢复 -> 评分断网幂等 -> 完成 | 1 passed |
 | E2E 数据 | 激活码消费、ReviewAttempt 幂等、会话游标 | used=1，attempt=1，completed/1/1 |
 | Android | Gradle test、lintDebug、assembleDebug、assembleDebugAndroidTest | BUILD SUCCESSFUL，269 tasks |
+| Android 真机 | OPPO Find X7 Ultra（PHY110），Android 16 / API 36，ColorOS V16.1.0 | 安装、Keystore instrumentation、系统栏、中文键盘缩放和返回手势通过 |
 | APK 契约 | 包名、版本、SDK、权限、应用名 | 通过 |
 | APK 签名 | APK Signature Scheme v2 debug 签名 | 通过 |
 | 安全扫描 | APK 不含测试 Token、激活码、微信密钥或私钥标记 | 无命中 |
@@ -31,6 +33,8 @@ Vitest 已显式排除 `e2e/**`；复验结果为 ESLint、TypeScript、10 个 V
 显式生产 API Base 的 Vite build 通过。移动页面 Playwright 覆盖四 Tab 与全部任务页并保留学科、
 进度、档案截图；隔离 SQLite + Alembic head + 实际 FastAPI E2E 同时验证目录来源与学习闭环。
 重新执行 Capacitor sync 与 Gradle `test lintDebug assembleDebug assembleDebugAndroidTest`，269 个任务成功。
+OPPO 真机发现并修复了深色系统模式下浅色页面状态栏图标对比度不足，以及缺少生产 API Base 时
+APK 可构建但启动白屏的问题；Vite 现会在构建期直接拒绝缺少 `VITE_API_BASE_URL` 的生产构建。
 
 E2E 种子工具通过 Ruff format/check 与 Mypy；43 份仓库文档链接检查和 `git diff --check` 通过。
 Git 忽略规则已验证覆盖 APK、Android/Gradle 构建目录、Capacitor 复制资源、`*.jks`、`*.keystore`
@@ -41,16 +45,17 @@ Git 忽略规则已验证覆盖 APK、Android/Gradle 构建目录、Capacitor �
 - 文件：`mobile/artifacts/wenxi-0.1.0-debug.apk`
 - 类型：Android debug 签名，仅供内部安装测试
 - 大小：约 4.0 MiB
-- SHA-256：`879d37c451551a4dec4c63481f16a0ac6297b3f3f957cbea1dfe94bc4800de3c`
+- SHA-256：`b92d8bb2065822b7495269eb98008edec265bdb818f17811ca4002dae831dd7d`
 - 证书：`C=US, O=Android, CN=Android Debug`
 - 证书 SHA-256：`e920652a81bd4cf85f0fee90361266508db9caed90e913e57449be050825309e`
 
 ## 尚未通过
 
-1. OPPO Find X7 Pro 安装、首次激活与 Android Keystore 实际持久化。
-2. 实机 ColorOS/Android 状态栏、边到边布局、返回手势和中文软键盘；Xiaomi/HyperOS 后续补兼容验证。
-3. 30 分钟真实 API 会话、长答案/长来源、断网恢复和 Session 撤销真机流程；instrumentation APK
-   已构建但因当前无 ADB 设备尚未执行。
-4. 用户自主管理的 release keystore、release APK 签名、`apksigner verify` 和覆盖升级。
+1. Xiaomi 17 Pro 使用真实激活码完成首次激活、重启恢复和最小学习闭环。
+2. Xiaomi/HyperOS 状态栏、边到边布局、返回手势、中文软键盘、长答案/长来源和断网恢复。
+3. 30 分钟真实 API 会话、Session 撤销和同签名覆盖升级流程。
+4. 用户自主管理的 release keystore、release APK 签名和 `apksigner verify`。
+
+OPPO 基础冒烟结束后已卸载主应用与测试组件，并清除手机端临时截图；未签发或消费真实激活码。
 
 因此 debug APK 可以交给受控测试用户试装，不能标记为最终发布版本。

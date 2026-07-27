@@ -99,7 +99,7 @@ test('activates once, stores the session, and enters today', async () => {
   fireEvent.submit(screen.getByRole('button', { name: '激活并进入今日学习' }).closest('form')!)
 
   expect(await screen.findByRole('heading', { name: '今日学习' })).toBeInTheDocument()
-  expect(activate).toHaveBeenCalledWith('one-time-code', 'OPPO Find X7 Pro')
+  expect(activate).toHaveBeenCalledWith('one-time-code', 'Xiaomi 17 Pro')
   expect(await store.read()).toEqual({
     accessToken: issuedSession.access_token,
     expiresAt: issuedSession.expires_at

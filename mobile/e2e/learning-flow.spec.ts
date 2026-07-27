@@ -28,7 +28,7 @@ test('activates, interrupts, resumes, retries the same rating, and completes', a
   await page.goto('/#/insights')
   await expect(page.getByText('内容与掌握')).toBeVisible()
   await page.goto('/#/me')
-  await expect(page.getByText('OPPO Find X7 Pro · 当前设备')).toBeVisible()
+  await expect(page.getByText('Xiaomi 17 Pro · 当前设备')).toBeVisible()
   await page.getByRole('link', { name: '编辑档案' }).click()
   await expect(page.getByLabel('每日分钟')).toHaveValue('20')
   await page.goto('/#/today')

@@ -16,7 +16,7 @@ test('activation uses the v1 contract without putting the code in the URL', asyn
   )
   const api = createApiClient({ baseUrl: 'https://api.example.test/', fetch: fetchRequest })
 
-  await api.activate('one-time-code', 'OPPO Find X7 Pro')
+  await api.activate('one-time-code', 'Xiaomi 17 Pro')
 
   expect(fetchRequest).toHaveBeenCalledTimes(1)
   const [url, init] = fetchRequest.mock.calls[0]
@@ -24,7 +24,7 @@ test('activation uses the v1 contract without putting the code in the URL', asyn
   expect(url).not.toContain('one-time-code')
   expect(JSON.parse(init.body as string)).toEqual({
     activation_code: 'one-time-code',
-    device_label: 'OPPO Find X7 Pro'
+    device_label: 'Xiaomi 17 Pro'
   })
 })
 

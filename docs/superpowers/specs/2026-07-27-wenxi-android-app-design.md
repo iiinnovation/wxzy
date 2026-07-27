@@ -18,7 +18,7 @@ APP 复用现有 FastAPI、PostgreSQL、已发布内容、Owner、学习档案�
 | APP 名称 | 温习 |
 | Android applicationId | `xin.luoandlt.wxzy` |
 | 首个测试版本 | `0.1.0` / versionCode `1` |
-| 首个目标设备 | OPPO Find X7 Pro |
+| 首个目标设备 | Xiaomi 17 Pro |
 | 目标系统 | 以真机连接后读取的 ColorOS / Android 版本为准 |
 | 分发方式 | 私有 HTTPS 下载的签名 APK |
 | 数据模式 | 联网优先；服务端为学习数据真相 |
@@ -193,7 +193,7 @@ APP 不提供 PDF 导入、MinerU/Qwen 控制、候选审核、数据库管理�
 
 ### A6 OPPO 真机验收
 
-- OPPO Find X7 Pro 完成激活、10/30 分钟计划、章节加入、完整复习、来源、进度、退出重进、
+- Xiaomi 17 Pro 完成激活、10/30 分钟计划、章节加入、完整复习、来源、进度、退出重进、
   断网/恢复和版本升级。
 - 验收证据包括 APP 版本、设备/系统版本、服务端 request_id、数据库计数和脱敏结果记录。
 
