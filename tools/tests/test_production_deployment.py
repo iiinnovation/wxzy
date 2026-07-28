@@ -20,6 +20,12 @@ def test_production_compose_keeps_database_private() -> None:
     assert "read_only: true" in compose
 
 
+def test_production_cors_allows_android_capacitor_origin() -> None:
+    compose = (PRODUCTION / "compose.yml").read_text(encoding="utf-8")
+
+    assert "CORS_ORIGINS: https://servicewechat.com,https://localhost" in compose
+
+
 def test_production_image_runs_as_non_root() -> None:
     dockerfile = (ROOT / "server" / "Dockerfile").read_text(encoding="utf-8")
     dockerignore = (ROOT / "server" / ".dockerignore").read_text(encoding="utf-8")

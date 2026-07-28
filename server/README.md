@@ -44,7 +44,7 @@ After the database is migrated and the active Owner exists, issue a short-lived,
 inside the API container:
 
 ```bash
-docker compose exec api python scripts/issue_mobile_activation.py --ttl-minutes 30
+docker compose exec api python -m scripts.issue_mobile_activation --ttl-minutes 30
 ```
 
 The command prints the activation code once. Transfer it through a controlled channel and do not
